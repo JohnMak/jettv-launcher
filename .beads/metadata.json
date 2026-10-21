@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "androidtv",
+  "project_id": "7457a509-cd79-4a1a-a8b7-b36a568c1ca3"
+}
