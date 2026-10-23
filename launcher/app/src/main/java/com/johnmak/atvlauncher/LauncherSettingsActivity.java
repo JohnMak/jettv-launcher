@@ -27,7 +27,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
@@ -42,6 +41,8 @@ public final class LauncherSettingsActivity extends Activity {
     private static final String TAG = "AtvSettings";
     /** Boolean extra: open with the «Город» row focused (weather item without a city). */
     static final String EXTRA_FOCUS_CITY = "com.johnmak.atvlauncher.FOCUS_CITY";
+    /** Boolean extra: open with the missing-rights warning row focused (first start). */
+    static final String EXTRA_FOCUS_RIGHTS = "com.johnmak.atvlauncher.FOCUS_RIGHTS";
 
     private static final String STATE_ROW = "focus_row";
 
@@ -52,6 +53,7 @@ public final class LauncherSettingsActivity extends Activity {
     /** One focusable line: label on the left, value (or the search field) on the right. */
     private final class Row {
         final LinearLayout view;
+        final TextView label;
         /** Header of the section this row opens (shown above it); null for the other rows. */
         View header;
         final TextView value;
@@ -72,10 +74,18 @@ public final class LauncherSettingsActivity extends Activity {
             int pad = dp(16);
             view.setPadding(pad, 0, pad, 0);
             TextView l = text(label, R.color.text_primary, R.font.outfit_regular);
+            this.label = l;
             view.addView(l, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             view.addView(value, valueText == null
                     ? new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                     : new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        }
+
+        /** The attention colour on label and value of this row only. */
+        void warn() {
+            int c = getColor(R.color.warning_yellow);
+            label.setTextColor(c);
+            value.setTextColor(c);
         }
 
         /** Cyclic rows show arrows around the value while focused. */
@@ -113,6 +123,14 @@ public final class LauncherSettingsActivity extends Activity {
     private View pendingHeader;
     private boolean layoutPending;
     private int updateRow = -1;
+    private int rightsRow = -1;
+    private int homeRow = -1;
+    private boolean rightsRunning;
+    private boolean homeRunning;
+    private String rightsError = "";
+    private String homeError = "";
+    private RequiredRights.Probe rightsProbe;
+    private RightsFixer fixer;
     private final UpdateController.Listener updateListener = state -> refreshUpdateRow();
 
     private EditText input;
@@ -139,12 +157,22 @@ public final class LauncherSettingsActivity extends Activity {
         tokens = new KinopoiskTokenStore(this);
         settings = store.load();
         vpnApps = VpnAppsLoader.installed(getPackageManager());
+        rightsProbe = RequiredRights.android(this);
+        fixer = new RightsFixer(LoopbackAdbSession.shared(this), PackageName.parse(getPackageName()).value(),
+                rightsProbe, worker, main::post);
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             onImeVisible(insets.isVisible(WindowInsets.Type.ime()));
             return insets;
         });
         if (savedInstanceState != null) showMain(savedInstanceState.getInt(STATE_ROW));
         else showMain(getIntent().getBooleanExtra(EXTRA_FOCUS_CITY, false) ? -1 : 0);
+    }
+
+    /** Rights may have been granted or revoked elsewhere (system settings, adb): recompute the top rows. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshRights();
     }
 
     /** Keeps the focused row over the recreate() that applies a new UI scale. */
@@ -196,6 +224,20 @@ public final class LauncherSettingsActivity extends Activity {
     private void showMain(int focusRow) {
         page = Page.MAIN;
         clearRows();
+        rightsRow = -1;
+        homeRow = -1;
+
+        List<RequiredRights.Right> missing = RequiredRights.missing(rightsProbe);
+        if (!RequiredRights.withoutHome(missing).isEmpty()) {
+            rightsRow = rows.size();
+            addRow(R.string.settings_rights_warning, () -> rightsText(RequiredRights.missing(rightsProbe)),
+                    this::grantRights, null, null);
+            rows.get(rightsRow).warn();
+        }
+        if (missing.contains(RequiredRights.Right.HOME)) {
+            homeRow = rows.size();
+            addRow(R.string.settings_set_home, this::homeText, this::setHome, null, null);
+        }
 
         addSection(R.string.settings_section_appearance);
         addRow(R.string.settings_ui_scale, () -> getString(R.string.settings_percent, settings.uiScalePercent), null,
@@ -219,10 +261,6 @@ public final class LauncherSettingsActivity extends Activity {
         updateVideoNote();
 
         addSection(R.string.settings_section_content);
-        addRow(R.string.settings_sources_recommendations, () -> sourcesText(FeedSource.RECOMMENDATIONS),
-                () -> AppPickerActivity.open(this, FeedSource.RECOMMENDATIONS), null, null);
-        addRow(R.string.settings_sources_continue, () -> sourcesText(FeedSource.CONTINUE),
-                () -> AppPickerActivity.open(this, FeedSource.CONTINUE), null, null);
         tokenRow = rows.size();
         addRow(R.string.settings_kinopoisk_token, this::tokenText, this::showToken, null, null);
         cityRow = rows.size();
@@ -381,16 +419,80 @@ public final class LauncherSettingsActivity extends Activity {
         return getString(on ? R.string.settings_on : R.string.settings_off);
     }
 
-    /** «все» or «N из M» for the apps that publish into a feed row. */
-    private String sourcesText(FeedSource source) {
-        Set<String> excluded = store.excluded(source);
-        if (excluded.isEmpty()) return getString(R.string.settings_sources_all);
-        AppLoader.Result apps = AppCache.apps();
-        if (apps == null) return getString(R.string.settings_sources_unknown);
-        int total = apps.byPackage.size();
-        int included = ExcludedApps.includedCount(apps.byPackage.keySet(), excluded);
-        return included == total ? getString(R.string.settings_sources_all)
-                : getString(R.string.settings_sources_some, included, total);
+    // ---------------------------------------------------------------- rights
+
+    private String rightsText(List<RequiredRights.Right> missing) {
+        if (rightsRunning) return getString(R.string.settings_rights_running);
+        if (!rightsError.isEmpty()) return rightsError;
+        StringBuilder sb = new StringBuilder();
+        for (RequiredRights.Right r : RequiredRights.withoutHome(missing)) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(getString(rightName(r)));
+        }
+        return sb.toString();
+    }
+
+    private static int rightName(RequiredRights.Right r) {
+        switch (r) {
+            case FINE_LOCATION: return R.string.settings_right_location;
+            case TV_LISTINGS: return R.string.settings_right_listings;
+            case SECURE_SETTINGS: return R.string.settings_right_secure;
+            case USAGE_STATS: return R.string.settings_right_usage;
+            default: return R.string.settings_right_home;
+        }
+    }
+
+    private String homeText() {
+        if (homeRunning) return getString(R.string.settings_rights_running);
+        return homeError;
+    }
+
+    private String errorText(RightsFixer.Outcome o) {
+        if (o.errors.isEmpty()) return "";
+        ShellError kind = o.firstError();
+        return kind == ShellError.UNAUTHORIZED ? getString(R.string.settings_rights_unauthorized)
+                : getString(R.string.settings_rights_failed, kind == null ? "?" : kind.name());
+    }
+
+    private void grantRights() {
+        if (rightsRunning) return;
+        rightsRunning = true;
+        rightsError = "";
+        refreshValues();
+        fixer.grantMissing(o -> {
+            rightsRunning = false;
+            if (isDestroyed()) return;
+            rightsError = errorText(o);
+            refreshRights();
+        });
+    }
+
+    private void setHome() {
+        if (homeRunning) return;
+        homeRunning = true;
+        homeError = "";
+        refreshValues();
+        fixer.setHome(o -> {
+            homeRunning = false;
+            if (isDestroyed()) return;
+            homeError = errorText(o);
+            refreshRights();
+        });
+    }
+
+    /** Rebuilds the list when a warning row appeared or disappeared; otherwise only refreshes the values. */
+    private void refreshRights() {
+        if (page != Page.MAIN || rows.isEmpty()) return;
+        List<RequiredRights.Right> missing = RequiredRights.missing(rightsProbe);
+        boolean needRights = !RequiredRights.withoutHome(missing).isEmpty();
+        boolean needHome = missing.contains(RequiredRights.Right.HOME);
+        if (needRights == (rightsRow >= 0) && needHome == (homeRow >= 0)) {
+            refreshValues();
+            return;
+        }
+        int before = (rightsRow >= 0 ? 1 : 0) + (homeRow >= 0 ? 1 : 0);
+        int after = (needRights ? 1 : 0) + (needHome ? 1 : 0);
+        showMain(Math.max(0, focus - before + after));
     }
 
     private String tokenText() {

@@ -61,11 +61,6 @@
     <string name="settings_section_network">Сеть</string>
     <string name="settings_section_about">О лаунчере</string>
     <string name="settings_preview_scale">Масштаб карточек превью</string>
-    <string name="settings_sources_recommendations">Источники «Рекомендаций»</string>
-    <string name="settings_sources_continue">Источники «Продолжить просмотр»</string>
-    <string name="settings_sources_all">все</string>
-    <string name="settings_sources_some">%1$d из %2$d</string>
-    <string name="settings_sources_unknown">—</string>
     <string name="settings_kinopoisk_token">Токен Кинопоиска</string>
     <string name="settings_token_none">не задан</string>
     <string name="settings_token_hint">UUID токена (пусто — удалить)</string>
@@ -94,4 +89,14 @@
     <string name="picker_hint">OK — включить или выключить приложение, Назад — закрыть</string>
     <string name="picker_loading">Загрузка…</string>
     <string name="settings_ui_scale">Масштаб интерфейса</string>
+    <string name="settings_rights_warning">Внимание: нужно выдать права</string>
+    <string name="settings_rights_running">Выдаю…</string>
+    <string name="settings_rights_unauthorized">Разрешите отладку на экране и нажмите ещё раз</string>
+    <string name="settings_rights_failed">Не удалось выдать права (%1$s)</string>
+    <string name="settings_right_location">Геолокация</string>
+    <string name="settings_right_listings">ТВ-программа</string>
+    <string name="settings_right_secure">Системные настройки</string>
+    <string name="settings_right_usage">Статистика</string>
+    <string name="settings_right_home">Лаунчер</string>
+    <string name="settings_set_home">Сделать лаунчером по умолчанию</string>
 </resources>
