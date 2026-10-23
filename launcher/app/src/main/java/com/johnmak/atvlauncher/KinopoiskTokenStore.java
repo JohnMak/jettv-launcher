@@ -10,8 +10,8 @@ import java.util.regex.Pattern;
  * Only a UUID-shaped token is ever stored; {@link #validate} is the single boundary for typed input.
  */
 final class KinopoiskTokenStore {
-    private static final String FILE = "kinopoisk";
-    private static final String KEY = "token";
+    static final String FILE = "kinopoisk";
+    static final String KEY = "token";
     private static final Pattern UUID = Pattern.compile(
             "[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}");
     private static final int VISIBLE_TAIL = 4;

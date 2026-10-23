@@ -210,6 +210,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SettingsImport.run(this);
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
         Resources res = getResources();

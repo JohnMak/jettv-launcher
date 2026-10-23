@@ -7,11 +7,11 @@ import java.util.TimeZone;
 
 /** Persists the resolved location and the last weather snapshot so the UI can show them instantly. */
 final class WeatherPrefs {
-    private static final String FILE = "weather";
+    static final String FILE = "weather";
     /** Key prefix of the cached snapshot; bumped when the data source changed (v1 = Open-Meteo, v2 = before the phenomenon word; older ignored). */
     private static final String W = "w3_";
     /** Key prefix of the saved location; bumped when the timezone was added (g1 = unprefixed lat/lon/city/country, ignored). */
-    private static final String G = "g2_";
+    static final String G = "g2_";
     private final SharedPreferences prefs;
 
     WeatherPrefs(Context context) {

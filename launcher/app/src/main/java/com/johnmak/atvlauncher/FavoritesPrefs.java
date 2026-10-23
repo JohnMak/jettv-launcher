@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 
 /** SharedPreferences-backed favorites; each call reads the current persisted list. */
 final class FavoritesPrefs implements FavoritesStore.Storage {
-    private static final String FILE = "favorites";
-    private static final String KEY = "packages";
+    static final String FILE = "favorites";
+    static final String KEY = "packages";
 
     private final SharedPreferences prefs;
 
