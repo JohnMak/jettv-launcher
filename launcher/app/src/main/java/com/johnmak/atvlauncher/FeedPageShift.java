@@ -20,7 +20,24 @@ final class FeedPageShift {
     /** Free space kept under the focused row's info field. */
     static final int BOTTOM_MARGIN_DP = 12;
 
+    /** Configure tile = a bare icon of the top-bar icon size (view_feed_config.xml). */
+    static final int CONFIG_ICON_DP = 26;
+    /** Free space between the configure icon and the first card (room for both glasses). */
+    static final int CONFIG_GAP_DP = 20;
+    /** Cards start this far below the top of a feed row (view_feed_config.xml used to mirror it as marginTop). */
+    static final int CARD_TOP_DP = 7;
+
     private FeedPageShift() {}
+
+    /** How far the row slides right to make room for the configure icon (dp). */
+    static int configShiftDp() {
+        return CONFIG_ICON_DP + CONFIG_GAP_DP;
+    }
+
+    /** Top margin of the configure icon (dp from the row top) that centers it on cards of the given height. */
+    static float configIconTopDp(float cardHeightDp) {
+        return CARD_TOP_DP + (cardHeightDp - CONFIG_ICON_DP) / 2f;
+    }
 
     /** Bottom of the second row's info field on the page (dp from the page top) when both rows are shown. */
     static float mixedInfoBottomDp(int previewScalePercent) {

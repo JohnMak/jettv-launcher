@@ -69,6 +69,16 @@ final class Tiles {
         }
     }
 
+    /** Glass margin around a top-bar item (dp): wide enough to hold the gap between items. */
+    static final int TOP_GLASS_PAD_X_DP = 12;
+    static final int TOP_GLASS_PAD_Y_DP = 2;
+
+    /** Expands an icon rect to the round top-bar glass frame (top-bar items, configure tile); returns the corner radius. */
+    static float topGlass(RectF r, float density) {
+        r.inset(-TOP_GLASS_PAD_X_DP * density, -TOP_GLASS_PAD_Y_DP * density);
+        return r.height() / 2;
+    }
+
     /** Expands a tile rect to the scaled-tile glass frame and returns the glass corner radius. */
     static float grow(RectF r, float density, float tileRadiusDp) {
         float growX = r.width() * (FOCUS_SCALE - 1f) / 2 + 4 * density;

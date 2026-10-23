@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hidden «настроить» tile at the left of a feed row; width + gap = MainActivity.CONFIG_SHIFT_DP. Height is set in code. -->
+<!-- Hidden «настроить» icon at the left of a feed row; width + gap = FeedPageShift.configShiftDp(). Top margin is set in code. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="72dp"
+    android:layout_width="26dp"
     android:layout_height="match_parent"
     android:layout_marginStart="56dp"
     android:alpha="0"
     android:clipChildren="false">
 
-    <com.johnmak.atvlauncher.DimImageView
+    <ImageView
         android:id="@+id/config_image"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
-        android:background="@color/card_placeholder"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:contentDescription="@string/feed_configure"
-        android:padding="22dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_sliders_horizontal" />
 </FrameLayout>

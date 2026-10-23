@@ -66,21 +66,15 @@ public final class MainActivity extends Activity {
     private static final int DOT_ERROR = 0xFFFF453A;
 
     private static final int TOP_ITEM_GAP_DP = 28;
-    /** Glass margin around a top-bar item (dp): wide enough to hold the gap between items. */
-    private static final int TOP_GLASS_PAD_X_DP = 12;
-    private static final int TOP_GLASS_PAD_Y_DP = 2;
     private static final int WEATHER_TOP_MARGIN_DP = 12;
     private static final int WEATHER_GLASS_RADIUS_DP = 14;
-
-    /** Width of the hidden configure tile plus its gap to the first card (dp); view_feed_config.xml is 72dp wide. */
-    private static final int CONFIG_SHIFT_DP = 88;
 
     private enum Mode { NAVIGATE, MENU, MOVE, CHECKLIST }
 
     /** The hidden configure tile of one feed row: fades in at the row's left while the row slides right. */
     private final class ConfigTile {
         final View tile;
-        final DimImageView image;
+        final ImageView image;
         final View box;
         final RecyclerView row;
         boolean shown;
@@ -91,12 +85,12 @@ public final class MainActivity extends Activity {
             this.image = tile.findViewById(R.id.config_image);
             this.box = box;
             this.row = row;
-            Tiles.round(image, 12 * density);
         }
 
-        void setCardHeight(int px) {
-            ViewGroup.LayoutParams lp = image.getLayoutParams();
-            lp.height = px;
+        /** Centers the icon vertically on the card row (cards start {@link FeedPageShift#CARD_TOP_DP} below the row top). */
+        void setCardHeight(int cardPx) {
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) image.getLayoutParams();
+            lp.topMargin = Math.round(FeedPageShift.configIconTopDp(cardPx / density) * density);
             image.setLayoutParams(lp);
         }
 
@@ -109,7 +103,7 @@ public final class MainActivity extends Activity {
             }
             if (shift != shifted) {
                 shifted = shift;
-                float x = shift ? CONFIG_SHIFT_DP * density : 0f;
+                float x = shift ? FeedPageShift.configShiftDp() * density : 0f;
                 row.animate().cancel();
                 if (animate) row.animate().translationX(x).setDuration(300).setInterpolator(new DecelerateInterpolator()).start();
                 else row.setTranslationX(x);
@@ -419,7 +413,7 @@ public final class MainActivity extends Activity {
         private void showPopup() {
             RectF anchor = new RectF();
             if (!Tiles.locate(item, root, anchor)) return;
-            anchor.inset(-TOP_GLASS_PAD_X_DP * density, -TOP_GLASS_PAD_Y_DP * density);
+            Tiles.topGlass(anchor, density);
             brightnessPopup.show(anchor);
         }
     }
@@ -910,14 +904,13 @@ public final class MainActivity extends Activity {
         switch (focus.zone()) {
             case WEATHER:
                 if (!Tiles.locate(weatherItem, page, glassTarget)) return;
-                glassTarget.inset(-TOP_GLASS_PAD_X_DP * density, -TOP_GLASS_PAD_Y_DP * 2 * density);
+                glassTarget.inset(-Tiles.TOP_GLASS_PAD_X_DP * density, -Tiles.TOP_GLASS_PAD_Y_DP * 2 * density);
                 radius = WEATHER_GLASS_RADIUS_DP * density;
                 break;
             case TOP: {
                 TopBarItem item = visibleTopItems().get(focus.index());
                 if (!Tiles.locate(item, page, glassTarget)) return;
-                glassTarget.inset(-TOP_GLASS_PAD_X_DP * density, -TOP_GLASS_PAD_Y_DP * density);
-                radius = glassTarget.height() / 2;
+                radius = Tiles.topGlass(glassTarget, density);
                 break;
             }
             case FAVORITES:
@@ -927,7 +920,7 @@ public final class MainActivity extends Activity {
             case WATCH_NEXT:
                 if (focus.config()) {
                     if (!Tiles.locate(watchConfig.image, page, glassTarget)) return;
-                    radius = Tiles.grow(glassTarget, density, 12);
+                    radius = Tiles.topGlass(glassTarget, density);
                     break;
                 }
                 if (!locateInRow(watchRow, watchScroller, watchAdapter, focus.index(), glassTarget)) return;
@@ -936,7 +929,7 @@ public final class MainActivity extends Activity {
             default:
                 if (focus.config()) {
                     if (!Tiles.locate(mixedConfig.image, page, glassTarget)) return;
-                    radius = Tiles.grow(glassTarget, density, 12);
+                    radius = Tiles.topGlass(glassTarget, density);
                     break;
                 }
                 if (!locateInRow(mixedRow, mixedScroller, mixedAdapter, focus.index(), glassTarget)) return;
@@ -990,7 +983,7 @@ public final class MainActivity extends Activity {
             }
             case WATCH_NEXT: {
                 if (ref.index < 0) {
-                    Tiles.setSelected(watchConfig.image, null, focused, animate);
+                    FocusDim.applyAlpha(watchConfig.image, FocusDim.Role.TOP_BAR, focused, animate);
                     break;
                 }
                 RecyclerView.ViewHolder vh = watchRow.findViewHolderForAdapterPosition(ref.index);
@@ -999,7 +992,7 @@ public final class MainActivity extends Activity {
             }
             default: {
                 if (ref.index < 0) {
-                    Tiles.setSelected(mixedConfig.image, null, focused, animate);
+                    FocusDim.applyAlpha(mixedConfig.image, FocusDim.Role.TOP_BAR, focused, animate);
                     break;
                 }
                 RecyclerView.ViewHolder vh = mixedRow.findViewHolderForAdapterPosition(ref.index);
@@ -1019,8 +1012,8 @@ public final class MainActivity extends Activity {
         applyAllInRow(favoritesRow, FocusModel.Zone.FAVORITES, animate);
         applyAllInRow(watchRow, FocusModel.Zone.WATCH_NEXT, animate);
         applyAllInRow(mixedRow, FocusModel.Zone.MIXED, animate);
-        Tiles.setSelected(watchConfig.image, null, focus.config() && focus.zone() == FocusModel.Zone.WATCH_NEXT, animate);
-        Tiles.setSelected(mixedConfig.image, null, focus.config() && focus.zone() == FocusModel.Zone.MIXED, animate);
+        FocusDim.applyAlpha(watchConfig.image, FocusDim.Role.TOP_BAR, focus.config() && focus.zone() == FocusModel.Zone.WATCH_NEXT, animate);
+        FocusDim.applyAlpha(mixedConfig.image, FocusDim.Role.TOP_BAR, focus.config() && focus.zone() == FocusModel.Zone.MIXED, animate);
     }
 
     private void applyAllInRow(RecyclerView row, FocusModel.Zone zone, boolean animate) {

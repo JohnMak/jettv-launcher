@@ -39,6 +39,14 @@ public class FeedPageShiftTest {
     }
 
     @Test
+    public void configIconIsCenteredOnTheCardsAndShiftsRowByIconPlusGap() {
+        assertEquals(46, FeedPageShift.configShiftDp());
+        assertEquals(7f + (200f - 26f) / 2f, FeedPageShift.configIconTopDp(200f), 0.001f);
+        // the glass around the icon (pad 12dp) must not touch the first card
+        assertTrue(FeedPageShift.CONFIG_GAP_DP > Tiles.TOP_GLASS_PAD_X_DP);
+    }
+
+    @Test
     public void aloneSecondRowShiftsLikeTheFirst() {
         assertEquals(430f, FeedPageShift.shiftDp(FocusModel.Zone.MIXED, false, 100), 0.01f);
         assertEquals(430f, FeedPageShift.shiftDp(FocusModel.Zone.MIXED, false, 150), 0.01f);
