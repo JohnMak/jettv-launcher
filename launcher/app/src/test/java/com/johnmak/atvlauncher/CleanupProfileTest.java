@@ -18,6 +18,17 @@ public class CleanupProfileTest {
         assertTrue(p.matches("other", "aiolia"));
         assertFalse(p.matches("MiTV-AYFR0", "soul"));
         assertTrue(p.entries().size() > 10);
+        for (CleanupProfile.Entry e : p.entries()) {
+            if (e.pkg.equals("com.google.android.tts") || e.pkg.equals("com.google.android.marvin.talkback")
+                    || e.pkg.equals("com.google.android.backdrop")) {
+                assertEquals(e.pkg, CleanupProfile.Action.REMOVE, e.action);
+                assertTrue(e.pkg, e.optional);
+            }
+            if (e.pkg.equals("com.xgimi.gimiplayer")) {
+                assertEquals(CleanupProfile.Action.DISABLE, e.action);
+                assertTrue(e.optional);
+            }
+        }
         CleanupProfile q = CleanupProfile.parse("mi", asset("xiaomi-tv-box-s2.txt")).value();
         assertTrue(q.matches("MiTV-AYFR0", "x"));
         assertTrue(q.matches("x", "soul"));

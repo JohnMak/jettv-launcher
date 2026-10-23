@@ -61,4 +61,15 @@ public class CleanupPlannerTest {
         ProtectedPackages prot = ProtectedPackages.base().with(java.util.Collections.singleton("c.d"));
         assertEquals("disable a.b;", render(CleanupPlanner.plan(p, inv, prot, false, false)));
     }
+
+    @Test public void homeHandlerRemoveBecomesDisableAndVendorProfileEntriesStay() {
+        CleanupProfile p = profile("remove com.mitv.tvhome.atv\nremove com.xgimi.gimiplayer\n");
+        Map<String, CleanupPlanner.PackageState> inv = new HashMap<>();
+        inv.put("com.mitv.tvhome.atv", st(true, false, true, false));
+        inv.put("com.xgimi.gimiplayer", live());
+        ProtectedPackages prot = ProtectedPackages.base().withDisableOnly(java.util.Collections.singleton("com.mitv.tvhome.atv"))
+                .allowingVendor(java.util.Collections.singleton("com.xgimi.gimiplayer"));
+        assertEquals("disable com.mitv.tvhome.atv;remove com.xgimi.gimiplayer;",
+                render(CleanupPlanner.plan(p, inv, prot, true, false)));
+    }
 }

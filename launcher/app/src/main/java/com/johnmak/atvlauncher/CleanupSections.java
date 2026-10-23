@@ -103,12 +103,17 @@ final class CleanupSections {
     }
 
     /**
-     * {@code protectedSet} = base + current IME; persistent apps are excluded here. Home handlers: without the HOME
+     * {@code baseProtected} = base + dynamic full protection; persistent apps are excluded here. Home handlers: without the HOME
      * role they are untouchable (only restorable); with it they can be disabled or reset but never removed.
      * {@code profile} may be null.
      */
-    static Result build(List<App> inventory, ProtectedPackages protectedSet, CleanupProfile profile, CleanupLog log,
+    static Result build(List<App> inventory, ProtectedPackages baseProtected, CleanupProfile profile, CleanupLog log,
                         boolean holdsHome) {
+        List<String> homes = new ArrayList<>();
+        for (App a : inventory) if (a.homeHandler) homes.add(a.pkg);
+        List<String> curated = new ArrayList<>();
+        if (profile != null) for (CleanupProfile.Entry e : profile.entries()) curated.add(e.pkg);
+        ProtectedPackages protectedSet = baseProtected.withDisableOnly(homes).allowingVendor(curated);
         Map<String, CleanupProfile.Action> recommended = new HashMap<>();
         Map<String, CleanupPlanner.PackageState> states = new HashMap<>();
         Map<String, App> byPkg = new HashMap<>();
@@ -138,7 +143,7 @@ final class CleanupSections {
             }
             if (!s.installedForUser || s.persistent || protectedSet.contains(a.pkg) || (a.homeHandler && !holdsHome)) continue;
             CleanupProfile.Action rec = recommended.get(a.pkg);
-            if (!a.homeHandler) {
+            if (protectedSet.level(a.pkg) == ProtectedPackages.Level.NONE) {
                 removable.add(new Item(a.pkg, label, s.system ? Op.REMOVE_FOR_USER : Op.UNINSTALL, rec == CleanupProfile.Action.REMOVE));
             }
             if (s.system) disable.add(new Item(a.pkg, label, Op.DISABLE, rec == CleanupProfile.Action.DISABLE));

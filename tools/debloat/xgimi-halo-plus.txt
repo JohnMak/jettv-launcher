@@ -11,10 +11,10 @@
 remove com.google.android.tungsten.setupwraith   # first-run setup wizard, not needed after setup
 remove com.google.android.youtube.tvmusic        # YouTube Music for TV, background updater
 remove com.google.android.tvrecommendations      # stock recommendations service, replaced by the JetTV feed rows
-remove com.google.android.tts                    # Google text-to-speech, only needed by TalkBack
-remove com.google.android.marvin.talkback        # TalkBack screen reader
-remove com.google.android.backdrop               # stock Ambient mode screensaver, replaced by the JetTV screensaver
-remove com.xgimi.gimiplayer                      # vendor media player
+remove? com.google.android.tts                   # Google text-to-speech; other apps and voice features may use it, so optional
+remove? com.google.android.marvin.talkback       # TalkBack screen reader; an accessibility service, optional (never removed while enabled)
+remove? com.google.android.backdrop              # stock Ambient mode screensaver; optional, NOTE: it is the default screensaver until JetTV's is selected
+disable? com.xgimi.gimiplayer                    # vendor media player; optional, disable only (other vendor apps may depend on it)
 remove com.xgimi.doubanfm                        # vendor music app (Douban FM)
 remove com.xgimi.atmosphere                      # vendor ambient/atmosphere app
 remove com.xgimi.filemanager                     # vendor file manager

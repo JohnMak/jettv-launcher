@@ -4,10 +4,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.provider.Settings;
 import android.util.Log;
+import android.webkit.WebView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,7 +29,7 @@ final class CleanupInventory {
 
     static final class Snapshot {
         final List<CleanupSections.App> apps;
-        /** Base set plus the current input method. */
+        /** Base set plus IME, screensaver, accessibility services, WebView and persistent apps (HOME handlers are added by the sections model). */
         final ProtectedPackages protectedSet;
         final boolean holdsHome;
 
@@ -64,6 +66,12 @@ final class CleanupInventory {
         Set<String> extra = new HashSet<>();
         String ime = currentImePackage(context);
         if (ime != null) extra.add(ime);
+        extra.addAll(componentPackages(Settings.Secure.getString(context.getContentResolver(), "screensaver_components"), ','));
+        extra.addAll(componentPackages(Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES), ':'));
+        PackageInfo webView = WebView.getCurrentWebViewPackage();
+        if (webView != null) extra.add(webView.packageName);
+        for (CleanupSections.App a : apps) if (a.state.persistent) extra.add(a.pkg);
         return new Snapshot(apps, ProtectedPackages.base().with(extra), rights.holdsHome());
     }
 
@@ -72,6 +80,17 @@ final class CleanupInventory {
         Set<String> out = new HashSet<>();
         for (ResolveInfo ri : pm.queryIntentActivities(home, PackageManager.MATCH_DISABLED_COMPONENTS)) {
             if (ri.activityInfo != null && !own.equals(ri.activityInfo.packageName)) out.add(ri.activityInfo.packageName);
+        }
+        return out;
+    }
+
+    /** Packages of the flattened components in {@code flat} separated by {@code sep}; blank or malformed entries are skipped. */
+    private static Set<String> componentPackages(String flat, char sep) {
+        Set<String> out = new HashSet<>();
+        if (flat == null) return out;
+        for (String part : flat.split(String.valueOf(sep))) {
+            ComponentName c = ComponentName.unflattenFromString(part.trim());
+            if (c != null) out.add(c.getPackageName());
         }
         return out;
     }

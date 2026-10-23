@@ -124,4 +124,19 @@ public class CleanupSectionsTest {
         c.disarm();
         assertFalse(c.isArmed("b"));
     }
+
+    @Test public void autoPlanNeverRemovesHomeHandlerAndVendorProfileEntryIsAllowed() {
+        CleanupProfile p = profile("remove com.mitv.tvhome.atv\nremove com.xgimi.gimiplayer\n");
+        List<CleanupSections.App> inv = Arrays.asList(
+                app("com.mitv.tvhome.atv", "TV", true, false, true, false, false, true),
+                sys("com.xgimi.gimiplayer", "Player"), sys("com.xgimi.unlisted", "Unlisted"));
+        CleanupSections.Result r = build(inv, p, true);
+        assertEquals(2, r.autoSteps.size());
+        assertEquals(CleanupProfile.Action.DISABLE, r.autoSteps.get(0).action);
+        assertEquals("com.mitv.tvhome.atv", r.autoSteps.get(0).pkg);
+        assertEquals(CleanupProfile.Action.REMOVE, r.autoSteps.get(1).action);
+        assertEquals("com.xgimi.gimiplayer", r.autoSteps.get(1).pkg);
+        assertEquals("com.xgimi.gimiplayer:REMOVE_FOR_USER*;", ids(r.removable));
+        assertEquals("com.xgimi.gimiplayer:DISABLE;com.mitv.tvhome.atv:DISABLE;", ids(r.disable).replace("*", ""));
+    }
 }

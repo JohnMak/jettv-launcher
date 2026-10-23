@@ -38,7 +38,7 @@ final class CleanupPlanner {
 
     /**
      * Steps in profile order with {@code requires=home} entries (stock launchers) last. Skipped: optional entries
-     * (unless {@code includeOptional}), requires=home entries without the HOME role, protected or persistent or absent
+     * (unless {@code includeOptional}); REMOVE of a disable-only package becomes DISABLE, requires=home entries without the HOME role, protected or persistent or absent
      * packages, and work already done (disabled / not installed for the user / reset without updates).
      */
     static List<Step> plan(CleanupProfile profile, Map<String, PackageState> inventory, ProtectedPackages protectedSet,
@@ -48,12 +48,15 @@ final class CleanupPlanner {
         for (CleanupProfile.Entry e : profile.entries()) {
             if (e.optional && !includeOptional) continue;
             if (e.requiresHome && !holdsHome) continue;
-            if (protectedSet.contains(e.pkg)) continue;
+            ProtectedPackages.Level level = protectedSet.level(e.pkg);
+            if (level == ProtectedPackages.Level.FULL) continue;
             PackageState s = inventory.get(e.pkg);
             if (s == null || !s.installedForUser || s.persistent) continue;
-            if (e.action == CleanupProfile.Action.DISABLE && s.disabledUser) continue;
-            if (e.action == CleanupProfile.Action.RESET && !s.updatedSystem) continue;
-            (e.requiresHome ? launchers : regular).add(new Step(e.action, e.pkg));
+            CleanupProfile.Action action = level == ProtectedPackages.Level.DISABLE_ONLY && e.action == CleanupProfile.Action.REMOVE
+                    ? CleanupProfile.Action.DISABLE : e.action;
+            if (action == CleanupProfile.Action.DISABLE && s.disabledUser) continue;
+            if (action == CleanupProfile.Action.RESET && !s.updatedSystem) continue;
+            (e.requiresHome ? launchers : regular).add(new Step(action, e.pkg));
         }
         regular.addAll(launchers);
         return Collections.unmodifiableList(regular);
