@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
 }
 
+apply from: 'version.gradle'
+
 android {
     namespace 'com.johnmak.atvlauncher'
     compileSdk 34
@@ -10,8 +12,8 @@ android {
         applicationId 'com.johnmak.atvlauncher'
         minSdk 30
         targetSdk 34
-        versionCode 1
-        versionName '1.0'
+        versionCode appVersion.code
+        versionName appVersion.name
     }
     buildFeatures {
         buildConfig true

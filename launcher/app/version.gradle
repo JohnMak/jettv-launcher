@@ -1,0 +1,44 @@
+// Version derived from git tags `vX.Y.Z` (annotated or lightweight).
+//   on a clean tag      -> versionName "X.Y.Z"
+//   after tag / dirty   -> versionName "X.Y.Z-dev.N+gSHA[.dirty]"
+//   versionCode         -> X*1_000_000 + Y*1_000 + Z (dev builds keep the tag's code)
+// Release tasks (assembleRelease/bundleRelease) fail unless built exactly on a clean tag.
+
+def parseGitDescribe = { String describe ->
+    def m = (describe.trim() =~ /^v(\d+)\.(\d+)\.(\d+)-(\d+)-g([0-9a-f]+)(-dirty)?$/)
+    if (!m.matches()) {
+        throw new GradleException("Unparseable git describe output: '${describe.trim()}'")
+    }
+    int major = m.group(1) as int
+    int minor = m.group(2) as int
+    int patch = m.group(3) as int
+    int ahead = m.group(4) as int
+    String sha = m.group(5)
+    boolean dirty = m.group(6) != null
+    if (minor > 999 || patch > 999) {
+        throw new GradleException("Version ${major}.${minor}.${patch}: minor and patch must be <= 999")
+    }
+    boolean onCleanTag = ahead == 0 && !dirty
+    String base = "${major}.${minor}.${patch}"
+    String name = onCleanTag ? base : "${base}-dev.${ahead}+g${sha}${dirty ? '.dirty' : ''}"
+    [name: name, code: major * 1_000_000 + minor * 1_000 + patch, releasable: onCleanTag]
+}
+
+def describeResult = providers.exec {
+    workingDir rootDir
+    commandLine 'git', 'describe', '--tags', '--match', 'v[0-9]*.[0-9]*.[0-9]*', '--long', '--dirty'
+    ignoreExitValue = true
+}
+if (describeResult.result.get().exitValue != 0) {
+    throw new GradleException("No vX.Y.Z tag found; in CI use fetch-depth: 0")
+}
+
+ext.appVersion = parseGitDescribe(describeResult.standardOutput.asText.get())
+ext.parseGitDescribe = parseGitDescribe
+
+gradle.taskGraph.whenReady { graph ->
+    def release = graph.allTasks.any { it.name == 'assembleRelease' || it.name == 'bundleRelease' }
+    if (release && !appVersion.releasable) {
+        throw new GradleException("Release build requires a clean vX.Y.Z tag checkout; current version is ${appVersion.name}")
+    }
+}
