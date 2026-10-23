@@ -28,3 +28,8 @@ shield-lock
 sliders-horizontal
 image
 lightbulb
+checkbox-on
+checkbox-off
+trash
+rollback
+lock

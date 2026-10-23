@@ -7,6 +7,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.app.usage.StorageStatsManager;
+import android.os.Process;
 import android.provider.Settings;
 import android.util.Log;
 import android.webkit.WebView;
@@ -17,8 +19,10 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Android adapter of the cleanup screen: reads the package inventory and the bundled profiles. Blocking, worker thread only. */
@@ -48,6 +52,7 @@ final class CleanupInventory {
                 PackageManager.MATCH_UNINSTALLED_PACKAGES | PackageManager.MATCH_DISABLED_COMPONENTS);
         List<CleanupSections.App> apps = new ArrayList<>(infos.size());
         for (ApplicationInfo ai : infos) {
+            if ((ai.flags & ApplicationInfo.FLAG_HAS_CODE) == 0) continue; // resource-only overlays are not apps
             boolean disabledUser = false;
             try {
                 disabledUser = pm.getApplicationEnabledSetting(ai.packageName)
@@ -73,6 +78,38 @@ final class CleanupInventory {
         if (webView != null) extra.add(webView.packageName);
         for (CleanupSections.App a : apps) if (a.state.persistent) extra.add(a.pkg);
         return new Snapshot(apps, ProtectedPackages.base().with(extra), rights.holdsHome());
+    }
+
+    /** Storage figures of the installed packages; {@code denied} when the usage-stats appop is missing (then {@code bytes} is empty). */
+    static final class Sizes {
+        final Map<String, Long> bytes;
+        final boolean denied;
+
+        Sizes(Map<String, Long> bytes, boolean denied) {
+            this.bytes = bytes;
+            this.denied = denied;
+        }
+    }
+
+    /** App + data + cache bytes per package. Blocking, worker thread only. */
+    static Sizes sizes(Context context, List<CleanupSections.App> apps) {
+        PackageManager pm = context.getPackageManager();
+        StorageStatsManager ssm = context.getSystemService(StorageStatsManager.class);
+        Map<String, Long> out = new HashMap<>();
+        for (CleanupSections.App a : apps) {
+            if (!a.state.installedForUser) continue;
+            try {
+                ApplicationInfo ai = pm.getApplicationInfo(a.pkg, 0);
+                android.app.usage.StorageStats st = ssm.queryStatsForPackage(ai.storageUuid, a.pkg, Process.myUserHandle());
+                out.put(a.pkg, st.getAppBytes() + st.getDataBytes() + st.getCacheBytes());
+            } catch (SecurityException e) {
+                Log.w(TAG, "storage stats denied: " + e.getMessage());
+                return new Sizes(Collections.<String, Long>emptyMap(), true);
+            } catch (PackageManager.NameNotFoundException | IOException e) {
+                Log.w(TAG, "no storage stats for " + a.pkg + ": " + e.getMessage());
+            }
+        }
+        return new Sizes(out, false);
     }
 
     private static Set<String> homeHandlers(PackageManager pm, String own) {
