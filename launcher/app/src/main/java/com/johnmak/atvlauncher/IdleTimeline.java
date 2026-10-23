@@ -2,7 +2,7 @@ package com.johnmak.atvlauncher;
 
 /**
  * Pure idle stages by time since the last input: ACTIVE, then DIM and SCREENSAVER at the delays of the
- * {@link LauncherSettings}. A disabled stage never occurs; a dim that would start at or after the screensaver
+ * {@link LauncherSettings}. A stage with delay 0 (Off) never occurs; a dim that would start at or after the screensaver
  * is overtaken by it.
  */
 final class IdleTimeline {
@@ -14,8 +14,8 @@ final class IdleTimeline {
     private final long screensaverAfterMs;
 
     IdleTimeline(LauncherSettings settings) {
-        dimAfterMs = settings.dimEnabled ? settings.dimDelayMillis() : NEVER;
-        screensaverAfterMs = settings.screensaverEnabled ? settings.screensaverDelayMillis() : NEVER;
+        dimAfterMs = settings.dimDelaySec == 0 ? NEVER : settings.dimDelayMillis();
+        screensaverAfterMs = settings.screensaverDelayMin == 0 ? NEVER : settings.screensaverDelayMillis();
     }
 
     Stage at(long idleMs) {

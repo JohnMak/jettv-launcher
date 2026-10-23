@@ -25,7 +25,6 @@
     <string name="weather_vpn_off">Выключи VPN, чтобы определить город</string>
     <string name="weather_failed">Не удалось обновить погоду</string>
     <string name="settings_title">Параметры</string>
-    <string name="settings_screensaver">Заставка</string>
     <string name="settings_screensaver_delay">Запускать заставку через</string>
     <string name="settings_screensaver_hint">Вне лаунчера заставка включается через время, заданное в системе (не меньше ~6 мин)</string>
     <string name="settings_screensaver_denied">Нет разрешения на системную заставку</string>
@@ -33,7 +32,7 @@
     <string name="settings_type_starfield">Звёзды</string>
     <string name="settings_type_video">Видео NASA</string>
     <string name="settings_video_credit">Видео потоком, ничего не сохраняется · %1$s</string>
-    <string name="settings_dim">Притемнять интерфейс</string>
+    <string name="settings_animations_off">Выключить анимации</string>
     <string name="settings_dim_delay">Притемнять через</string>
     <string name="settings_vpn_button">Кнопка VPN</string>
     <string name="settings_vpn_show">Показывать</string>

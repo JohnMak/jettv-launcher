@@ -72,15 +72,16 @@ final class SettingsImport {
         w.put(FavoritesPrefs.FILE, fav);
 
         Map<String, Type> ls = new LinkedHashMap<>();
-        ls.put(LauncherSettingsStore.KEY_SCREENSAVER_ENABLED, Type.BOOL);
+        ls.put(LauncherSettingsStore.LEGACY_SCREENSAVER_ENABLED, Type.BOOL);
         ls.put(LauncherSettingsStore.KEY_SCREENSAVER_DELAY_MIN, Type.INT);
         ls.put(LauncherSettingsStore.KEY_SCREENSAVER_TYPE, Type.STRING);
-        ls.put(LauncherSettingsStore.KEY_DIM_ENABLED, Type.BOOL);
+        ls.put(LauncherSettingsStore.LEGACY_DIM_ENABLED, Type.BOOL);
         ls.put(LauncherSettingsStore.KEY_DIM_DELAY_SEC, Type.INT);
         ls.put(LauncherSettingsStore.KEY_VPN_BUTTON_VISIBLE, Type.BOOL);
         ls.put(LauncherSettingsStore.KEY_VPN_PACKAGE, Type.STRING);
         ls.put(LauncherSettingsStore.KEY_UI_SCALE_PERCENT, Type.INT);
         ls.put(LauncherSettingsStore.KEY_PREVIEW_SCALE_PERCENT, Type.INT);
+        ls.put(LauncherSettingsStore.KEY_ANIMATIONS_OFF, Type.BOOL);
         ls.put(FeedSource.RECOMMENDATIONS.prefsKey, Type.STRINGSET);
         ls.put(FeedSource.CONTINUE.prefsKey, Type.STRINGSET);
         w.put(LauncherSettingsStore.FILE, ls);

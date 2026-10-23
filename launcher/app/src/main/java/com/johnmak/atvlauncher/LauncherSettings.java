@@ -1,21 +1,20 @@
 package com.johnmak.atvlauncher;
 
-/** Immutable launcher settings (screensaver, dimming, VPN button, UI scale, preview scale) with cycling helpers for the option lists. */
+/** Immutable launcher settings (screensaver, dimming, VPN button, UI scale, preview scale, animations) with cycling helpers for the option lists. */
 final class LauncherSettings {
     /** What the screensaver shows. NASA_VIDEO is streamed; the starfield shows until the first frame and whenever the stream fails (see {@link ScreensaverKind}). */
     enum ScreensaverType { STARFIELD, NASA_VIDEO }
 
-    static final int[] SCREENSAVER_DELAYS_MIN = {1, 2, 3, 5, 10};
-    static final int[] DIM_DELAYS_SEC = {15, 30, 60, 120};
+    /** Delay 0 = the stage is off (first option of each list). */
+    static final int[] SCREENSAVER_DELAYS_MIN = {0, 1, 2, 3, 5, 10};
+    static final int[] DIM_DELAYS_SEC = {0, 15, 30, 60, 120};
 
     static final LauncherSettings DEFAULTS =
-            new LauncherSettings(true, 2, ScreensaverType.STARFIELD, true, 30, true, "", UiScale.DEFAULT_PERCENT,
-                    PreviewScale.DEFAULT_PERCENT);
+            new LauncherSettings(2, ScreensaverType.STARFIELD, 30, true, "", UiScale.DEFAULT_PERCENT,
+                    PreviewScale.DEFAULT_PERCENT, false);
 
-    final boolean screensaverEnabled;
     final int screensaverDelayMin;
     final ScreensaverType screensaverType;
-    final boolean dimEnabled;
     final int dimDelaySec;
     final boolean vpnButtonVisible;
     /** Chosen VPN app package; empty = not chosen yet (resolved by {@link VpnApps#choose}). */
@@ -24,10 +23,12 @@ final class LauncherSettings {
     final int uiScalePercent;
     /** Feed card size in percent, one of {@link PreviewScale#PERCENTS}. */
     final int previewScalePercent;
+    /** Animations switched off (storage only here; behaviour is wired elsewhere). */
+    final boolean animationsOff;
 
-    LauncherSettings(boolean screensaverEnabled, int screensaverDelayMin, ScreensaverType screensaverType,
-            boolean dimEnabled, int dimDelaySec, boolean vpnButtonVisible, String vpnPackage, int uiScalePercent,
-            int previewScalePercent) {
+    LauncherSettings(int screensaverDelayMin, ScreensaverType screensaverType, int dimDelaySec,
+            boolean vpnButtonVisible, String vpnPackage, int uiScalePercent, int previewScalePercent,
+            boolean animationsOff) {
         if (indexOf(SCREENSAVER_DELAYS_MIN, screensaverDelayMin) < 0) {
             throw new IllegalArgumentException("screensaver delay: " + screensaverDelayMin);
         }
@@ -38,33 +39,35 @@ final class LauncherSettings {
         if (!PreviewScale.isValid(previewScalePercent)) {
             throw new IllegalArgumentException("preview scale: " + previewScalePercent);
         }
-        this.screensaverEnabled = screensaverEnabled;
         this.screensaverDelayMin = screensaverDelayMin;
         this.screensaverType = screensaverType;
-        this.dimEnabled = dimEnabled;
         this.dimDelaySec = dimDelaySec;
         this.vpnButtonVisible = vpnButtonVisible;
         this.vpnPackage = vpnPackage;
         this.uiScalePercent = uiScalePercent;
         this.previewScalePercent = previewScalePercent;
+        this.animationsOff = animationsOff;
     }
 
     /**
      * Boundary for persisted values: a delay outside its option list, an unknown type name (edited or older
-     * data) or a missing package becomes the default.
+     * data) or a missing package becomes the default. One-time migration: the legacy «enabled» flags of the
+     * old format turn a disabled stage into delay 0 (Off); pass {@code true} when no legacy flag is stored.
      */
-    static LauncherSettings fromStored(boolean screensaverEnabled, int screensaverDelayMin, String screensaverType,
-            boolean dimEnabled, int dimDelaySec, boolean vpnButtonVisible, String vpnPackage, int uiScalePercent,
-            int previewScalePercent) {
-        return new LauncherSettings(screensaverEnabled,
-                indexOf(SCREENSAVER_DELAYS_MIN, screensaverDelayMin) < 0 ? DEFAULTS.screensaverDelayMin : screensaverDelayMin,
+    static LauncherSettings fromStored(boolean legacyScreensaverEnabled, int screensaverDelayMin, String screensaverType,
+            boolean legacyDimEnabled, int dimDelaySec, boolean vpnButtonVisible, String vpnPackage, int uiScalePercent,
+            int previewScalePercent, boolean animationsOff) {
+        int saver = indexOf(SCREENSAVER_DELAYS_MIN, screensaverDelayMin) < 0 ? DEFAULTS.screensaverDelayMin : screensaverDelayMin;
+        int dim = indexOf(DIM_DELAYS_SEC, dimDelaySec) < 0 ? DEFAULTS.dimDelaySec : dimDelaySec;
+        return new LauncherSettings(
+                legacyScreensaverEnabled ? saver : 0,
                 typeOf(screensaverType),
-                dimEnabled,
-                indexOf(DIM_DELAYS_SEC, dimDelaySec) < 0 ? DEFAULTS.dimDelaySec : dimDelaySec,
+                legacyDimEnabled ? dim : 0,
                 vpnButtonVisible,
                 vpnPackage == null ? DEFAULTS.vpnPackage : vpnPackage,
                 UiScale.fromStored(uiScalePercent),
-                PreviewScale.fromStored(previewScalePercent));
+                PreviewScale.fromStored(previewScalePercent),
+                animationsOff);
     }
 
     private static ScreensaverType typeOf(String name) {
@@ -80,24 +83,19 @@ final class LauncherSettings {
         return dimDelaySec * 1_000L;
     }
 
-    LauncherSettings withScreensaverEnabled(boolean v) {
-        return new LauncherSettings(v, screensaverDelayMin, screensaverType, dimEnabled, dimDelaySec,
-                vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent);
-    }
-
-    LauncherSettings withDimEnabled(boolean v) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, screensaverType, v, dimDelaySec,
-                vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent);
+    LauncherSettings withAnimationsOff(boolean v) {
+        return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage,
+                uiScalePercent, previewScalePercent, v);
     }
 
     LauncherSettings withVpnButtonVisible(boolean v) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, screensaverType, dimEnabled, dimDelaySec,
-                v, vpnPackage, uiScalePercent, previewScalePercent);
+        return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, v, vpnPackage, uiScalePercent, previewScalePercent,
+                animationsOff);
     }
 
     LauncherSettings withVpnPackage(String pkg) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, screensaverType, dimEnabled, dimDelaySec,
-                vpnButtonVisible, pkg, uiScalePercent, previewScalePercent);
+        return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, pkg, uiScalePercent, previewScalePercent,
+                animationsOff);
     }
 
     /** One 5% step up; stays at 130%. */
@@ -111,8 +109,8 @@ final class LauncherSettings {
     }
 
     private LauncherSettings withUiScale(int percent) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, screensaverType, dimEnabled, dimDelaySec,
-                vpnButtonVisible, vpnPackage, percent, previewScalePercent);
+        return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, percent, previewScalePercent,
+                animationsOff);
     }
 
     /** One 10% step up; stays at 150%. */
@@ -126,8 +124,8 @@ final class LauncherSettings {
     }
 
     private LauncherSettings withPreviewScale(int percent) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, screensaverType, dimEnabled, dimDelaySec,
-                vpnButtonVisible, vpnPackage, uiScalePercent, percent);
+        return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, percent,
+                animationsOff);
     }
 
     /** Two types: next and previous are the same switch. */
@@ -158,18 +156,18 @@ final class LauncherSettings {
     }
 
     private LauncherSettings withScreensaverType(ScreensaverType t) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, t, dimEnabled, dimDelaySec,
-                vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent);
+        return new LauncherSettings(screensaverDelayMin, t, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
+                animationsOff);
     }
 
     private LauncherSettings withScreensaverDelay(int min) {
-        return new LauncherSettings(screensaverEnabled, min, screensaverType, dimEnabled, dimDelaySec,
-                vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent);
+        return new LauncherSettings(min, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
+                animationsOff);
     }
 
     private LauncherSettings withDimDelay(int sec) {
-        return new LauncherSettings(screensaverEnabled, screensaverDelayMin, screensaverType, dimEnabled, sec,
-                vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent);
+        return new LauncherSettings(screensaverDelayMin, screensaverType, sec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
+                animationsOff);
     }
 
     private static int cycle(int[] options, int current, int step) {

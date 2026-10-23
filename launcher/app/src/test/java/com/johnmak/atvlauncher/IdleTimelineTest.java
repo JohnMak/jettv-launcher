@@ -5,8 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public class IdleTimelineTest {
-    private static IdleTimeline of(boolean screensaver, int minutes, boolean dim, int seconds) {
-        return new IdleTimeline(new LauncherSettings(screensaver, minutes, LauncherSettings.ScreensaverType.STARFIELD, dim, seconds, true, "", 100, 100));
+    private static IdleTimeline of(int minutes, int seconds) {
+        return new IdleTimeline(new LauncherSettings(minutes, LauncherSettings.ScreensaverType.STARFIELD, seconds, true, "", 100, 100, false));
     }
 
     @Test
@@ -32,7 +32,7 @@ public class IdleTimelineTest {
 
     @Test
     public void thresholdsComeFromTheSettings() {
-        IdleTimeline t = of(true, 5, true, 15);
+        IdleTimeline t = of(5, 15);
         assertEquals(IdleTimeline.Stage.ACTIVE, t.at(14_999));
         assertEquals(IdleTimeline.Stage.DIM, t.at(15_000));
         assertEquals(IdleTimeline.Stage.DIM, t.at(299_999));
@@ -41,8 +41,8 @@ public class IdleTimelineTest {
     }
 
     @Test
-    public void disabledDimIsSkipped() {
-        IdleTimeline t = of(true, 1, false, 30);
+    public void dimDelayZeroIsSkipped() {
+        IdleTimeline t = of(1, 0);
         assertEquals(IdleTimeline.Stage.ACTIVE, t.at(59_999));
         assertEquals(IdleTimeline.Stage.SCREENSAVER, t.at(60_000));
         assertEquals(60_000, t.untilNextStage(0));
@@ -50,23 +50,23 @@ public class IdleTimelineTest {
     }
 
     @Test
-    public void disabledScreensaverNeverStarts() {
-        IdleTimeline t = of(false, 1, true, 30);
+    public void screensaverDelayZeroNeverStarts() {
+        IdleTimeline t = of(0, 30);
         assertEquals(IdleTimeline.Stage.DIM, t.at(10_000_000));
         assertEquals(30_000, t.untilNextStage(0));
         assertEquals(-1, t.untilNextStage(30_000));
     }
 
     @Test
-    public void bothDisabledStayActive() {
-        IdleTimeline t = of(false, 1, false, 30);
+    public void bothDelaysZeroStayActive() {
+        IdleTimeline t = of(0, 0);
         assertEquals(IdleTimeline.Stage.ACTIVE, t.at(10_000_000));
         assertEquals(-1, t.untilNextStage(0));
     }
 
     @Test
     public void screensaverBeforeDimSkipsTheDim() {
-        IdleTimeline t = of(true, 1, true, 120); // dim would start after the screensaver
+        IdleTimeline t = of(1, 120); // dim would start after the screensaver
         assertEquals(IdleTimeline.Stage.ACTIVE, t.at(59_999));
         assertEquals(IdleTimeline.Stage.SCREENSAVER, t.at(60_000));
         assertEquals(IdleTimeline.Stage.SCREENSAVER, t.at(130_000));

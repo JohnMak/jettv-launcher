@@ -7,9 +7,7 @@ import org.junit.Test;
 public class LauncherSettingsTest {
     @Test public void defaults() {
         LauncherSettings s = LauncherSettings.DEFAULTS;
-        assertTrue(s.screensaverEnabled);
         assertEquals(2, s.screensaverDelayMin);
-        assertTrue(s.dimEnabled);
         assertEquals(30, s.dimDelaySec);
         assertEquals(120_000L, s.screensaverDelayMillis());
         assertEquals(30_000L, s.dimDelayMillis());
@@ -18,36 +16,44 @@ public class LauncherSettingsTest {
         assertEquals("", s.vpnPackage);
         assertEquals(100, s.uiScalePercent);
         assertEquals(100, s.previewScalePercent);
+        assertFalse(s.animationsOff);
     }
 
-    @Test public void screensaverDelayCyclesThroughOptionsAndWraps() {
+    @Test public void screensaverDelayCyclesThroughOptionsIncludingOffAndWraps() {
         LauncherSettings s = LauncherSettings.DEFAULTS;
         assertEquals(3, s.nextScreensaverDelay().screensaverDelayMin);
         assertEquals(5, s.nextScreensaverDelay().nextScreensaverDelay().screensaverDelayMin);
         assertEquals(1, s.prevScreensaverDelay().screensaverDelayMin);
-        assertEquals(10, s.prevScreensaverDelay().prevScreensaverDelay().screensaverDelayMin);
-        LauncherSettings last = s.prevScreensaverDelay().prevScreensaverDelay();
-        assertEquals(1, last.nextScreensaverDelay().screensaverDelayMin);
+        assertEquals(0, s.prevScreensaverDelay().prevScreensaverDelay().screensaverDelayMin);
+        LauncherSettings off = s.prevScreensaverDelay().prevScreensaverDelay();
+        assertEquals(1, off.nextScreensaverDelay().screensaverDelayMin);
+        assertEquals(10, off.prevScreensaverDelay().screensaverDelayMin);
+        assertEquals(0, LauncherSettings.SCREENSAVER_DELAYS_MIN[0]);
     }
 
-    @Test public void dimDelayCyclesThroughOptionsAndWraps() {
+    @Test public void dimDelayCyclesThroughOptionsIncludingOffAndWraps() {
         LauncherSettings s = LauncherSettings.DEFAULTS;
         assertEquals(60, s.nextDimDelay().dimDelaySec);
         assertEquals(15, s.prevDimDelay().dimDelaySec);
-        assertEquals(120, s.prevDimDelay().prevDimDelay().dimDelaySec);
-        assertEquals(15, s.nextDimDelay().nextDimDelay().nextDimDelay().dimDelaySec);
+        assertEquals(0, s.prevDimDelay().prevDimDelay().dimDelaySec);
+        LauncherSettings off = s.prevDimDelay().prevDimDelay();
+        assertEquals(120, off.prevDimDelay().dimDelaySec);
+        assertEquals(15, off.nextDimDelay().dimDelaySec);
+        assertEquals(0, s.nextDimDelay().nextDimDelay().nextDimDelay().dimDelaySec);
+        assertEquals(15, s.nextDimDelay().nextDimDelay().nextDimDelay().nextDimDelay().dimDelaySec);
     }
 
-    @Test public void togglesKeepTheRest() {
-        LauncherSettings s = LauncherSettings.DEFAULTS.withScreensaverEnabled(false).withDimEnabled(false);
-        assertFalse(s.screensaverEnabled);
-        assertFalse(s.dimEnabled);
+    @Test public void withersKeepTheRest() {
+        LauncherSettings s = LauncherSettings.DEFAULTS.withAnimationsOff(true);
+        assertTrue(s.animationsOff);
         assertEquals(2, s.screensaverDelayMin);
         assertEquals(30, s.dimDelaySec);
         LauncherSettings v = s.withVpnButtonVisible(false).withVpnPackage("a.b");
         assertFalse(v.vpnButtonVisible);
         assertEquals("a.b", v.vpnPackage);
-        assertFalse(v.screensaverEnabled);
+        assertTrue(v.animationsOff);
+        assertTrue(v.nextUiScale().nextPreviewScale().nextDimDelay().animationsOff);
+        assertFalse(v.withAnimationsOff(false).animationsOff);
     }
 
     @Test public void screensaverTypeCyclesBothWaysAndKeepsTheRest() {
@@ -61,9 +67,7 @@ public class LauncherSettingsTest {
     }
 
     @Test public void storedValuesOutsideTheOptionsFallBackToDefaults() {
-        LauncherSettings s = LauncherSettings.fromStored(false, 7, "BOGUS", false, 45, false, null, 66, 95);
-        assertFalse(s.screensaverEnabled);
-        assertFalse(s.dimEnabled);
+        LauncherSettings s = LauncherSettings.fromStored(true, 7, "BOGUS", true, 45, false, null, 66, 95, true);
         assertEquals(2, s.screensaverDelayMin);
         assertEquals(30, s.dimDelaySec);
         assertEquals(LauncherSettings.ScreensaverType.STARFIELD, s.screensaverType);
@@ -71,18 +75,44 @@ public class LauncherSettingsTest {
         assertEquals("", s.vpnPackage);
         assertEquals(100, s.uiScalePercent);
         assertEquals(100, s.previewScalePercent);
-        LauncherSettings ok = LauncherSettings.fromStored(true, 10, "NASA_VIDEO", true, 120, true, "p.q", 85, 130);
+        assertTrue(s.animationsOff);
+        LauncherSettings ok = LauncherSettings.fromStored(true, 10, "NASA_VIDEO", true, 120, true, "p.q", 85, 130, false);
         assertEquals(10, ok.screensaverDelayMin);
         assertEquals(120, ok.dimDelaySec);
         assertEquals(LauncherSettings.ScreensaverType.NASA_VIDEO, ok.screensaverType);
         assertEquals("p.q", ok.vpnPackage);
         assertEquals(85, ok.uiScalePercent);
         assertEquals(130, ok.previewScalePercent);
+        assertFalse(ok.animationsOff);
+    }
+
+    @Test public void legacyEnabledFlagsMigrateToDelayZero() {
+        // enabled flag x stored delay: false -> 0 (even for an invalid delay), true -> normalized delay
+        LauncherSettings offOff = LauncherSettings.fromStored(false, 5, "STARFIELD", false, 60, true, "", 100, 100, false);
+        assertEquals(0, offOff.screensaverDelayMin);
+        assertEquals(0, offOff.dimDelaySec);
+        LauncherSettings offBogus = LauncherSettings.fromStored(false, 7, "STARFIELD", false, 45, true, "", 100, 100, false);
+        assertEquals(0, offBogus.screensaverDelayMin);
+        assertEquals(0, offBogus.dimDelaySec);
+        LauncherSettings mixed = LauncherSettings.fromStored(true, 5, "STARFIELD", false, 60, true, "", 100, 100, false);
+        assertEquals(5, mixed.screensaverDelayMin);
+        assertEquals(0, mixed.dimDelaySec);
+        LauncherSettings mixed2 = LauncherSettings.fromStored(false, 5, "STARFIELD", true, 60, true, "", 100, 100, false);
+        assertEquals(0, mixed2.screensaverDelayMin);
+        assertEquals(60, mixed2.dimDelaySec);
+        LauncherSettings onBogus = LauncherSettings.fromStored(true, 7, "STARFIELD", true, 45, true, "", 100, 100, false);
+        assertEquals(2, onBogus.screensaverDelayMin);
+        assertEquals(30, onBogus.dimDelaySec);
+        // new format (no legacy flags => true) keeps an explicit Off
+        LauncherSettings newOff = LauncherSettings.fromStored(true, 0, "STARFIELD", true, 0, true, "", 100, 100, false);
+        assertEquals(0, newOff.screensaverDelayMin);
+        assertEquals(0, newOff.dimDelaySec);
+        assertEquals(0L, newOff.screensaverDelayMillis());
     }
 
     @Test public void constructorRejectsUnknownDelays() {
         try {
-            new LauncherSettings(true, 4, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 100, 100);
+            new LauncherSettings(4, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 100, 100, false);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
@@ -99,15 +129,15 @@ public class LauncherSettingsTest {
         LauncherSettings min = s;
         for (int i = 0; i < 20; i++) min = min.prevUiScale();
         assertEquals(70, min.uiScalePercent);
-        assertEquals(70, min.withDimEnabled(false).nextDimDelay().nextScreensaverDelay()
-                .nextScreensaverType().withVpnPackage("x").withVpnButtonVisible(false).withScreensaverEnabled(false).uiScalePercent);
+        assertEquals(70, min.nextDimDelay().nextScreensaverDelay()
+                .nextScreensaverType().withVpnPackage("x").withVpnButtonVisible(false).withAnimationsOff(true).uiScalePercent);
         assertEquals("x", min.nextUiScale().withVpnPackage("x").vpnPackage);
-        assertTrue(min.nextUiScale().screensaverEnabled);
+        assertEquals(2, min.nextUiScale().screensaverDelayMin);
     }
 
     @Test public void constructorRejectsAScaleOutsideTheList() {
         try {
-            new LauncherSettings(true, 2, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 101, 100);
+            new LauncherSettings(2, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 101, 100, false);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
@@ -124,7 +154,7 @@ public class LauncherSettingsTest {
         LauncherSettings min = s;
         for (int i = 0; i < 20; i++) min = min.prevPreviewScale();
         assertEquals(70, min.previewScalePercent);
-        assertEquals(70, min.withDimEnabled(false).nextDimDelay().nextUiScale().withVpnPackage("x").previewScalePercent);
+        assertEquals(70, min.nextDimDelay().nextUiScale().withVpnPackage("x").previewScalePercent);
         assertEquals(105, min.nextPreviewScale().nextUiScale().uiScalePercent);
         assertEquals(80, min.nextPreviewScale().previewScalePercent);
         assertEquals(135, PreviewScale.cardHeightDp(100));
@@ -135,7 +165,7 @@ public class LauncherSettingsTest {
 
     @Test public void constructorRejectsAPreviewScaleOutsideTheList() {
         try {
-            new LauncherSettings(true, 2, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 100, 105);
+            new LauncherSettings(2, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 100, 105, false);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok

@@ -241,17 +241,14 @@ public final class LauncherSettingsActivity extends Activity {
                 () -> changeUiScale(settings.prevUiScale()), () -> changeUiScale(settings.nextUiScale()));
         addRow(R.string.settings_preview_scale, () -> getString(R.string.settings_percent, settings.previewScalePercent), null,
                 () -> change(settings.prevPreviewScale()), () -> change(settings.nextPreviewScale()));
-        addRow(R.string.settings_dim, () -> onOff(settings.dimEnabled),
-                () -> change(settings.withDimEnabled(!settings.dimEnabled)),
-                () -> change(settings.withDimEnabled(!settings.dimEnabled)),
-                () -> change(settings.withDimEnabled(!settings.dimEnabled)));
-        addRow(R.string.settings_dim_delay, () -> getString(R.string.settings_seconds, settings.dimDelaySec), null,
+        addRow(R.string.settings_animations_off, () -> onOff(settings.animationsOff), this::toggleAnimations,
+                this::toggleAnimations, this::toggleAnimations);
+        addRow(R.string.settings_dim_delay, () -> delayText(settings.dimDelaySec, R.string.settings_seconds), null,
                 () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
-        addRow(R.string.settings_screensaver, () -> onOff(settings.screensaverEnabled),
-                this::toggleScreensaver, this::toggleScreensaver, this::toggleScreensaver);
         addRow(R.string.settings_screensaver_delay,
-                () -> getString(R.string.settings_minutes, settings.screensaverDelayMin), null,
-                () -> change(settings.prevScreensaverDelay()), () -> change(settings.nextScreensaverDelay()));
+                () -> delayText(settings.screensaverDelayMin, R.string.settings_minutes), null,
+                () -> changeScreensaverDelay(settings.prevScreensaverDelay()),
+                () -> changeScreensaverDelay(settings.nextScreensaverDelay()));
         addRow(R.string.settings_screensaver_type, this::typeText, null,
                 () -> changeType(settings.prevScreensaverType()), () -> changeType(settings.nextScreensaverType()));
         videoNote = addNote(getString(R.string.settings_screensaver_hint));
@@ -526,10 +523,23 @@ public final class LauncherSettingsActivity extends Activity {
         if (!next.isEmpty()) change(settings.withVpnPackage(next));
     }
 
-    private void toggleScreensaver() {
-        change(settings.withScreensaverEnabled(!settings.screensaverEnabled));
-        status(SystemScreensaver.apply(this, settings.screensaverEnabled)
-                ? "" : getString(R.string.settings_screensaver_denied));
+    private void toggleAnimations() {
+        change(settings.withAnimationsOff(!settings.animationsOff));
+    }
+
+    /** Delay 0 is «Выкл». */
+    private String delayText(int value, int unitRes) {
+        return value == 0 ? getString(R.string.settings_off) : getString(unitRes, value);
+    }
+
+    /** The system dream follows the launcher screensaver: on for any delay, off when the delay crosses to 0. */
+    private void changeScreensaverDelay(LauncherSettings next) {
+        boolean wasOn = settings.screensaverDelayMin != 0;
+        boolean nowOn = next.screensaverDelayMin != 0;
+        change(next);
+        if (wasOn != nowOn) {
+            status(SystemScreensaver.apply(this, nowOn) ? "" : getString(R.string.settings_screensaver_denied));
+        }
     }
 
     // ---------------------------------------------------------------- city

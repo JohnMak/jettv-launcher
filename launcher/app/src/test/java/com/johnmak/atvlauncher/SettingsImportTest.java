@@ -32,6 +32,7 @@ public class SettingsImportTest {
                 + "\"vpn_package\":" + cell("string", "\"x.y\"") + ","
                 + "\"ui_scale_percent\":" + cell("int", "100") + ","
                 + "\"preview_scale_percent\":" + cell("int", "90") + ","
+                + "\"animations_off\":" + cell("bool", "true") + ","
                 + "\"feed_excluded_recommendations\":" + cell("stringset", "[\"p.q\",\"r.s\"]") + ","
                 + "\"feed_excluded_continue\":" + cell("stringset", "[]") + "},"
                 + "\"weather\":{\"g2_lat\":" + cell("long", "4632000000000000000") + ","
@@ -39,7 +40,7 @@ public class SettingsImportTest {
                 + "\"g2_country\":" + cell("string", "\"RU\"") + ",\"g2_tz\":" + cell("string", "\"Europe/Moscow\"") + "}}");
         FetchResult<SettingsImport.ImportPlan> r = SettingsImport.parse(json);
         assertTrue(r.isOk() ? "" : r.error(), r.isOk());
-        assertEquals(17, r.value().entries.size());
+        assertEquals(18, r.value().entries.size());
         for (SettingsImport.Entry e : r.value().entries) {
             assertEquals(SettingsImport.WHITELIST.get(e.file).get(e.key), e.type);
             if (e.key.equals("g2_lat")) assertEquals(4632000000000000000L, e.value);
