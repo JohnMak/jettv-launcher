@@ -1,6 +1,7 @@
 package com.johnmak.atvlauncher;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -44,6 +45,10 @@ public class UpdateControllerTest {
         @Override public UpdateController.Pending pending() { return pending; }
         @Override public void savePending(UpdateController.Pending p) { pending = p; order.add("savePending"); }
         @Override public void clearPending() { pending = null; }
+        String failedVersion;
+        int failedCount;
+        @Override public int installFailures(String version) { return version.equals(failedVersion) ? failedCount : 0; }
+        @Override public void saveInstallFailures(String version, int count) { failedVersion = version; failedCount = count; }
     }
 
     private final List<String> order = new ArrayList<>();
@@ -55,6 +60,7 @@ public class UpdateControllerTest {
     private long now = T0;
     private int feedCalls;
     private int clears;
+    private int downloads;
     private FetchResult<Release> feedResult;
     private FetchResult<ApkVerifier.Facts> archive;
     private FetchResult<String> installResult;
@@ -78,6 +84,7 @@ public class UpdateControllerTest {
     private UpdateController newController(String versionName) {
         UpdateController.Downloader downloader = new UpdateController.Downloader() {
             @Override public FetchResult<UpdateController.Download> download(Release r, IntConsumer progress) {
+                downloads++;
                 progress.accept(50);
                 progress.accept(100);
                 try {
@@ -268,6 +275,36 @@ public class UpdateControllerTest {
         assertTrue(!logs.isEmpty());
     }
 
+    @Test public void secondInstallFailureOfAVersionStopsRetriesAndNewerVersionResets() {
+        installResult = ShellError.fail(ShellError.COMMAND_FAILED, "INSTALL_FAILED_X");
+        c.checkNow();
+        settle();
+        assertEquals(UpdateError.INSTALL_FAILED, c.state().error);
+        assertEquals(1, store.installFailures("1.2.3"));
+        int clearsAfterFirst = clears;
+        c.checkNow(); // retry reuses the verified APK instead of downloading again
+        settle();
+        assertEquals(1, downloads);
+        assertEquals(2, installed.size());
+        assertEquals(UpdateError.INSTALL_FAILED_REPEATEDLY, c.state().error);
+        assertEquals(2, store.installFailures("1.2.3"));
+        assertTrue(clears > clearsAfterFirst); // the useless file is dropped once we give up
+        c.checkNow(); // same version again: no download, no install
+        settle();
+        assertEquals(UpdateError.INSTALL_FAILED_REPEATEDLY, c.state().error);
+        assertEquals(1, downloads);
+        assertEquals(2, installed.size());
+        // a newer version resets the counter
+        feedResult = FetchResult.ok(release("1.2.4"));
+        archive = FetchResult.ok(new ApkVerifier.Facts("pkg", "1.2.4", 1_002_004, Collections.singleton("k")));
+        installResult = FetchResult.ok("installed");
+        c.checkNow();
+        settle();
+        assertEquals(2, downloads);
+        assertEquals(3, installed.size());
+        assertEquals(0, store.installFailures("1.2.4"));
+    }
+
     @Test public void screensaverOpensTheInstallWindowForAReadyUpdate() {
         c.onTick(true, 0, false);
         settle();
@@ -285,6 +322,8 @@ public class UpdateControllerTest {
         c = newController("1.2.3");
         assertNull(store.pending);
         assertTrue(logs.isEmpty());
+        assertTrue(c.processStartedByUpdate());
+        assertFalse(newController("1.2.2").processStartedByUpdate());
     }
 
     @Test public void stalePendingOfAnotherVersionIsDroppedWithALog() {

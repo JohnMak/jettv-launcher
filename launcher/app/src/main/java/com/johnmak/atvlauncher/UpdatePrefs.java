@@ -10,6 +10,9 @@ final class UpdatePrefs implements UpdateController.Store {
     private static final String PENDING_VERSION = "pendingVersion";
     private static final String PENDING_AT = "pendingAt";
 
+    private static final String FAILED_VERSION = "installFailedVersion";
+    private static final String FAILED_COUNT = "installFailedCount";
+
     private final SharedPreferences prefs;
 
     UpdatePrefs(Context context) {
@@ -33,4 +36,12 @@ final class UpdatePrefs implements UpdateController.Store {
     }
 
     @Override public void clearPending() { prefs.edit().remove(PENDING_VERSION).remove(PENDING_AT).commit(); }
+
+    @Override public int installFailures(String version) {
+        return version.equals(prefs.getString(FAILED_VERSION, null)) ? prefs.getInt(FAILED_COUNT, 0) : 0;
+    }
+
+    @Override public void saveInstallFailures(String version, int count) {
+        prefs.edit().putString(FAILED_VERSION, version).putInt(FAILED_COUNT, count).commit();
+    }
 }

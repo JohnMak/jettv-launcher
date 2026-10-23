@@ -26,6 +26,8 @@ final class UpdateController {
     private static final String TAG = "AtvUpdate";
     private static final long TICK_MS = 10L * 60 * 1000;
     private static final long PENDING_STALE_MS = 10L * 60 * 1000;
+    /** A version whose install failed this many times is not downloaded or installed again. */
+    static final int MAX_INSTALL_FAILURES = 2;
 
     interface Listener {
         void onState(UpdateState state);
@@ -62,6 +64,12 @@ final class UpdateController {
         void savePending(Pending pending);
 
         void clearPending();
+
+        /** Failed installs recorded for {@code version}; 0 when the recorded failures belong to another version. */
+        int installFailures(String version);
+
+        /** Replaces the record: failures are counted for one version at a time, so a newer version starts at 0. */
+        void saveInstallFailures(String version, int count);
     }
 
     /** An install that was started: the version it should leave behind and when. */
@@ -129,6 +137,7 @@ final class UpdateController {
     private VerifiedApk ready;
     private boolean installWhenReady;
     private boolean evaluated;
+    private boolean startedByUpdate;
 
     UpdateController(SemVer current, String currentVersionName, ReleaseFeed.Source feed, Downloader downloader,
                      ApkVerifier verifier, AdbSession session, Store store, LongSupplier clock,
@@ -152,6 +161,7 @@ final class UpdateController {
         Pending pending = store.pending();
         if (pending == null) return;
         if (pending.version.equals(currentVersionName)) {
+            startedByUpdate = true;
             store.clearPending();
         } else if (clock.getAsLong() - pending.atMs > PENDING_STALE_MS) {
             log.accept("install of " + pending.version + " did not take effect; running " + currentVersionName);
@@ -162,6 +172,9 @@ final class UpdateController {
     // ------------------------------------------------------------ UI API
 
     UpdateState state() { return state; }
+
+    /** True when this process was started by our own silent update install (its pending record matched the running version). */
+    boolean processStartedByUpdate() { return startedByUpdate; }
 
     void addListener(Listener l) { listeners.add(l); }
 
@@ -201,11 +214,12 @@ final class UpdateController {
 
     private void startPipeline() {
         setState(UpdateState.CHECKING);
-        worker.execute(this::runPipeline);
+        VerifiedApk kept = ready; // verified earlier, install failed: reused instead of downloading again
+        worker.execute(() -> runPipeline(kept));
     }
 
     /** Worker: feed, download, verify; every outcome is posted to main. */
-    private void runPipeline() {
+    private void runPipeline(VerifiedApk kept) {
         try {
             FetchResult<Release> latest = feed.latest();
             if (!latest.isOk()) {
@@ -219,6 +233,14 @@ final class UpdateController {
                 return;
             }
             SemVer version = release.version;
+            if (store.installFailures(version.toString()) >= MAX_INSTALL_FAILURES) {
+                publish(UpdateState.error(UpdateError.INSTALL_FAILED_REPEATEDLY, version + " failed to install " + MAX_INSTALL_FAILURES + " times"));
+                return;
+            }
+            if (kept != null && kept.version().equals(version) && kept.file().isFile()) {
+                main.execute(() -> onVerified(kept));
+                return;
+            }
             publish(UpdateState.downloading(version, UpdateState.NO_PROGRESS));
             FetchResult<Download> download = downloader.download(release, p -> publish(UpdateState.downloading(version, p)));
             if (!download.isOk()) {
@@ -270,22 +292,30 @@ final class UpdateController {
                 result = ShellError.fail(ShellError.COMMAND_FAILED, e.toString());
             }
             FetchResult<String> outcome = result;
-            main.execute(() -> onInstallFinished(outcome));
+            main.execute(() -> onInstallFinished(apk, outcome));
         });
     }
 
     /** Only reached if the process survived the installation, or it failed. */
-    private void onInstallFinished(FetchResult<String> result) {
-        ready = null;
+    private void onInstallFinished(VerifiedApk apk, FetchResult<String> result) {
         if (result.isOk()) {
+            ready = null;
             setState(UpdateState.IDLE);
             return;
         }
         store.clearPending();
+        String version = apk.version().toString();
+        int failures = store.installFailures(version) + 1;
+        store.saveInstallFailures(version, failures);
         ShellError shell = ShellError.of(result);
         UpdateError kind = UpdateError.fromShell(shell != null ? shell : ShellError.COMMAND_FAILED);
-        worker.execute(downloader::clear);
-        setState(UpdateState.error(kind, result.error()));
+        if (failures >= MAX_INSTALL_FAILURES) {
+            ready = null;
+            worker.execute(downloader::clear);
+            setState(UpdateState.error(UpdateError.INSTALL_FAILED_REPEATEDLY, result.error()));
+        } else {
+            setState(UpdateState.error(kind, result.error())); // the verified APK stays for the retry
+        }
     }
 
     // ------------------------------------------------------------ state

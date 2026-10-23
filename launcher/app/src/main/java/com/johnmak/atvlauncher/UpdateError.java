@@ -16,6 +16,8 @@ enum UpdateError {
     ADB_UNREACHABLE,
     /** The package manager refused the installation. */
     INSTALL_FAILED,
+    /** The same version failed to install repeatedly; it is not attempted again until a newer one is released. */
+    INSTALL_FAILED_REPEATEDLY,
     /** A bug-class failure that escaped a collaborator. */
     INTERNAL;
 

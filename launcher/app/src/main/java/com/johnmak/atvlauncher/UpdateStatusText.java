@@ -35,6 +35,7 @@ final class UpdateStatusText {
             case ADB_UNAUTHORIZED: return R.string.update_err_adb_unauthorized;
             case ADB_UNREACHABLE: return R.string.update_err_adb_unreachable;
             case INSTALL_FAILED: return R.string.update_err_install;
+            case INSTALL_FAILED_REPEATEDLY: return R.string.update_err_install_repeatedly;
             case INTERNAL: return R.string.update_err_internal;
             default: throw new IllegalArgumentException(e.name());
         }

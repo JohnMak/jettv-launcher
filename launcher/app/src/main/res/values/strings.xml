@@ -82,6 +82,7 @@
     <string name="update_err_adb_unauthorized">разрешите отладку на экране</string>
     <string name="update_err_adb_unreachable">ADB недоступен</string>
     <string name="update_err_install">установка отклонена</string>
+    <string name="update_err_install_repeatedly">установка этой версии дважды не удалась, ждём следующую</string>
     <string name="update_err_internal">внутренняя ошибка</string>
     <string name="settings_about_name">JetTV Launcher</string>
     <string name="sources_title_recommendations">Источники «Рекомендаций»</string>

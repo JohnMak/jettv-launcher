@@ -198,6 +198,7 @@ public final class MainActivity extends Activity {
     private RowScroller favoritesScroller;
     private RowScroller watchScroller;
     private RowScroller mixedScroller;
+    private boolean rightsPromptArmed;
     private boolean feedShown;
     private boolean hintShown;
     private boolean appliedConfig;
@@ -339,7 +340,7 @@ public final class MainActivity extends Activity {
             }
         });
         renderVpn();
-        RightsPrompt.maybeOpenSettings(this);
+        rightsPromptArmed = true; // fires on the first user key press, never unattended
     }
 
     // ---------------------------------------------------------------- setup
@@ -1153,6 +1154,10 @@ public final class MainActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
+        if (rightsPromptArmed && e.getAction() == KeyEvent.ACTION_DOWN) {
+            rightsPromptArmed = false;
+            if (RightsPrompt.maybeOpenSettings(this)) return true;
+        }
         if (idle.consumes(e)) return true;
         int k = e.getKeyCode();
         boolean down = e.getAction() == KeyEvent.ACTION_DOWN;
