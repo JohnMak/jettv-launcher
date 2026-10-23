@@ -4,6 +4,26 @@ plugins {
 
 apply from: 'version.gradle'
 
+// Release signing: properties file (storeFile, storePassword, keyAlias, keyPassword) at
+// $JETTV_SIGNING_PROPERTIES or <repo root>/materials/signing.properties. Only release tasks need it.
+def signingPropsFile = new File(System.getenv('JETTV_SIGNING_PROPERTIES') ?: "${rootDir.parentFile}/materials/signing.properties")
+def signingProps = new Properties()
+if (signingPropsFile.isFile()) {
+    signingPropsFile.withInputStream { signingProps.load(it) }
+}
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any { it.name == 'assembleRelease' || it.name == 'bundleRelease' }) {
+        if (!signingPropsFile.isFile()) {
+            throw new GradleException("Release signing properties not found at ${signingPropsFile}; set JETTV_SIGNING_PROPERTIES or create materials/signing.properties")
+        }
+        ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].each { key ->
+            if (!signingProps.getProperty(key)) {
+                throw new GradleException("Release signing properties ${signingPropsFile} lack key '${key}'")
+            }
+        }
+    }
+}
+
 android {
     namespace 'com.johnmak.atvlauncher'
     compileSdk 34
@@ -18,8 +38,22 @@ android {
     buildFeatures {
         buildConfig true
     }
+    signingConfigs {
+        release {
+            if (signingPropsFile.isFile()) {
+                storeFile file(signingProps.getProperty('storeFile'))
+                storePassword signingProps.getProperty('storePassword')
+                keyAlias signingProps.getProperty('keyAlias')
+                keyPassword signingProps.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         debug { debuggable true }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
