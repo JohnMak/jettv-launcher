@@ -14,7 +14,8 @@ public class ShellCommandTest {
         assertEquals(Arrays.asList("GET_DLP_LUMENS_LEVEL", "GET_BRIGHTNESS", "GET_CONTRAST",
                         "SET_DLP_LUMENS_LEVEL", "SET_BRIGHTNESS", "SET_CONTRAST",
                         "PM_GRANT", "APPOPS_ALLOW_USAGE_STATS", "ROLE_SET_HOME", "PM_DISABLE", "PM_ENABLE",
-                        "PM_REMOVE_FOR_USER", "PM_RESTORE", "PM_UNINSTALL", "PM_UNINSTALL_UPDATES"),
+                        "PM_REMOVE_FOR_USER", "PM_RESTORE", "PM_UNINSTALL", "PM_UNINSTALL_UPDATES",
+                        "DUMPSYS_MEMINFO_COMPACT", "PS_CPU_TIMES"),
                 Arrays.stream(ShellCommand.Verb.values()).map(Enum::name).collect(java.util.stream.Collectors.toList()));
     }
 
@@ -77,5 +78,15 @@ public class ShellCommandTest {
         assertEquals(ShellCommand.Verb.PM_UNINSTALL_UPDATES, ShellCommand.Pm.uninstallUpdates(pkg).verb());
         assertTrue(ShellCommand.Pm.restore(pkg).verb().isPackageManagement());
         assertFalse(ShellCommand.Gmpf.getLevel().verb().isPackageManagement());
+    }
+
+    @Test
+    public void statsBuildExactReadOnlyShellLines() {
+        assertEquals("dumpsys meminfo -c", ShellCommand.Stats.meminfoCompact().shellLine());
+        assertEquals("ps -A -o PID,TIME+,NAME", ShellCommand.Stats.cpuTimes().shellLine());
+        assertEquals(ShellCommand.Verb.DUMPSYS_MEMINFO_COMPACT, ShellCommand.Stats.meminfoCompact().verb());
+        assertEquals(ShellCommand.Verb.PS_CPU_TIMES, ShellCommand.Stats.cpuTimes().verb());
+        assertFalse(ShellCommand.Stats.meminfoCompact().verb().isPackageManagement());
+        assertFalse(ShellCommand.Stats.cpuTimes().verb().isPackageManagement());
     }
 }

@@ -3,7 +3,7 @@ package com.johnmak.atvlauncher;
 /**
  * A validated device shell command. Only the verbs of {@link Verb} exist; every argument is range-checked or a
  * typed value ({@link PackageName}, {@link GrantablePermission}), so no free-form string reaches the shell.
- * Factories live in {@link Gmpf} (`gmpfUnit` lamp/picture) and {@link Pm} (package management).
+ * Factories live in {@link Gmpf} (`gmpfUnit` lamp/picture) {@link Pm} (package management) and {@link Stats} (read-only process stats).
  */
 final class ShellCommand {
     /** Marker meaning the output must be empty. */
@@ -24,13 +24,15 @@ final class ShellCommand {
         PM_REMOVE_FOR_USER("Success"),
         PM_RESTORE("installed for user"),
         PM_UNINSTALL("Success"),
-        PM_UNINSTALL_UPDATES("Success");
+        PM_UNINSTALL_UPDATES("Success"),
+        DUMPSYS_MEMINFO_COMPACT(null),
+        PS_CPU_TIMES(null);
 
         private final String successMarker;
 
         Verb(String successMarker) { this.successMarker = successMarker; }
 
-        /** Text a successful output must contain ({@link #EMPTY}: nothing at all); null for `gmpfUnit` verbs. */
+        /** Text a successful output must contain ({@link #EMPTY}: nothing at all); null for `gmpfUnit` and read-only stats verbs (judged by exit code). */
         String successMarker() { return successMarker; }
 
         boolean isPackageManagement() { return successMarker != null; }
@@ -136,5 +138,17 @@ final class ShellCommand {
         static ShellCommand uninstallUpdates(PackageName pkg) {
             return new ShellCommand(Verb.PM_UNINSTALL_UPDATES, "pm uninstall " + pkg);
         }
+    }
+
+    /** Read-only process statistics; success = exit 0 (classifier path, like `gmpfUnit`). */
+    static final class Stats {
+        private static final ShellCommand MEMINFO = new ShellCommand(Verb.DUMPSYS_MEMINFO_COMPACT, "dumpsys meminfo -c");
+        private static final ShellCommand CPU_TIMES = new ShellCommand(Verb.PS_CPU_TIMES, "ps -A -o PID,TIME+,NAME");
+
+        private Stats() {}
+
+        static ShellCommand meminfoCompact() { return MEMINFO; }
+
+        static ShellCommand cpuTimes() { return CPU_TIMES; }
     }
 }

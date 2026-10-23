@@ -1,0 +1,347 @@
+  PID     TIME+ NAME                       
+    1   0:10.95 init
+    2   0:00.25 [kthreadd]
+    3   0:00.00 [rcu_gp]
+    4   0:00.00 [slub_flushwq]
+    5   0:00.00 [netns]
+    9   0:00.00 [mm_percpu_wq]
+   11   0:00.00 [rcu_tasks_kthre]
+   12   0:00.00 [rcu_tasks_trace]
+   13   0:40.39 [ksoftirqd/0]
+   14   0:28.59 [rcu_preempt]
+   15   0:00.00 [rcub/0]
+   16   0:00.00 [rcuc/0]
+   17   0:00.02 [rcu_exp_gp_kthr]
+   18   0:00.00 [rcu_exp_par_gp_]
+   19   0:00.05 [migration/0]
+   20   0:00.00 [idle_inject/0]
+   22   0:00.00 [cpuhp/0]
+   23   0:00.01 [cpuhp/1]
+   24   0:00.00 [idle_inject/1]
+   25   0:00.08 [migration/1]
+   26   0:00.00 [rcuc/1]
+   27   0:10.62 [ksoftirqd/1]
+   30   0:00.01 [cpuhp/2]
+   31   0:00.00 [idle_inject/2]
+   32   0:00.59 [migration/2]
+   33   0:00.00 [rcuc/2]
+   34   0:09.25 [ksoftirqd/2]
+   37   0:00.01 [cpuhp/3]
+   38   0:00.00 [idle_inject/3]
+   39   0:00.48 [migration/3]
+   40   0:00.00 [rcuc/3]
+   41   0:09.04 [ksoftirqd/3]
+   44   0:00.00 [inet_frag_wq]
+   45   0:00.03 [kauditd]
+   49   0:00.00 [khungtaskd]
+   50   0:00.00 [oom_reaper]
+   51   0:00.00 [writeback]
+   52   0:13.45 [kcompactd0]
+   53   0:00.00 [kblockd]
+   54   0:00.00 [blkcg_punt_bio]
+   55   0:00.00 [edac-poller]
+   56   0:00.00 [devfreq_wq]
+   57   0:00.00 [watchdogd]
+   60   1:19.56 [kswapd0]
+   62   0:00.00 [erofs_worker/0]
+   68   0:00.00 [dmabuf-deferred]
+   69   0:00.00 [uas]
+   70   0:00.00 [dm_bufio_cache]
+   71   0:00.00 [aml_hld/0]
+   72   0:00.00 [aml_hld/1]
+   73   0:00.00 [aml_hld/2]
+   74   0:00.00 [aml_hld/3]
+   75   0:00.00 [irq/46-dmc_moni]
+   76   0:00.00 [irq/37-fe08c000]
+   77   0:00.00 [hwrng]
+   78   0:00.00 [tee-log-wq]
+   79   0:00.00 [tee_timer]
+   81   0:00.00 [amhdmitx]
+   82   0:01.65 [kthread_hdcp]
+   83   0:00.00 [mmc_complete]
+   86   0:00.00 [ion_system_heap]
+   87   0:00.00 [codec_mm_cma]
+   88   0:00.00 [ge2d_monitor]
+   89   0:00.00 [cabc workqueue]
+   90   0:00.43 [aml-di-test-0]
+   91   0:00.21 [aml-dimem-1]
+   92   0:00.00 [cec_work]
+   95   0:00.00 [cec_wakeup]
+   96   3:20.85 [crtc0_commit]
+   97   0:00.00 [card0-crtc0]
+   98   0:01.53 [cma_task0]
+   99   0:01.44 [cma_task1]
+  100   0:01.36 [cma_task2]
+  101   0:00.00 [cma_task3]
+  103   0:00.00 [mld]
+  104   0:00.00 [ipv6_addrconf]
+  108   0:00.00 [dwc_otg]
+  113   0:00.02 [jbd2/mmcblk0p23]
+  114   0:00.00 [ext4-rsv-conver]
+  118   0:00.00 [kdmflush]
+  123   0:00.00 [kdmflush]
+  128   0:00.00 [kdmflush]
+  133   0:00.00 [kdmflush]
+  138   0:00.00 [kdmflush]
+  143   0:00.00 [kdmflush]
+  148   0:00.00 [kdmflush]
+  153   0:00.00 [kdmflush]
+  156   0:00.00 [kdmflush]
+  157   0:00.00 [kverityd]
+  160   0:00.00 [kdmflush]
+  161   0:00.00 [kverityd]
+  162   0:00.00 [kdmflush]
+  163   0:00.00 [kverityd]
+  164   0:00.00 [kdmflush]
+  165   0:00.00 [kverityd]
+  166   0:00.00 [kdmflush]
+  167   0:00.00 [kverityd]
+  168   0:00.00 [kdmflush]
+  169   0:00.00 [kverityd]
+  170   0:00.00 [kdmflush]
+  171   0:00.00 [kverityd]
+  173   0:00.00 [kdmflush]
+  174   0:00.00 [kverityd]
+  175   0:00.00 [kdmflush]
+  176   0:00.00 [kverityd]
+  177   0:00.00 [jbd2/dm-33-8]
+  178   0:00.00 [ext4-rsv-conver]
+  179   0:00.00 [jbd2/mmcblk0p15]
+  180   0:00.00 [ext4-rsv-conver]
+  183   0:02.37 init
+  184   0:32.21 ueventd
+  227   0:00.00 [ext4-rsv-conver]
+  228   0:00.00 [ext4-rsv-conver]
+  229   0:00.00 [ext4-rsv-conver]
+  230   0:00.00 [ext4-rsv-conver]
+  237   0:00.33 prng_seeder
+  240   0:00.00 [aml_crypto]
+  241   0:00.00 [stmmac_wq]
+  242   0:00.00 [stmmacamlogicta]
+  244   0:00.00 [cfg80211]
+  245   0:18.87 logd
+  246   0:13.40 lmkd
+  247   0:08.01 servicemanager
+  248   0:00.68 hwservicemanager
+  249   0:00.23 vndservicemanager
+  250   0:00.51 [psimon]
+  255   0:00.00 [kbase_job_fault]
+  256   0:00.02 miracast_hdcp2
+  262   0:01.37 tee-supplicant
+  263   0:02.04 vold
+  265   0:00.00 [optee_bus_scan]
+  268   0:00.32 [irq/41-vdec-0]
+  269   0:00.00 [irq/42-vdec-1]
+  270   0:00.81 [vdec-core]
+  271   0:00.00 [vdec-work]
+  272   0:00.00 [task-post-daemo]
+  273   0:02.68 android.hardware.graphics.allocator-service
+  274  19:06.17 surfaceflinger
+  276   0:00.00 [kdmflush]
+  284   0:00.06 [jbd2/mmcblk0p13]
+  285   0:00.00 [ext4-rsv-conver]
+  289   0:00.00 [jbd2/mmcblk0p7-]
+  290   0:00.00 [ext4-rsv-conver]
+  295   0:00.00 [kbase_event]
+  304   0:04.71 android.system.suspend-service
+  305   0:01.75 keystore2
+  306   0:00.67 android.hardware.boot-service
+  307   0:07.11 android.hardware.security.keymint-service.amlogic
+  312   7:40.32 android.hardware.graphics.composer@3.2-service.droidlogic
+  324   0:00.00 [blk_crypto_wq]
+  369   0:00.00 [f2fs_flush-254:]
+  370   0:04.10 [f2fs_discard-25]
+  371   0:05.57 [f2fs_gc-254:67]
+  373   0:01.48 systemcontrol
+  379   0:00.09 tombstoned
+  393   0:00.00 [ext4-rsv-conver]
+  394   0:00.00 [ext4-rsv-conver]
+  395   0:00.00 [ext4-rsv-conver]
+  396   0:00.00 [ext4-rsv-conver]
+  398   0:00.00 [ext4-rsv-conver]
+  399   0:00.00 [ext4-rsv-conver]
+  400   0:00.00 [ext4-rsv-conver]
+  401   0:00.00 [ext4-rsv-conver]
+  402   0:00.00 [ext4-rsv-conver]
+  403   0:00.00 [ext4-rsv-conver]
+  404   0:00.00 [ext4-rsv-conver]
+  406   0:00.00 [ext4-rsv-conver]
+  407   0:00.00 [ext4-rsv-conver]
+  409   0:00.00 [ext4-rsv-conver]
+  410   0:00.00 [ext4-rsv-conver]
+  411   0:00.00 [ext4-rsv-conver]
+  412   0:00.00 [ext4-rsv-conver]
+  413   0:00.00 [ext4-rsv-conver]
+  414   0:00.00 [ext4-rsv-conver]
+  415   0:00.00 [ext4-rsv-conver]
+  416   0:00.00 [ext4-rsv-conver]
+  417   0:00.00 [ext4-rsv-conver]
+  418   0:00.00 [ext4-rsv-conver]
+  419   0:00.00 [ext4-rsv-conver]
+  420   0:00.00 [ext4-rsv-conver]
+  422   0:00.00 [ext4-rsv-conver]
+  423   0:00.00 [ext4-rsv-conver]
+  424   0:00.00 [ext4-rsv-conver]
+  425   0:00.00 [ext4-rsv-conver]
+  427   0:00.00 [ext4-rsv-conver]
+  428   0:00.00 [ext4-rsv-conver]
+  429   0:00.00 [ext4-rsv-conver]
+  430   0:00.00 [ext4-rsv-conver]
+  469   0:00.03 [video_composer.]
+  470   0:00.03 [video_composer.]
+  597   0:08.55 statsd
+  598   0:06.48 netd
+  599   0:06.30 zygote
+  604   0:00.26 iptables-restore
+  605   0:00.22 ip6tables-restore
+  607   0:00.00 [dec-worker]
+  620   0:00.00 [mediaproxy_thre]
+  621   0:00.04 bspmserver
+  622   0:00.02 android.hidl.allocator@1.0-service
+  623  81:54.57 android.hardware.audio.service-droidlogic
+  624   0:04.66 android.hardware.audio@7.1-service-msd
+  625   0:04.40 android.hardware.bluetooth@1.1-service-xiaomi
+  626   0:02.85 android.hardware.camera.provider-V1-amlogic-service
+  627   0:00.04 android.hardware.cas@1.2-service
+  628   0:00.05 android.hardware.drm-service.clearkey
+  629   0:00.56 android.hardware.drm@1.4-service.playready
+  630   0:00.04 android.hardware.gatekeeper-service.amlogic
+  634   0:00.17 android.hardware.health@2.1-service.droidlogic
+  636   0:08.15 android.hardware.media.c2@1.2-service
+  637   0:00.04 android.hardware.oemlock@1.0-service.droidlogic
+  639   0:01.95 android.hardware.power.aidl-service.droidlogic
+  641   0:01.25 android.hardware.tv.hdmi.cec-service.droidlogic
+  643   0:00.11 android.hardware.tv.hdmi.connection-service.droidlogic
+  648   0:00.19 android.hardware.usb-service.droidlogic
+  649   0:00.04 android.hardware.usb.gadget-service.droidlogic
+  652   0:00.19 android.hardware.wifi-service
+  664   0:00.03 android.hardware.cas-service.example
+  668   0:00.23 droidmdnsoffload-service
+  669   0:00.03 android.hardware.dumpstate-service.droidlogic
+  670   0:01.46 lights
+  673   0:01.17 android.hardware.memtrack-service.droidlogic
+  682   0:00.56 subtitleserver
+  689   0:05.36 android.hardware.thermal-service.droidlogic
+  704   0:00.94 android.hardware.drm-service.widevine
+  705   0:10.72 audioserver
+  706   0:00.05 credstore
+  708   0:00.09 gpuservice
+  748   0:19.18 [irq/31-fe330000]
+  754   0:00.07 drmserver
+  755   0:00.11 traced_probes
+  759   0:00.14 traced
+  768   0:00.40 cameraserver
+  770   0:00.03 incidentd
+  771   0:53.83 installd
+  772   0:04.09 media.extractor
+  773   0:00.40 media.metrics
+  774   0:22.61 mediaserver
+  776   0:05.55 storaged
+  781   0:01.41 wificond
+  783   0:00.13 media.codec
+  788   0:02.58 media.swcodec
+  789   0:00.03 gatekeeperd
+  791   0:00.92 update_engine
+  794   0:00.14 logpersist
+  799   0:04.19 adbd
+  817   0:09.07 mdnsd
+  821   0:01.56 [main_thread]
+  823   0:00.48 [hif_thread]
+  825   0:00.00 [rx_thread]
+  833   0:00.00 [btmtk_usb_wait_]
+  870   8:40.23 system_server
+ 1575   0:00.00 [irq/66-0.1:08]
+ 1585   0:05.57 wpa_supplicant
+ 1613   0:19.97 com.android.systemui
+ 1656   0:08.32 com.droidlogic
+ 1792   0:14.38 com.android.networkstack.process
+ 1841   0:02.54 com.mi.bluetooth
+ 1863   0:00.58 com.android.se
+ 2055   0:00.00 [kbase_event]
+ 2098   0:14.24 com.android.providers.media.module
+ 2159   0:21.62 [irq/32-fe330000]
+ 2244   0:06.03 xiaomi.tvservice
+ 2264   0:00.78 com.android.tv.mdnsoffloadmanager
+ 2326   0:00.00 [kbase_event]
+ 2343   0:01.63 com.xiaomi.android.tvsetup.partnercustomizer
+ 2497   0:03.57 com.android.providers.tv
+ 2624   0:08.83 com.xiaomi.mitv.updateservice
+ 2733   0:09.92 [f2fs_ckpt-254:6]
+ 3236   0:00.18 com.android.tv.mdnsoffloadcmd
+ 3343   0:00.29 com.droidlogic.mdnsoffload
+ 3705   0:00.38 gsid
+ 3844   0:14.04 com.dolby.android.audio.service
+ 5666   0:01.80 com.google.android.ext.services
+ 6323   1:19.54 com.android.tv.settings
+ 6869   0:00.00 [kbase_event]
+ 7389   0:02.81 com.google.android.tv.remote.service
+ 7859   4:31.67 com.android.vending:background
+10582   0:00.05 abb
+11284   0:00.00 [codec_mm_sc]
+13203   0:00.03 FboNativeService
+14061   0:05.71 com.google.android.permissioncontroller
+16645   0:00.29 com.android.keychain
+16810   0:00.69 [kworker/3:3-mld]
+17225   0:03.43 org.smarttube.stable
+18573   0:00.07 webview_zygote
+19115   0:00.65 android.process.acore
+19159   0:28.83 com.google.android.gms
+19207   0:00.19 com.google.process.gapps
+19251   0:00.26 com.google.process.gservices
+19297   0:00.12 com.droidlogic.mictoggle
+19595   0:02.05 com.alphainventor.filemanager
+19617   0:53.16 org.videolan.vlc
+19958   0:03.20 com.google.android.inputmethod.latin
+20013  60:08.65 com.johnmak.atvlauncher
+20274   0:00.21 android.process.media
+20718   0:00.01 [kworker/0:0-events]
+21058   0:06.59 ru.vk.store.tv
+21187   0:01.15 com.google.android.gms.unstable
+21481   0:00.16 com.google.android.partnersetup
+21573   0:00.44 [kworker/2:0-events]
+21601   0:00.18 com.android.providers.calendar
+21670   0:06.44 com.android.vending
+22001   0:00.00 [kbase_event]
+22056   0:27.14 ru.kinopoisk.tv
+22057   0:00.00 usap32
+22222   0:00.00 [kbase_event]
+22250   0:00.00 usap32
+22343   0:01.69 ru.kinopoisk.tv:passport
+22383   0:04.94 ru.kinopoisk.tv:AppMetrica
+22450   0:00.00 [kbase_event]
+22640   0:00.00 usap32
+23427   0:00.78 [kworker/0:1H-mmc_complete]
+23429   0:00.08 [kworker/1:0H-kverityd]
+23457   0:00.06 [kworker/3:4H-kblockd]
+23469   0:00.00 [kworker/1:3-ipv6_addrconf]
+23470   0:00.00 [erofs_worker/1]
+23471   0:00.00 [erofs_worker/2]
+23472   0:00.00 [erofs_worker/3]
+23473   0:00.00 [card_process_th]
+23498   0:05.17 [kworker/u9:2-blk_crypto_wq]
+23504   0:00.16 [kworker/3:0-events_freezable_power_]
+23509   0:02.76 com.android.bluetooth
+23569   0:00.09 [kworker/2:2-mm_percpu_wq]
+23598   0:04.99 hdcp_tx22
+23708   0:00.22 [kworker/u8:1-events_unbound]
+23714   0:00.11 [kworker/0:2H-mmc_complete]
+23717   0:00.08 [kworker/3:0H-kverityd]
+23720   0:00.03 [kworker/2:1H-kverityd]
+23731   0:05.87 artd
+23752   0:00.02 [kworker/1:0-mm_percpu_wq]
+23842   0:00.88 [kworker/0:2-cabc workqueue]
+23938   0:00.57 [kworker/u9:0-blk_crypto_wq]
+23961   0:00.03 [kworker/u8:2-events_unbound]
+23962   0:00.00 [kworker/2:2H-kblockd]
+23975   0:00.00 [kworker/1:2H-kblockd]
+23980   0:00.88 [kworker/u9:1-f2fs_post_read_wq]
+23981   0:00.06 [kworker/u8:0-events_unbound]
+23986   0:00.00 [kworker/0:0H-kverityd]
+23988   0:00.01 [kworker/2:0H-kblockd]
+23991   0:00.00 [kworker/3:1H-kblockd]
+23992   0:00.03 [kworker/0:3H-kverityd]
+24006   0:00.09 [sugov:0]
+24025   0:00.00 [kworker/3:2H-kblockd]
+24027   0:00.01 [kworker/1:1H-kverityd]
+24039   0:00.02 [kworker/u9:3-blk_crypto_wq]
+24052   0:00.13 ps

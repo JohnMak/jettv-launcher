@@ -1,0 +1,323 @@
+version,1
+time,18718592,114106144
+oom,native,799236,N/A
+proc,native,init,1,7044,N/A,e
+proc,native,init,183,5708,N/A,e
+proc,native,ueventd,184,8528,N/A,e
+proc,native,prng_seeder,237,3376,N/A,e
+proc,native,logd,245,5156,N/A,e
+proc,native,lmkd,246,3320,N/A,e
+proc,native,servicemanager,247,4152,N/A,e
+proc,native,hwservicemanager,248,4740,N/A,e
+proc,native,vndservicemanager,249,3528,N/A,e
+proc,native,miracast_hdcp2,256,3324,N/A,e
+proc,native,tee-supplicant,262,2564,N/A,e
+proc,native,vold,263,5576,N/A,e
+proc,native,android.hardware.graphics.allocator-service,273,4852,N/A,e
+proc,native,surfaceflinger,274,29948,N/A,e
+proc,native,android.system.suspend-service,304,4172,N/A,e
+proc,native,keystore2,305,8552,N/A,e
+proc,native,android.hardware.boot-service,306,5168,N/A,e
+proc,native,android.hardware.security.keymint-service.amlogic,307,4472,N/A,e
+proc,native,android.hardware.graphics.composer@3.2-service.droidlogic,312,10488,N/A,e
+proc,native,systemcontrol,373,7712,N/A,e
+proc,native,tombstoned,379,2100,N/A,e
+proc,native,statsd,597,4064,N/A,e
+proc,native,netd,598,8452,N/A,e
+proc,native,zygote,599,133360,N/A,e
+proc,native,iptables-restore,604,2756,N/A,e
+proc,native,ip6tables-restore,605,2740,N/A,e
+proc,native,bspmserver,621,3996,N/A,e
+proc,native,android.hidl.allocator@1.0-service,622,2924,N/A,e
+proc,native,android.hardware.audio.service-droidlogic,623,23952,N/A,e
+proc,native,android.hardware.audio@7.1-service-msd,624,7680,N/A,e
+proc,native,android.hardware.bluetooth@1.1-service-xiaomi,625,4012,N/A,e
+proc,native,android.hardware.camera.provider-V1-amlogic-service,626,5720,N/A,e
+proc,native,android.hardware.cas@1.2-service,627,3964,N/A,e
+proc,native,android.hardware.drm-service.clearkey,628,4472,N/A,e
+proc,native,android.hardware.drm@1.4-service.playready,629,5220,N/A,e
+proc,native,android.hardware.gatekeeper-service.amlogic,630,3796,N/A,e
+proc,native,android.hardware.health@2.1-service.droidlogic,634,3560,N/A,e
+proc,native,android.hardware.media.c2@1.2-service,636,10552,N/A,e
+proc,native,android.hardware.oemlock@1.0-service.droidlogic,637,4032,N/A,e
+proc,native,android.hardware.power.aidl-service.droidlogic,639,5336,N/A,e
+proc,native,android.hardware.tv.hdmi.cec-service.droidlogic,641,4944,N/A,e
+proc,native,android.hardware.tv.hdmi.connection-service.droidlogic,643,4992,N/A,e
+proc,native,android.hardware.usb-service.droidlogic,648,3852,N/A,e
+proc,native,android.hardware.usb.gadget-service.droidlogic,649,4480,N/A,e
+proc,native,android.hardware.wifi-service,652,4864,N/A,e
+proc,native,android.hardware.cas-service.example,664,3576,N/A,e
+proc,native,droidmdnsoffload-service,668,4164,N/A,e
+proc,native,android.hardware.dumpstate-service.droidlogic,669,3616,N/A,e
+proc,native,lights,670,3768,N/A,e
+proc,native,android.hardware.memtrack-service.droidlogic,673,3672,N/A,e
+proc,native,subtitleserver,682,4856,N/A,e
+proc,native,android.hardware.thermal-service.droidlogic,689,4140,N/A,e
+proc,native,android.hardware.drm-service.widevine,704,4064,N/A,e
+proc,native,audioserver,705,17836,N/A,e
+proc,native,credstore,706,5468,N/A,e
+proc,native,gpuservice,708,5104,N/A,e
+proc,native,drmserver,754,4420,N/A,e
+proc,native,traced_probes,755,2288,N/A,e
+proc,native,traced,759,2416,N/A,e
+proc,native,cameraserver,768,14276,N/A,e
+proc,native,incidentd,770,3828,N/A,e
+proc,native,installd,771,5264,N/A,e
+proc,native,media.extractor,772,17856,N/A,e
+proc,native,media.metrics,773,6404,N/A,e
+proc,native,mediaserver,774,23536,N/A,e
+proc,native,storaged,776,4468,N/A,e
+proc,native,wificond,781,4956,N/A,e
+proc,native,media.codec,783,8612,N/A,e
+proc,native,media.swcodec,788,5548,N/A,e
+proc,native,gatekeeperd,789,4212,N/A,e
+proc,native,update_engine,791,5004,N/A,e
+proc,native,logpersist,794,2548,N/A,e
+proc,native,adbd,799,7688,N/A,e
+proc,native,mdnsd,817,2708,N/A,e
+proc,native,wpa_supplicant,1585,6824,N/A,e
+proc,native,gsid,3705,3780,N/A,e
+proc,native,abb,10582,3140,N/A,e
+proc,native,FboNativeService,13203,3832,N/A,e
+proc,native,webview_zygote,18573,59064,N/A,e
+proc,native,usap32,22057,40172,N/A,e
+proc,native,usap32,22250,40224,N/A,e
+proc,native,usap32,22640,40184,N/A,e
+proc,native,hdcp_tx22,23598,3352,N/A,e
+proc,native,artd,23731,10552,N/A,e
+proc,native,dumpsys,24011,3616,N/A,e
+oom,sys,253396,N/A
+proc,sys,system,870,253396,N/A,e
+oom,pers,587068,N/A
+proc,pers,com.android.tv.mdnsoffloadmanager,2264,73584,N/A,e
+proc,pers,xiaomi.tvservice,2244,107040,N/A,e
+proc,pers,com.android.se,1863,69284,N/A,e
+proc,pers,com.android.networkstack.process,1792,92652,N/A,e
+proc,pers,com.droidlogic,1656,88880,N/A,e
+proc,pers,com.android.systemui,1613,155628,N/A,e
+oom,persvc,284008,N/A
+proc,persvc,com.android.bluetooth,23509,104980,N/A,e
+proc,persvc,com.mi.bluetooth,1841,89660,N/A,e
+proc,persvc,com.android.providers.media.module,2098,89368,N/A,e
+oom,fore,491608,N/A
+proc,fore,com.johnmak.atvlauncher,20013,228260,N/A,a
+proc,fore,com.android.tv.settings,6323,165732,N/A,a
+proc,fore,com.xiaomi.android.tvsetup.partnercustomizer,2343,97616,N/A,e
+oom,vis,244128,N/A
+proc,vis,com.google.android.tv.remote.service,7389,101628,N/A,e
+proc,vis,com.google.android.ext.services,5666,75092,N/A,e
+proc,vis,com.droidlogic.mdnsoffload,3343,67408,N/A,e
+oom,percept,697392,N/A
+proc,percept,com.android.vending,21670,126320,N/A,e
+proc,percept,com.google.android.gms,19159,227596,N/A,e
+proc,percept,android.process.acore,19115,88496,N/A,e
+proc,percept,com.google.android.inputmethod.latin,19958,115676,N/A,e
+proc,percept,com.dolby.android.audio.service,3844,71936,N/A,e
+proc,percept,com.android.tv.mdnsoffloadcmd,3236,67368,N/A,e
+oom,prev,80756,N/A
+proc,prev,com.android.providers.tv,2497,80756,N/A,e
+oom,serviceb,180636,N/A
+proc,serviceb,com.xiaomi.mitv.updateservice,2624,110416,N/A,e
+proc,serviceb,com.droidlogic.mictoggle,19297,70220,N/A,e
+oom,cached,1777364,N/A
+proc,cached,ru.kinopoisk.tv,22056,246556,N/A,a
+proc,cached,ru.vk.store.tv,21058,148304,N/A,a
+proc,cached,com.google.android.gms.unstable,21187,131780,N/A,e
+proc,cached,org.videolan.vlc,19617,118732,N/A,e
+proc,cached,com.alphainventor.filemanager,19595,110948,N/A,e
+proc,cached,org.smarttube.stable,17225,99468,N/A,e
+proc,cached,ru.kinopoisk.tv:AppMetrica,22383,129188,N/A,e
+proc,cached,com.google.android.permissioncontroller,14061,89708,N/A,e
+proc,cached,ru.kinopoisk.tv:passport,22343,134624,N/A,e
+proc,cached,com.android.vending:background,7859,131288,N/A,e
+proc,cached,com.google.process.gservices,19251,73964,N/A,e
+proc,cached,com.android.keychain,16645,68828,N/A,e
+proc,cached,com.google.process.gapps,19207,73956,N/A,e
+proc,cached,com.android.providers.calendar,21601,73540,N/A,e
+proc,cached,com.google.android.partnersetup,21481,71724,N/A,e
+proc,cached,android.process.media,20274,74756,N/A,e
+cat,Native,266108,N/A
+cat,Dalvik,214228,N/A
+cat,Unknown,37136,N/A
+cat,Dalvik Other,59472,N/A
+cat,Stack,15368,N/A
+cat,Cursor,0,N/A
+cat,Ashmem,22372,N/A
+cat,Gfx dev,0,N/A
+cat,Other dev,37852,N/A
+cat,.so mmap,1407896,N/A
+cat,.jar mmap,1173472,N/A
+cat,.apk mmap,431592,N/A
+cat,.ttf mmap,3532,N/A
+cat,.dex mmap,114984,N/A
+cat,.oat mmap,384668,N/A
+cat,.art mmap,936816,N/A
+cat,Other mmap,207960,N/A
+cat,EGL mtrack,0,N/A
+cat,GL mtrack,82136,N/A
+cat,Other mtrack,0,N/A
+oom,native,224851,N/A
+proc,native,init,1,4797,N/A,e
+proc,native,init,183,2456,N/A,e
+proc,native,ueventd,184,6432,N/A,e
+proc,native,prng_seeder,237,1143,N/A,e
+proc,native,logd,245,3379,N/A,e
+proc,native,lmkd,246,834,N/A,e
+proc,native,servicemanager,247,1506,N/A,e
+proc,native,hwservicemanager,248,1589,N/A,e
+proc,native,vndservicemanager,249,972,N/A,e
+proc,native,miracast_hdcp2,256,834,N/A,e
+proc,native,tee-supplicant,262,632,N/A,e
+proc,native,vold,263,2525,N/A,e
+proc,native,android.hardware.graphics.allocator-service,273,1330,N/A,e
+proc,native,surfaceflinger,274,17403,N/A,e
+proc,native,android.system.suspend-service,304,1423,N/A,e
+proc,native,keystore2,305,5206,N/A,e
+proc,native,android.hardware.boot-service,306,1324,N/A,e
+proc,native,android.hardware.security.keymint-service.amlogic,307,1440,N/A,e
+proc,native,android.hardware.graphics.composer@3.2-service.droidlogic,312,4298,N/A,e
+proc,native,systemcontrol,373,4330,N/A,e
+proc,native,tombstoned,379,524,N/A,e
+proc,native,statsd,597,1875,N/A,e
+proc,native,netd,598,5065,N/A,e
+proc,native,zygote,599,9868,N/A,e
+proc,native,iptables-restore,604,1095,N/A,e
+proc,native,ip6tables-restore,605,1099,N/A,e
+proc,native,bspmserver,621,937,N/A,e
+proc,native,android.hidl.allocator@1.0-service,622,646,N/A,e
+proc,native,android.hardware.audio.service-droidlogic,623,17399,N/A,e
+proc,native,android.hardware.audio@7.1-service-msd,624,2827,N/A,e
+proc,native,android.hardware.bluetooth@1.1-service-xiaomi,625,967,N/A,e
+proc,native,android.hardware.camera.provider-V1-amlogic-service,626,1699,N/A,e
+proc,native,android.hardware.cas@1.2-service,627,896,N/A,e
+proc,native,android.hardware.drm-service.clearkey,628,1033,N/A,e
+proc,native,android.hardware.drm@1.4-service.playready,629,1987,N/A,e
+proc,native,android.hardware.gatekeeper-service.amlogic,630,776,N/A,e
+proc,native,android.hardware.health@2.1-service.droidlogic,634,806,N/A,e
+proc,native,android.hardware.media.c2@1.2-service,636,4926,N/A,e
+proc,native,android.hardware.oemlock@1.0-service.droidlogic,637,892,N/A,e
+proc,native,android.hardware.power.aidl-service.droidlogic,639,1068,N/A,e
+proc,native,android.hardware.tv.hdmi.cec-service.droidlogic,641,963,N/A,e
+proc,native,android.hardware.tv.hdmi.connection-service.droidlogic,643,950,N/A,e
+proc,native,android.hardware.usb-service.droidlogic,648,794,N/A,e
+proc,native,android.hardware.usb.gadget-service.droidlogic,649,852,N/A,e
+proc,native,android.hardware.wifi-service,652,1786,N/A,e
+proc,native,android.hardware.cas-service.example,664,711,N/A,e
+proc,native,droidmdnsoffload-service,668,843,N/A,e
+proc,native,android.hardware.dumpstate-service.droidlogic,669,690,N/A,e
+proc,native,lights,670,661,N/A,e
+proc,native,android.hardware.memtrack-service.droidlogic,673,692,N/A,e
+proc,native,subtitleserver,682,1426,N/A,e
+proc,native,android.hardware.thermal-service.droidlogic,689,875,N/A,e
+proc,native,android.hardware.drm-service.widevine,704,1527,N/A,e
+proc,native,audioserver,705,9226,N/A,e
+proc,native,credstore,706,1505,N/A,e
+proc,native,gpuservice,708,1497,N/A,e
+proc,native,drmserver,754,1164,N/A,e
+proc,native,traced_probes,755,773,N/A,e
+proc,native,traced,759,861,N/A,e
+proc,native,cameraserver,768,4572,N/A,e
+proc,native,incidentd,770,898,N/A,e
+proc,native,installd,771,3922,N/A,e
+proc,native,media.extractor,772,7711,N/A,e
+proc,native,media.metrics,773,3765,N/A,e
+proc,native,mediaserver,774,13739,N/A,e
+proc,native,storaged,776,1470,N/A,e
+proc,native,wificond,781,1621,N/A,e
+proc,native,media.codec,783,2890,N/A,e
+proc,native,media.swcodec,788,3488,N/A,e
+proc,native,gatekeeperd,789,890,N/A,e
+proc,native,update_engine,791,1552,N/A,e
+proc,native,logpersist,794,638,N/A,e
+proc,native,adbd,799,8147,N/A,e
+proc,native,mdnsd,817,960,N/A,e
+proc,native,wpa_supplicant,1585,3445,N/A,e
+proc,native,gsid,3705,1104,N/A,e
+proc,native,abb,10582,690,N/A,e
+proc,native,FboNativeService,13203,888,N/A,e
+proc,native,webview_zygote,18573,3649,N/A,e
+proc,native,usap32,22057,1967,N/A,e
+proc,native,usap32,22250,1985,N/A,e
+proc,native,usap32,22640,2004,N/A,e
+proc,native,hdcp_tx22,23598,611,N/A,e
+proc,native,artd,23731,3540,N/A,e
+proc,native,dumpsys,24011,671,N/A,e
+oom,sys,137992,N/A
+proc,sys,system,870,137992,N/A,e
+oom,pers,101095,N/A
+proc,pers,com.android.tv.mdnsoffloadmanager,2264,8575,N/A,e
+proc,pers,xiaomi.tvservice,2244,16848,N/A,e
+proc,pers,com.android.se,1863,7646,N/A,e
+proc,pers,com.android.networkstack.process,1792,12331,N/A,e
+proc,pers,com.droidlogic,1656,11298,N/A,e
+proc,pers,com.android.systemui,1613,44397,N/A,e
+oom,persvc,54087,N/A
+proc,persvc,com.android.bluetooth,23509,22587,N/A,e
+proc,persvc,com.mi.bluetooth,1841,11043,N/A,e
+proc,persvc,com.android.providers.media.module,2098,20457,N/A,e
+oom,fore,204131,N/A
+proc,fore,com.johnmak.atvlauncher,20013,119995,N/A,a
+proc,fore,com.android.tv.settings,6323,70978,N/A,a
+proc,fore,com.xiaomi.android.tvsetup.partnercustomizer,2343,13158,N/A,e
+oom,vis,27466,N/A
+proc,vis,com.google.android.tv.remote.service,7389,14688,N/A,e
+proc,vis,com.google.android.ext.services,5666,8098,N/A,e
+proc,vis,com.droidlogic.mdnsoffload,3343,4680,N/A,e
+oom,percept,191777,N/A
+proc,percept,com.android.vending,21670,46211,N/A,e
+proc,percept,com.google.android.gms,19159,103819,N/A,e
+proc,percept,android.process.acore,19115,9792,N/A,e
+proc,percept,com.google.android.inputmethod.latin,19958,23039,N/A,e
+proc,percept,com.dolby.android.audio.service,3844,4628,N/A,e
+proc,percept,com.android.tv.mdnsoffloadcmd,3236,4288,N/A,e
+oom,prev,9525,N/A
+proc,prev,com.android.providers.tv,2497,9525,N/A,e
+oom,serviceb,26475,N/A
+proc,serviceb,com.xiaomi.mitv.updateservice,2624,21818,N/A,e
+proc,serviceb,com.droidlogic.mictoggle,19297,4657,N/A,e
+oom,cached,482856,N/A
+proc,cached,ru.kinopoisk.tv,22056,120552,N/A,a
+proc,cached,ru.vk.store.tv,21058,71930,N/A,a
+proc,cached,com.google.android.gms.unstable,21187,32131,N/A,e
+proc,cached,org.videolan.vlc,19617,44540,N/A,e
+proc,cached,com.alphainventor.filemanager,19595,23473,N/A,e
+proc,cached,org.smarttube.stable,17225,21681,N/A,e
+proc,cached,ru.kinopoisk.tv:AppMetrica,22383,37457,N/A,e
+proc,cached,com.google.android.permissioncontroller,14061,11618,N/A,e
+proc,cached,ru.kinopoisk.tv:passport,22343,39282,N/A,e
+proc,cached,com.android.vending:background,7859,47433,N/A,e
+proc,cached,com.google.process.gservices,19251,6550,N/A,e
+proc,cached,com.android.keychain,16645,4752,N/A,e
+proc,cached,com.google.process.gapps,19207,5884,N/A,e
+proc,cached,com.android.providers.calendar,21601,5227,N/A,e
+proc,cached,com.google.android.partnersetup,21481,4789,N/A,e
+proc,cached,android.process.media,20274,5557,N/A,e
+cat,Native,174844,N/A
+cat,Dalvik,144174,N/A
+cat,Unknown,12327,N/A
+cat,Dalvik Other,36847,N/A
+cat,Stack,15136,N/A
+cat,Cursor,0,N/A
+cat,Ashmem,608,N/A
+cat,Gfx dev,0,N/A
+cat,Other dev,4739,N/A
+cat,.so mmap,106541,N/A
+cat,.jar mmap,64764,N/A
+cat,.apk mmap,186027,N/A
+cat,.ttf mmap,800,N/A
+cat,.dex mmap,64267,N/A
+cat,.oat mmap,12277,N/A
+cat,.art mmap,52686,N/A
+cat,Other mmap,61226,N/A
+cat,EGL mtrack,0,N/A
+cat,GL mtrack,82136,N/A
+cat,Other mtrack,0,N/A
+ram,1967988,850044,977399
+DMA-BUF:    94,796K (        0K mapped +    94,796K unmapped)
+DMA-BUF Heaps:    94,796K
+DMA-BUF Heaps pool:         0K
+      GPU:    80,564K
+lostram,43045
+zram,166236,489944,42160
+ksm,0,0,0,0
+tuning,256,384,184320,high-end-gfx
