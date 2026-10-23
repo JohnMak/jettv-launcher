@@ -1,11 +1,30 @@
+# Whitelist mode: ignore everything at the repo root except the published files.
+/*
+!/.gitignore
+!/AGENTS.md
+!/README.md
+!/launcher/
+!/.github/
+!/.beads/
+!/docs/
+!/tools/
 
-# Dolt database files (added by bd init)
+# tools/: only the published scripts and lists
+/tools/*
+!/tools/build-and-install.sh
+!/tools/setup-device.sh
+!/tools/debloat.sh
+!/tools/undebloat.sh
+!/tools/debloat/
+
+# Beads runtime files (dolt data dirs are ignored by .beads/.gitignore)
+.beads/dolt-monitor.pid.lock
+
+# Secrets and local-only material, wherever they are
 .dolt/
 *.db
-
-# Local-only material (keystores, signing secrets, APKs)
-materials/
-sandboxes/
 *.jks
 *.keystore
 .adbkey*
+local.properties
+.env*
