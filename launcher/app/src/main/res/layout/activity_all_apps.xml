@@ -5,13 +5,6 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <com.alexmak.atvlauncher.BackdropImageView
-        android:id="@+id/backdrop"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:importantForAccessibility="no"
-        android:scaleType="centerCrop" />
-
     <com.alexmak.atvlauncher.GlassView
         android:id="@+id/glass"
         android:layout_width="match_parent"

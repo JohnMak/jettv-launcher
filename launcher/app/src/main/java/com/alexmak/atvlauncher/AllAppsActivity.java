@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
  */
 public final class AllAppsActivity extends Activity {
     private static final String TAG = "AtvAllApps";
-    private static final int COLUMNS = 5;
+    private static final int COLUMNS = 6;
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_APP = 1;
 
@@ -61,9 +61,6 @@ public final class AllAppsActivity extends Activity {
     private RecyclerView grid;
     private GlassView glass;
     private GlassMenu menu;
-    private BackdropController backdrop;
-    /** The backdrop was dropped by a memory trim and must be asked for again in onStart. */
-    private boolean backdropTrimmed;
     private float density;
 
     private LinearLayout headerBar;
@@ -100,9 +97,6 @@ public final class AllAppsActivity extends Activity {
         glass = findViewById(R.id.glass);
         headerBar = findViewById(R.id.header_apps);
         menu = findViewById(R.id.menu);
-        AppBackdropImage appImages = new AppBackdropImage(getPackageManager());
-        backdrop = new BackdropController(findViewById(R.id.backdrop), main, worker,
-                key -> appImages.load(BackdropKeys.packageOf(key)));
         favorites = FavoritesPrefs.open(this);
         loadGroupConfig();
 
@@ -140,27 +134,15 @@ public final class AllAppsActivity extends Activity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if (backdropTrimmed) {
-            backdropTrimmed = false;
-            wantBackdrop();
-        }
-    }
-
-    @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
         if (!TrimPolicy.evictsCaches(level)) return;
-        backdrop.clear();
-        backdropTrimmed = true;
         ShadowView.evictCache();
     }
 
     @Override
     protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
-        backdrop.release();
         worker.shutdownNow();
         super.onDestroy();
     }
@@ -253,12 +235,6 @@ public final class AllAppsActivity extends Activity {
         focus.setHeaderCount(headerApps.size());
     }
 
-    /** The page backdrop follows the focused app (header icon or grid tile). */
-    private void wantBackdrop() {
-        AppEntry focusedEntry = focus.inHeader() ? headerApps.get(focus.headerIndex()) : focusedApp();
-        if (focusedEntry != null) backdrop.want(BackdropKeys.app(focusedEntry.packageName));
-    }
-
     private AppEntry focusedApp() {
         if (sections.isEmpty() || focus.inHeader()) return null;
         return sections.get(focus.section()).items.get(focus.index());
@@ -302,7 +278,7 @@ public final class AllAppsActivity extends Activity {
                 return new RecyclerView.ViewHolder(inflater.inflate(R.layout.item_header, parent, false)) { };
             }
             AppHolder h = new AppHolder(inflater.inflate(R.layout.item_app, parent, false));
-            h.shadow.setRadius(14 * density);
+            h.shadow.setRadius(12 * density);
             return h;
         }
 
@@ -351,7 +327,6 @@ public final class AllAppsActivity extends Activity {
             if (icon instanceof DimImageView) ((DimImageView) icon).setFocused(focused, animate);
             else FocusDim.applyAlpha(icon, FocusDim.Role.TOP_BAR, focused, animate);
         }
-        wantBackdrop();
         if (focus.inHeader()) {
             applyHeaderSelection(animate);
             return;
@@ -383,7 +358,7 @@ public final class AllAppsActivity extends Activity {
         if (top < 0) dy = top;
         else if (vh.itemView.getBottom() > grid.getHeight()) dy = vh.itemView.getBottom() - grid.getHeight();
         target.offset(0, -dy);
-        float radius = Tiles.grow(target, density, 14);
+        float radius = Tiles.grow(target, density, 12);
         if (dy != 0) grid.smoothScrollBy(0, dy, new DecelerateInterpolator(), 250);
         glass.moveTo(target, radius, animate);
     }
