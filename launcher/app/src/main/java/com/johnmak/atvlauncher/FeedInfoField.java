@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * Info field under a feed row, built from separate views so spacing and vertical centring are plain layout.
- * Line 1: title (extra bold) [season / episode] [app rating icon + number] [КП n] [IMDb n]; below it the app's own
+ * Line 1: title (extra bold) [season / episode] [app rating icon + number] [year]; below it the app's own
  * description (up to 3 lines). It always occupies its fixed height; visibility is only its alpha, so showing,
  * hiding or late data never shifts the layout.
  */
@@ -23,10 +23,7 @@ public final class FeedInfoField extends LinearLayout {
     private View rating;
     private ImageView ratingIcon;
     private TextView ratingText;
-    private View kp;
-    private TextView kpText;
-    private View imdb;
-    private TextView imdbText;
+    private TextView year;
     private TextView description;
 
     public FeedInfoField(Context context, AttributeSet attrs) {
@@ -41,16 +38,13 @@ public final class FeedInfoField extends LinearLayout {
         rating = findViewById(R.id.info_rating);
         ratingIcon = findViewById(R.id.info_rating_icon);
         ratingText = findViewById(R.id.info_rating_text);
-        kp = findViewById(R.id.info_kp);
-        kpText = findViewById(R.id.info_kp_text);
-        imdb = findViewById(R.id.info_imdb);
-        imdbText = findViewById(R.id.info_imdb_text);
+        year = findViewById(R.id.info_year);
         description = findViewById(R.id.info_description);
         setAlpha(0f);
     }
 
     /** Replaces the content; takes effect immediately, visibility is separate ({@link #setShown}). */
-    void setContent(String titleText, String seasonText, Optional<Rating> ratingValue, KinopoiskInfo external) {
+    void setContent(String titleText, String seasonText, Optional<Rating> ratingValue, String yearText) {
         title.setText(titleText);
         title.setVisibility(titleText.isEmpty() ? GONE : VISIBLE);
         season.setText(seasonText);
@@ -60,10 +54,8 @@ public final class FeedInfoField extends LinearLayout {
             ratingIcon.setImageResource(r.top ? R.drawable.ic_laurel_wreath : R.drawable.ic_star);
             ratingText.setText(r.text);
         });
-        kpText.setText(external.kp);
-        kp.setVisibility(external.kp.isEmpty() ? GONE : VISIBLE);
-        imdbText.setText(external.imdb);
-        imdb.setVisibility(external.imdb.isEmpty() ? GONE : VISIBLE);
+        year.setText(yearText);
+        year.setVisibility(yearText.isEmpty() ? GONE : VISIBLE);
     }
 
     /** The description line under the title (the feed item's own text; empty hides the text). */

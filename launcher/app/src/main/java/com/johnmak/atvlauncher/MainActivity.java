@@ -209,10 +209,6 @@ public final class MainActivity extends Activity {
     private final ExecutorService posterWorker = Executors.newFixedThreadPool(3);
     private PosterCache posters;
     private FeedLoader feedLoader;
-    private KinopoiskService kinopoisk;
-    private KinopoiskTokenStore kinopoiskTokens;
-    /** Token the current {@link #kinopoisk} was created with; empty = lookups are off. */
-    private String kinopoiskToken;
     private NetworkStatus network;
     private LauncherSettingsStore settingsStore;
     /** VPN app of the top-bar button resolved from the settings; empty = button hidden. */
@@ -263,6 +259,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LegacyPurge.run(this);
         SettingsImport.run(this);
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
@@ -324,9 +321,6 @@ public final class MainActivity extends Activity {
         setupRow(mixedRow, mixedAdapter, FocusModel.Zone.MIXED);
 
         feedLoader = new FeedLoader(getContentResolver());
-        kinopoiskTokens = new KinopoiskTokenStore(this);
-        kinopoiskToken = kinopoiskTokens.token();
-        kinopoisk = newKinopoisk(kinopoiskToken);
         network = new NetworkStatus(this, new NetworkStatus.Listener() {
             @Override
             public void onVpnChanged(boolean on) {
@@ -550,22 +544,10 @@ public final class MainActivity extends Activity {
         resetFavoritesRow();
     }
 
-    private KinopoiskService newKinopoisk(String token) {
-        return new KinopoiskService(token, new File(getFilesDir(), "kinopoisk_cache.json"), main, this::onKinopoiskInfo);
-    }
-
     /**
-     * Back from the settings: a new Kinopoisk token restarts the lookups (empty = off), a new card size resizes the
-     * rows in place. Excluded apps need nothing here: {@link #refreshFeed} reads them on every refresh.
+     * Back from the settings: a new card size resizes the rows in place. Excluded apps need nothing here: {@link #refreshFeed} reads them on every refresh.
      */
     private void applyFeedSettings() {
-        String token = kinopoiskTokens.token();
-        if (!token.equals(kinopoiskToken)) {
-            kinopoisk.shutdown();
-            kinopoiskToken = token;
-            kinopoisk = newKinopoisk(token);
-            lastFeedSignature = ""; // the same cards, but their info must be looked up again
-        }
         int scale = settingsStore.load().previewScalePercent;
         if (scale != previewScalePercent) {
             previewScalePercent = scale;
@@ -646,7 +628,6 @@ public final class MainActivity extends Activity {
         stopVpnPulse();
         weather.release();
         brightness.release();
-        kinopoisk.shutdown();
         worker.shutdownNow();
         posterWorker.shutdownNow();
         super.onDestroy();
@@ -754,8 +735,6 @@ public final class MainActivity extends Activity {
         mixedPublishers = byLabel(feed.mixedPublishers);
         watchAdapter.setItems(feed.watchNext);
         mixedAdapter.setItems(feed.mixed);
-        kinopoisk.prefetch(feed.watchNext);
-        kinopoisk.prefetch(feed.mixed);
         updateCounts();
     }
 
@@ -874,25 +853,8 @@ public final class MainActivity extends Activity {
 
     private void fillInfo(FeedInfoField field, FeedItem item) {
         field.setContent(item.title,
-                FeedInfoLine.season(item.season, item.episode), item.rating, kinopoisk.info(item));
+                FeedInfoLine.season(item.season, item.episode), item.rating, FeedInfoLine.year(item.year));
         field.setDescription(item.description);
-    }
-
-    /** Kinopoisk data arrived for {@code key}: refresh the info field when that card is the focused one. */
-    private void onKinopoiskInfo(String key) {
-        if (isDestroyed() || focus.config()) return;
-        FeedItem focused;
-        switch (focus.zone()) {
-            case WATCH_NEXT:
-                focused = watchAdapter.item(focus.index());
-                break;
-            case MIXED:
-                focused = mixedAdapter.item(focus.index());
-                break;
-            default:
-                return;
-        }
-        if (KinopoiskService.key(focused).equals(key)) updateInfo();
     }
 
     /** Re-applies the selection once the pending layout pass is done, so new or resized views have real bounds. */

@@ -17,4 +17,9 @@ final class FeedInfoLine {
         if (season.isEmpty()) return "Серия " + episode;
         return "Сезон " + season + ", серия " + episode;
     }
+
+    /** The release year as text; empty when unknown (0). */
+    static String year(int year) {
+        return year == 0 ? "" : Integer.toString(year);
+    }
 }

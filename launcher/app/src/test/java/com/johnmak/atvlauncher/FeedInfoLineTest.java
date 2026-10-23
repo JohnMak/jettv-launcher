@@ -26,4 +26,10 @@ public class FeedInfoLineTest {
         assertEquals("Серия 5", FeedInfoLine.season("", "5"));
         assertEquals("Сезон 2, серия 5", FeedInfoLine.season("2", "5"));
     }
+
+    @Test
+    public void yearIsEmptyWhenUnknown() {
+        assertEquals("", FeedInfoLine.year(0));
+        assertEquals("2008", FeedInfoLine.year(2008));
+    }
 }

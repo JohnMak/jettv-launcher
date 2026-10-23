@@ -85,10 +85,6 @@ final class SettingsImport {
         ls.put(FeedSource.CONTINUE.prefsKey, Type.STRINGSET);
         w.put(LauncherSettingsStore.FILE, ls);
 
-        Map<String, Type> kp = new LinkedHashMap<>();
-        kp.put(KinopoiskTokenStore.KEY, Type.STRING);
-        w.put(KinopoiskTokenStore.FILE, kp);
-
         Map<String, Type> wp = new LinkedHashMap<>();
         wp.put(WeatherPrefs.G + "lat", Type.LONG);
         wp.put(WeatherPrefs.G + "lon", Type.LONG);
@@ -157,11 +153,6 @@ final class SettingsImport {
         Object raw = cell.opt("value");
         Object value = convert(expected, raw);
         if (value == null) return FetchResult.err("bad " + expected + " value: " + where);
-        if (file.equals(KinopoiskTokenStore.FILE) && key.equals(KinopoiskTokenStore.KEY)) {
-            FetchResult<String> t = KinopoiskTokenStore.validate((String) value);
-            if (!t.isOk()) return FetchResult.err("invalid token: " + t.error());
-            value = t.value();
-        }
         return FetchResult.ok(new Entry(file, key, expected, value));
     }
 

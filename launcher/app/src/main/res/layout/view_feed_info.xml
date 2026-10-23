@@ -47,41 +47,10 @@
                 android:layout_marginStart="6dp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/info_kp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/FeedInfoLabel"
-                android:text="КП" />
-
-            <TextView
-                android:id="@+id/info_kp_text"
-                style="@style/FeedInfoText"
-                android:layout_marginStart="6dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/info_imdb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/FeedInfoLabel"
-                android:text="IMDb" />
-
-            <TextView
-                android:id="@+id/info_imdb_text"
-                style="@style/FeedInfoText"
-                android:layout_marginStart="6dp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/info_year"
+            style="@style/FeedInfoText"
+            android:layout_marginStart="20dp" />
     </LinearLayout>
 
     <TextView

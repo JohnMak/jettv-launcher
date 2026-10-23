@@ -29,11 +29,6 @@
         <item name="android:textSize">18sp</item>
     </style>
 
-    <style name="FeedInfoLabel" parent="FeedInfoText">
-        <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:textSize">13sp</item>
-    </style>
-
     <style name="FeedRow">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">150dp</item>

@@ -12,9 +12,8 @@ Android 11 (API 30) or newer.
 - **Feed rows** from the Android TV content provider (`TvContract`, the same previews the stock launcher shows:
   continue watching, recommendations). An app picker chooses which apps contribute; row share follows how often you
   launch each app.
-- **Kinopoisk ratings** under feed cards, matched by title and exact release year (strict for series too).
-  Needs your own API token (kinopoiskapiunofficial.tech), stored on the device only; without it the feature is off and
-  no requests are made.
+- **Card info** under each feed row comes only from the source app: title, season/episode, review rating, year and
+  description.
 - **Weather** (MET Norway, CC BY 4.0) with city search or detection by public IP, and the city's clock and timezone.
 - **VPN button** showing VPN state; opens or silently toggles a VPN app of your choice.
 - **Screensaver and dimming**: starfield or NASA videos, system screensaver integration, idle dimming.
@@ -80,8 +79,6 @@ cd launcher
 tools/build-and-install.sh install   # (from the repo root) build + install + grants on the connected device
 ```
 
-The Kinopoisk token is never built into the APK; enter it in the launcher settings (it is stored on the device only).
-
 ### Versions and signing
 
 Versions are derived from git tags `vX.Y.Z`: a build on a clean tag is `X.Y.Z`, anything else is
@@ -102,13 +99,13 @@ Settings > About.
   user data.
 - Self-update accepts an APK only when its SHA-256 matches the published digest, it is the same package at exactly the
   announced version, newer than the installed one, and signed by the same certificate as the installed app.
-- The Kinopoisk token and the ADB key stay in the app's private storage. Nothing is sent to any server except the
-  weather, rating, geocoding and update requests described above; requests carry a
+- The ADB key stays in the app's private storage. Nothing is sent to any server except the
+  weather, geocoding and update requests described above; requests carry a
   `JetTV-Launcher/<version> (+repo URL)` User-Agent and no personal data.
 
 ## Credits
 
-Weather data: MET Norway (CC BY 4.0). Ratings: Kinopoisk via kinopoiskapiunofficial.tech. Screensaver video credit:
+Weather data: MET Norway (CC BY 4.0). Screensaver video credit:
 NASA Scientific Visualization Studio / STScI / ESA (Hubble), no endorsement implied. Icons: Lucide and Tabler
 (licenses in `launcher/third_party/icons/`), font Outfit (OFL, `launcher/OFL.txt`). Developer notes:
 `launcher/NOTES.md`.

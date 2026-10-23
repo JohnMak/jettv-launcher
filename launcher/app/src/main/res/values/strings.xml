@@ -61,11 +61,6 @@
     <string name="settings_section_network">Сеть</string>
     <string name="settings_section_about">О лаунчере</string>
     <string name="settings_preview_scale">Масштаб карточек превью</string>
-    <string name="settings_kinopoisk_token">Токен Кинопоиска</string>
-    <string name="settings_token_none">не задан</string>
-    <string name="settings_token_hint">UUID токена (пусто — удалить)</string>
-    <string name="settings_token_save">Сохранить</string>
-    <string name="settings_token_invalid">Токен должен быть в формате UUID</string>
     <string name="settings_check_update">Проверить обновления</string>
     <string name="update_checking">Проверка…</string>
     <string name="update_up_to_date">Актуальная версия</string>

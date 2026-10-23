@@ -53,7 +53,6 @@ final class FeedLoader {
             TvContract.PreviewPrograms.COLUMN_SEASON_DISPLAY_NUMBER,
             TvContract.PreviewPrograms.COLUMN_EPISODE_DISPLAY_NUMBER,
             TvContract.PreviewPrograms.COLUMN_RELEASE_DATE,
-            TvContract.PreviewPrograms.COLUMN_TYPE,
             TvContract.PreviewPrograms.COLUMN_LONG_DESCRIPTION,
             TvContract.PreviewPrograms.COLUMN_SHORT_DESCRIPTION,
     };
@@ -69,7 +68,6 @@ final class FeedLoader {
             TvContract.WatchNextPrograms.COLUMN_SEASON_DISPLAY_NUMBER,
             TvContract.WatchNextPrograms.COLUMN_EPISODE_DISPLAY_NUMBER,
             TvContract.WatchNextPrograms.COLUMN_RELEASE_DATE,
-            TvContract.WatchNextPrograms.COLUMN_TYPE,
             TvContract.WatchNextPrograms.COLUMN_LONG_DESCRIPTION,
             TvContract.WatchNextPrograms.COLUMN_SHORT_DESCRIPTION,
     };
@@ -88,10 +86,6 @@ final class FeedLoader {
         return new Feed(builder.watchNext(), builder.mixed(), builder.watchNextPublishers(), builder.mixedPublishers());
     }
 
-    private static int type(Cursor c, int index) {
-        return c.isNull(index) ? FeedItem.NO_TYPE : c.getInt(index);
-    }
-
     private void read(Uri uri, String[] columns, boolean preview, FeedBuilder builder) {
         try (Cursor c = resolver.query(uri, columns, null, null, null)) {
             if (c == null) {
@@ -108,11 +102,11 @@ final class FeedLoader {
                 if (preview) {
                     builder.addPreview(new FeedItem(pkg, c.getString(1), c.getString(2), intentUri,
                             c.getInt(4), c.getLong(5), c.getInt(6), 0, c.getString(7), c.getInt(8),
-                            c.getString(9), c.getString(10), c.getString(11), type(c, 12), c.getString(13), c.getString(14)));
+                            c.getString(9), c.getString(10), c.getString(11), c.getString(12), c.getString(13)));
                 } else {
                     builder.addWatchNext(new FeedItem(pkg, c.getString(1), c.getString(2), intentUri,
                             c.getInt(4), 0, 0, c.getLong(5), c.getString(6), c.getInt(7),
-                            c.getString(8), c.getString(9), c.getString(10), type(c, 11), c.getString(12), c.getString(13)));
+                            c.getString(8), c.getString(9), c.getString(10), c.getString(11), c.getString(12)));
                 }
             }
         } catch (RuntimeException ex) {

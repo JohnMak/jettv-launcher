@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 /** One card of the content feed (a preview or watch-next program), already cleaned for display. */
 final class FeedItem {
-    static final int NO_TYPE = -1;
     private static final float MIN_CARD_ASPECT = 0.8f;
     private static final Pattern YEAR = Pattern.compile("^(\\d{4})(?:\\D.*)?$");
 
@@ -27,14 +26,12 @@ final class FeedItem {
     final String episode;
     /** Release year from COLUMN_RELEASE_DATE ("2019" or "2019-05-30"); 0 when absent or unreadable. */
     final int year;
-    /** TvContract COLUMN_TYPE (TYPE_MOVIE, TYPE_TV_SERIES, ...); {@link #NO_TYPE} when the program has none. */
-    final int type;
     /** App-provided description (long, else short), cut to three sentences; empty when the program has none. */
     final String description;
 
     FeedItem(String packageName, String title, String posterUri, String intentUri, int posterAspect,
              long channelId, int weight, long engagementMillis, String reviewRating, int reviewRatingStyle,
-             String season, String episode, String releaseDate, int type,
+             String season, String episode, String releaseDate,
              String longDescription, String shortDescription) {
         this.packageName = packageName;
         this.title = clean(title);
@@ -48,7 +45,6 @@ final class FeedItem {
         this.season = clean(season);
         this.episode = clean(episode);
         this.year = parseYear(releaseDate);
-        this.type = type;
         this.description = FeedDescription.of(longDescription, shortDescription);
     }
 

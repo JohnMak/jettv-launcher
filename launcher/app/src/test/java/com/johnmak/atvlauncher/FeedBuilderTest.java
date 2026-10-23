@@ -15,7 +15,7 @@ import org.junit.Test;
 
 public class FeedBuilderTest {
     private static FeedItem item(String pkg, String title, long channel, int weight, long engagement) {
-        return new FeedItem(pkg, title, null, "intent:" + title, 0, channel, weight, engagement, null, 0, null, null, null, -1, null, null);
+        return new FeedItem(pkg, title, null, "intent:" + title, 0, channel, weight, engagement, null, 0, null, null, null, null, null);
     }
 
     private static FeedBuilder builder(Set<String> allowed, Map<String, Long> launches) {
@@ -204,25 +204,25 @@ public class FeedBuilderTest {
 
     @Test
     public void titleIsCleanedOnConstruction() {
-        assertEquals("Line1 Line2", new FeedItem("a", " Line1\n  Line2\r\n", null, "i", 0, 0, 0, 0, null, 0, null, null, null, -1, null, null).title);
-        assertEquals("", new FeedItem("a", null, null, "i", 0, 0, 0, 0, null, 0, null, null, null, -1, null, null).title);
-        FeedItem episode = new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, " 2 ", null, null, -1, null, null);
+        assertEquals("Line1 Line2", new FeedItem("a", " Line1\n  Line2\r\n", null, "i", 0, 0, 0, 0, null, 0, null, null, null, null, null).title);
+        assertEquals("", new FeedItem("a", null, null, "i", 0, 0, 0, 0, null, 0, null, null, null, null, null).title);
+        FeedItem episode = new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, " 2 ", null, null, null, null);
         assertEquals("2", episode.season);
         assertEquals("", episode.episode);
     }
 
     @Test
     public void cardAspectFollowsPosterRatioWithinBounds() {
-        assertEquals(16f / 9f, new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, -1, null, null).cardAspect(), 0.001f);
-        assertEquals(1f, new FeedItem("a", "t", null, "i", 3, 0, 0, 0, null, 0, null, null, null, -1, null, null).cardAspect(), 0.001f);
-        assertEquals(0.8f, new FeedItem("a", "t", null, "i", 4, 0, 0, 0, null, 0, null, null, null, -1, null, null).cardAspect(), 0.001f);
-        assertEquals(16f / 9f, new FeedItem("a", "t", null, "i", 99, 0, 0, 0, null, 0, null, null, null, -1, null, null).cardAspect(), 0.001f);
+        assertEquals(16f / 9f, new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, null, null).cardAspect(), 0.001f);
+        assertEquals(1f, new FeedItem("a", "t", null, "i", 3, 0, 0, 0, null, 0, null, null, null, null, null).cardAspect(), 0.001f);
+        assertEquals(0.8f, new FeedItem("a", "t", null, "i", 4, 0, 0, 0, null, 0, null, null, null, null, null).cardAspect(), 0.001f);
+        assertEquals(16f / 9f, new FeedItem("a", "t", null, "i", 99, 0, 0, 0, null, 0, null, null, null, null, null).cardAspect(), 0.001f);
     }
 
     @Test
     public void ratingIsParsedOnConstruction() {
-        assertEquals("8.0", new FeedItem("a", "T", null, "i", 0, 0, 0, 0, "4.0", 0, null, null, null, -1, null, null).rating.get().text);
-        assertEquals(false, new FeedItem("a", "T", null, "i", 0, 0, 0, 0, "n/a", 0, null, null, null, -1, null, null).rating.isPresent());
+        assertEquals("8.0", new FeedItem("a", "T", null, "i", 0, 0, 0, 0, "4.0", 0, null, null, null, null, null).rating.get().text);
+        assertEquals(false, new FeedItem("a", "T", null, "i", 0, 0, 0, 0, "n/a", 0, null, null, null, null, null).rating.isPresent());
     }
 
     @Test
@@ -234,15 +234,13 @@ public class FeedBuilderTest {
         assertEquals(0, FeedItem.parseYear(""));
         assertEquals(0, FeedItem.parseYear("May 2019"));
         assertEquals(0, FeedItem.parseYear("20190"));
-        FeedItem item = new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, "2008-01-20", 1, null, null);
+        FeedItem item = new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, "2008-01-20", null, null);
         assertEquals(2008, item.year);
-        assertEquals(1, item.type);
         assertEquals("long wins, cut to three sentences", "Раз. Два! Три?",
-                new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, -1, "Раз. Два! Три? Четыре.", "Коротко.").description);
+                new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, "Раз. Два! Три? Четыре.", "Коротко.").description);
         assertEquals("short is the fallback", "Коротко.",
-                new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, -1, " ", " Коротко. ").description);
+                new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, " ", " Коротко. ").description);
         assertEquals("", item.description);
-        assertEquals(FeedItem.NO_TYPE, new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, FeedItem.NO_TYPE, null, null).type);
     }
 
     @Test

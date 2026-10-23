@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 /**
  * Launcher settings in titled sections (appearance, content, network, about). A D-pad list with the glass highlight
  * behind the focused row; section headers are not rows, so focus skips them. LEFT/RIGHT cycle a value, OK toggles or
- * activates. Manual city entry and the Kinopoisk token are second pages (text field + results). Changes are saved at
+ * activates. Manual city entry is a second page (text field + results). Changes are saved at
  * once; the home screen reads them in onStart.
  */
 public final class LauncherSettingsActivity extends Activity {
@@ -96,7 +96,7 @@ public final class LauncherSettingsActivity extends Activity {
         }
     }
 
-    private enum Page { MAIN, SEARCH, TOKEN }
+    private enum Page { MAIN, SEARCH }
 
     private View root;
     private ScrollView scroll;
@@ -108,7 +108,6 @@ public final class LauncherSettingsActivity extends Activity {
 
     private LauncherSettingsStore store;
     private WeatherPrefs weatherPrefs;
-    private KinopoiskTokenStore tokens;
     private LauncherSettings settings;
     private List<VpnApps.App> vpnApps;
 
@@ -118,7 +117,6 @@ public final class LauncherSettingsActivity extends Activity {
     private int focus;
     private int cityRow;
     private int manualRow;
-    private int tokenRow;
     /** Section header added by {@link #addSection}, attached to the next row. */
     private View pendingHeader;
     private boolean layoutPending;
@@ -154,7 +152,6 @@ public final class LauncherSettingsActivity extends Activity {
         statusView = findViewById(R.id.status);
         store = new LauncherSettingsStore(this);
         weatherPrefs = new WeatherPrefs(this);
-        tokens = new KinopoiskTokenStore(this);
         settings = store.load();
         vpnApps = VpnAppsLoader.installed(getPackageManager());
         rightsProbe = RequiredRights.android(this);
@@ -261,8 +258,6 @@ public final class LauncherSettingsActivity extends Activity {
         updateVideoNote();
 
         addSection(R.string.settings_section_content);
-        tokenRow = rows.size();
-        addRow(R.string.settings_kinopoisk_token, this::tokenText, this::showToken, null, null);
         cityRow = rows.size();
         addRow(R.string.settings_city, this::cityText, null, null, null);
         addRow(R.string.settings_detect, null, this::detectCity, null, null);
@@ -301,37 +296,6 @@ public final class LauncherSettingsActivity extends Activity {
         focus = 0;
         status("");
         applyFocusAfterLayout(false);
-    }
-
-    /** Second page for the Kinopoisk token: a text field and «Сохранить»; empty input removes the token. */
-    private void showToken() {
-        page = Page.TOKEN;
-        clearRows();
-        input = createInput(R.string.settings_token_hint,
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS, EditorInfo.IME_ACTION_DONE,
-                this::saveToken);
-        addRow(R.string.settings_kinopoisk_token, input, null, this::startEditing, null, null);
-        addRow(R.string.settings_token_save, null, this::saveToken, null, null);
-        focus = 0;
-        status("");
-        applyFocusAfterLayout(false);
-    }
-
-    private void saveToken() {
-        stopEditing();
-        String raw = input.getText().toString();
-        if (raw.trim().isEmpty()) {
-            tokens.clear();
-            showMain(tokenRow);
-            return;
-        }
-        FetchResult<String> saved = tokens.save(raw);
-        if (saved.isOk()) {
-            showMain(tokenRow);
-        } else {
-            Log.w(TAG, "token rejected: " + saved.error());
-            status(getString(R.string.settings_token_invalid));
-        }
     }
 
     /** A borderless single-line field in the value cell; {@code onAction} runs when the keyboard's action key is pressed. */
@@ -497,11 +461,6 @@ public final class LauncherSettingsActivity extends Activity {
         int before = (rightsRow >= 0 ? 1 : 0) + (homeRow >= 0 ? 1 : 0);
         int after = (needRights ? 1 : 0) + (needHome ? 1 : 0);
         showMain(Math.max(0, focus - before + after));
-    }
-
-    private String tokenText() {
-        String token = tokens.token();
-        return token.isEmpty() ? getString(R.string.settings_token_none) : KinopoiskTokenStore.mask(token);
     }
 
     private String cityText() {
@@ -776,8 +735,6 @@ public final class LauncherSettingsActivity extends Activity {
             stopEditing();
         } else if (page == Page.SEARCH) {
             showMain(manualRow);
-        } else if (page == Page.TOKEN) {
-            showMain(tokenRow);
         } else {
             finish();
         }
