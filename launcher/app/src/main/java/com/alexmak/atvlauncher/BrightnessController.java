@@ -11,17 +11,12 @@ import java.util.concurrent.Executor;
  */
 final class BrightnessController {
     interface Listener {
-        void onState(LampState state);
+        void onState(BrightnessState state);
     }
-
-    static final String MSG_UNAUTHORIZED = "Разрешите отладку на экране проектора";
-    static final String MSG_UNREACHABLE = "ADB проектора недоступен";
-    static final String MSG_TOOL_MISSING = "Управление лампой недоступно";
-    static final String MSG_FAILED = "Не удалось изменить яркость";
 
     private static final int UNKNOWN = -1;
 
-    private final LampShell shell;
+    private final GmpfShell shell;
     private final Executor worker;
     private final Executor main;
     private final Listener listener;
@@ -43,29 +38,23 @@ final class BrightnessController {
     private BrightnessScale.Position pending;
     private boolean applying;
 
-    BrightnessController(LampShell shell, Executor worker, Executor main, Listener listener) {
+    BrightnessController(GmpfShell shell, Executor worker, Executor main, Listener listener) {
         this.shell = shell;
         this.worker = worker;
         this.main = main;
         this.listener = listener;
     }
 
-    /** The single place mapping a failed shell result to UI text. */
-    static String messageFor(FetchResult<?> failed) {
-        LampError kind = LampError.of(failed);
-        if (kind == null) return MSG_FAILED;
-        switch (kind) {
-            case UNAUTHORIZED: return MSG_UNAUTHORIZED;
-            case UNREACHABLE: return MSG_UNREACHABLE;
-            case TOOL_MISSING: return MSG_TOOL_MISSING;
-            default: return MSG_FAILED;
-        }
+    /** The kind of a failed shell result; anything untyped is a generic command failure. */
+    static ShellError errorKindOf(FetchResult<?> failed) {
+        ShellError kind = ShellError.of(failed);
+        return kind != null ? kind : ShellError.COMMAND_FAILED;
     }
 
     void refresh() {
         if (released || refreshing) return; // one read in flight is enough
         refreshing = true;
-        if (confirmed == null) listener.onState(LampState.loading());
+        if (confirmed == null) listener.onState(BrightnessState.loading());
         worker.execute(() -> {
             FetchResult<BrightnessScale.Position> r = readDevice();
             main.execute(() -> onRefreshed(r));
@@ -82,7 +71,7 @@ final class BrightnessController {
         BrightnessScale.Position base = target != null ? target : confirmed;
         BrightnessScale.Position next = base.step(delta);
         target = next;
-        listener.onState(LampState.ready(next.value()));
+        listener.onState(BrightnessState.ready(next.value()));
         boolean start;
         synchronized (lock) {
             pending = next;
@@ -108,25 +97,25 @@ final class BrightnessController {
         try {
             return shell.exec(command);
         } catch (RuntimeException e) {
-            return LampError.fail(LampError.COMMAND_FAILED, e.toString());
+            return ShellError.fail(ShellError.COMMAND_FAILED, e.toString());
         }
     }
 
     /** Same boundary for commands that may have failed validation. */
     private FetchResult<String> exec(FetchResult<GmpfCommand> command) {
-        if (!command.isOk()) return FetchResult.err(command.error(), LampError.of(command));
+        if (!command.isOk()) return command.propagate();
         return exec(command.value());
     }
 
     private FetchResult<Integer> readValue(GmpfCommand command, int min, int max, String what) {
         FetchResult<String> raw = exec(command);
         if (!raw.isOk()) {
-            return FetchResult.err(raw.error(), LampError.of(raw) != null ? LampError.of(raw) : LampError.COMMAND_FAILED);
+            return FetchResult.err(raw.error(), errorKindOf(raw));
         }
         FetchResult<Integer> value = GmpfParser.parseValue(raw.value());
-        if (!value.isOk()) return LampError.fail(LampError.COMMAND_FAILED, value.error());
+        if (!value.isOk()) return ShellError.fail(ShellError.COMMAND_FAILED, value.error());
         if (value.value() < min || value.value() > max) {
-            return LampError.fail(LampError.COMMAND_FAILED, what + " must be " + min + ".." + max + ": " + value.value());
+            return ShellError.fail(ShellError.COMMAND_FAILED, what + " must be " + min + ".." + max + ": " + value.value());
         }
         return value;
     }
@@ -146,13 +135,13 @@ final class BrightnessController {
 
     private FetchResult<BrightnessScale.Position> readDeviceValues() {
         FetchResult<Integer> lamp = readValue(GmpfCommand.getLevel(), LampLevel.MIN_LEVEL, LampLevel.MAX_LEVEL, "lamp level");
-        if (!lamp.isOk()) return FetchResult.err(lamp.error(), LampError.of(lamp));
+        if (!lamp.isOk()) return lamp.propagate();
         FetchResult<Integer> brightness = readValue(GmpfCommand.getBrightness(),
                 GmpfCommand.PICTURE_MIN, GmpfCommand.PICTURE_MAX, "brightness");
-        if (!brightness.isOk()) return FetchResult.err(brightness.error(), LampError.of(brightness));
+        if (!brightness.isOk()) return brightness.propagate();
         FetchResult<Integer> contrast = readValue(GmpfCommand.getContrast(),
                 GmpfCommand.PICTURE_MIN, GmpfCommand.PICTURE_MAX, "contrast");
-        if (!contrast.isOk()) return FetchResult.err(contrast.error(), LampError.of(contrast));
+        if (!contrast.isOk()) return contrast.propagate();
         deviceLamp = lamp.value();
         deviceBrightness = brightness.value();
         deviceContrast = contrast.value();
@@ -238,30 +227,30 @@ final class BrightnessController {
         refreshing = false;
         if (released) return;
         if (!r.isOk()) {
-            listener.onState(LampState.error(messageFor(r)));
+            listener.onState(BrightnessState.error(errorKindOf(r)));
             return;
         }
         if (target != null && !target.equals(confirmed)) return; // a write is outstanding; it reports the real value
         confirmed = r.value();
         target = confirmed;
-        listener.onState(LampState.ready(confirmed.value()));
+        listener.onState(BrightnessState.ready(confirmed.value()));
     }
 
     private void onApplied(BrightnessScale.Position applied, FetchResult<BrightnessScale.Position> actual) {
         if (released || !applied.equals(target)) return; // superseded by a newer step
         if (!actual.isOk()) {
             target = confirmed;
-            listener.onState(LampState.error(messageFor(actual)));
+            listener.onState(BrightnessState.error(errorKindOf(actual)));
             return;
         }
         confirmed = actual.value();
         target = confirmed;
-        listener.onState(LampState.ready(confirmed.value()));
+        listener.onState(BrightnessState.ready(confirmed.value()));
     }
 
     /** Reports the failure; the readback that follows every apply (failed or not) reports the real state. */
     private void onApplyFailed(FetchResult<String> failed) {
         if (released) return;
-        listener.onState(LampState.error(messageFor(failed)));
+        listener.onState(BrightnessState.error(errorKindOf(failed)));
     }
 }

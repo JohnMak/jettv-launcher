@@ -39,7 +39,6 @@ public class BrightnessKeyModelTest {
         for (BrightnessKeyModel.Key k : BrightnessKeyModel.Key.values()) {
             assertEquals(PASS, key(m, k));
         }
-        assertFalse(m.isAdjusting());
     }
 
     @Test
@@ -50,10 +49,8 @@ public class BrightnessKeyModelTest {
                 BrightnessKeyModel.Key.UP}) {
             assertEquals(PASS, key(m, k));
         }
-        assertFalse(m.isAdjusting());
         assertEquals(Collections.singletonList(BrightnessKeyModel.Action.ENTER_ADJUST),
                 key(m, BrightnessKeyModel.Key.DOWN));
-        assertTrue(m.isAdjusting());
     }
 
     @Test
@@ -68,7 +65,6 @@ public class BrightnessKeyModelTest {
         assertEquals(1, right.size());
         assertEquals(BrightnessKeyModel.Kind.STEP, right.get(0).kind);
         assertEquals(1, right.get(0).delta);
-        assertTrue(m.isAdjusting());
     }
 
     @Test
@@ -78,7 +74,6 @@ public class BrightnessKeyModelTest {
             BrightnessKeyModel m = focused();
             m.onKey(BrightnessKeyModel.Key.DOWN);
             assertEquals(Collections.singletonList(BrightnessKeyModel.Action.EXIT_ADJUST), key(m, k));
-            assertFalse(m.isAdjusting());
             // no HIDE, focus is still on the sun, and arrows pass again
             assertEquals(PASS, key(m, BrightnessKeyModel.Key.LEFT));
             assertSame(BrightnessKeyModel.Action.PASS, m.onFocus(true));
@@ -92,7 +87,6 @@ public class BrightnessKeyModelTest {
         m.onKey(BrightnessKeyModel.Key.DOWN);
         assertEquals(Arrays.asList(BrightnessKeyModel.Action.EXIT_ADJUST, BrightnessKeyModel.Action.PASS),
                 key(m, BrightnessKeyModel.Key.DOWN));
-        assertFalse(m.isAdjusting());
         assertSame(BrightnessKeyModel.Action.HIDE, m.onFocus(false));
         assertEquals(PASS, key(m, BrightnessKeyModel.Key.DOWN));
         assertSame(BrightnessKeyModel.Action.SHOW, m.onFocus(true));
@@ -104,7 +98,6 @@ public class BrightnessKeyModelTest {
         assertSame(BrightnessKeyModel.Action.PASS, m.onFocus(true));
         assertEquals(Collections.singletonList(BrightnessKeyModel.Action.ENTER_ADJUST),
                 key(m, BrightnessKeyModel.Key.DOWN)); // the sun still owns DOWN
-        assertTrue(m.isAdjusting());
     }
 
     @Test
@@ -112,10 +105,8 @@ public class BrightnessKeyModelTest {
         BrightnessKeyModel m = focused();
         m.onKey(BrightnessKeyModel.Key.DOWN);
         assertSame(BrightnessKeyModel.Action.HIDE, m.onFocus(false));
-        assertFalse(m.isAdjusting());
         assertEquals(PASS, key(m, BrightnessKeyModel.Key.DOWN));
         m.onFocus(true);
-        assertFalse(m.isAdjusting());
         assertEquals(Collections.singletonList(BrightnessKeyModel.Action.ENTER_ADJUST),
                 key(m, BrightnessKeyModel.Key.DOWN));
     }

@@ -22,19 +22,6 @@ public class LampLevelTest {
     }
 
     @Test
-    public void stepIsClampedToRange() {
-        LampLevel five = LampLevel.of(5).value();
-        assertEquals(6, five.step(1).value());
-        assertEquals(4, five.step(-1).value());
-        assertEquals(5, five.step(0).value());
-        assertEquals(10, five.step(100).value());
-        assertEquals(1, five.step(-100).value());
-        assertEquals(10, LampLevel.of(10).value().step(1).value());
-        assertEquals(1, LampLevel.of(1).value().step(Integer.MIN_VALUE).value());
-        assertEquals(10, LampLevel.of(5).value().step(Integer.MAX_VALUE).value());
-    }
-
-    @Test
     public void equalsAndHashCodeByValue() {
         assertEquals(LampLevel.of(3).value(), LampLevel.of(3).value());
         assertEquals(LampLevel.of(3).value().hashCode(), LampLevel.of(3).value().hashCode());

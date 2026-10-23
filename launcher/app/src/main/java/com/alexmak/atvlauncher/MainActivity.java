@@ -324,15 +324,15 @@ public final class MainActivity extends Activity {
         if (BrightnessSupport.detect(BrightnessSupport.FILESYSTEM)) brightness = new ActiveBrightness();
     }
 
-    /** Sun item, popup and lamp controller. The lamp connection is opened lazily by the first refresh. */
+    /** Sun item, popup and brightness controller. The shell connection is opened lazily by the first refresh. */
     private final class ActiveBrightness implements BrightnessFeature {
         private final TopBarItem item = new TopBarItem(MainActivity.this, false, true, false);
         private final ExecutorService worker = Executors.newSingleThreadExecutor();
-        private final BrightnessController lamp;
+        private final BrightnessController controller;
 
         ActiveBrightness() {
             item.setIcon(R.drawable.ic_sun);
-            lamp = new BrightnessController(new LoopbackAdbShell(MainActivity.this), worker, main::post, state -> {
+            controller = new BrightnessController(new LoopbackAdbShell(MainActivity.this), worker, main::post, state -> {
                 brightnessPopup.setState(state);
                 if (brightnessPopup.isShowing()) showPopup(); // the popup may have changed size
             });
@@ -342,7 +342,7 @@ public final class MainActivity extends Activity {
 
         @Override public void show() {
             showPopup();
-            lamp.refresh();
+            controller.refresh();
         }
 
         @Override public void hide() {
@@ -352,12 +352,12 @@ public final class MainActivity extends Activity {
 
         @Override public void setAdjusting(boolean adjusting) { brightnessPopup.setAdjusting(adjusting); }
 
-        @Override public void step(int delta) { lamp.step(delta); }
+        @Override public void step(int delta) { controller.step(delta); }
 
-        @Override public void disconnect() { lamp.disconnect(); }
+        @Override public void disconnect() { controller.disconnect(); }
 
         @Override public void release() {
-            lamp.release();
+            controller.release();
             worker.shutdown(); // runs the queued shell close
         }
 
@@ -1100,7 +1100,8 @@ public final class MainActivity extends Activity {
             case UP: return BrightnessKeyModel.Key.UP;
             case DOWN: return BrightnessKeyModel.Key.DOWN;
             case LEFT: return BrightnessKeyModel.Key.LEFT;
-            default: return BrightnessKeyModel.Key.RIGHT;
+            case RIGHT: return BrightnessKeyModel.Key.RIGHT;
+            default: throw new IllegalArgumentException("not a direction key: " + dir);
         }
     }
 

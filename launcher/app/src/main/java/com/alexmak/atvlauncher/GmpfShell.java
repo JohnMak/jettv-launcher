@@ -1,8 +1,8 @@
 package com.alexmak.atvlauncher;
 
 /** Runs `gmpfUnit` commands on this device. Blocking: call from a worker thread only. */
-interface LampShell extends AutoCloseable {
-    /** ok(stdout) on exit code 0; err carries a {@link LampError} kind. */
+interface GmpfShell extends AutoCloseable {
+    /** ok(stdout) on exit code 0; err carries a {@link ShellError} kind. */
     FetchResult<String> exec(GmpfCommand command);
 
     /** Drops the connection; the next {@link #exec} reconnects lazily. */

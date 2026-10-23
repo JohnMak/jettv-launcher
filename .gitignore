@@ -2,3 +2,10 @@
 # Dolt database files (added by bd init)
 .dolt/
 *.db
+
+# Local-only material (keystores, signing secrets, APKs)
+materials/
+sandboxes/
+*.jks
+*.keystore
+.adbkey*

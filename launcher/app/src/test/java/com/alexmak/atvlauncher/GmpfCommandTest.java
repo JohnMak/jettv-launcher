@@ -40,7 +40,7 @@ public class GmpfCommandTest {
         for (int bad : new int[] {-1, 101, Integer.MIN_VALUE, Integer.MAX_VALUE}) {
             assertFalse("brightness " + bad, GmpfCommand.setBrightness(bad).isOk());
             assertFalse("contrast " + bad, GmpfCommand.setContrast(bad).isOk());
-            assertEquals(LampError.COMMAND_FAILED, LampError.of(GmpfCommand.setBrightness(bad)));
+            assertEquals(ShellError.COMMAND_FAILED, ShellError.of(GmpfCommand.setBrightness(bad)));
         }
         assertTrue(GmpfCommand.setContrast(0).isOk());
     }

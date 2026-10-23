@@ -50,7 +50,7 @@ final class GmpfCommand {
 
     private static FetchResult<GmpfCommand> picture(Verb verb, String prefix, int value) {
         if (value < PICTURE_MIN || value > PICTURE_MAX) {
-            return LampError.fail(LampError.COMMAND_FAILED,
+            return ShellError.fail(ShellError.COMMAND_FAILED,
                     verb + " must be " + PICTURE_MIN + ".." + PICTURE_MAX + ": " + value);
         }
         return FetchResult.ok(new GmpfCommand(verb, prefix + value));

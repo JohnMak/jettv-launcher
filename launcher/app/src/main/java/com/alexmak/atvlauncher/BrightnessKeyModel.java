@@ -47,12 +47,16 @@ final class BrightnessKeyModel {
         }
     }
 
+    private static final List<Action> PASS_ONLY = Collections.singletonList(Action.PASS);
+    private static final List<Action> ENTER = Collections.singletonList(Action.ENTER_ADJUST);
+    private static final List<Action> EXIT = Collections.singletonList(Action.EXIT_ADJUST);
+    private static final List<Action> LEAVE_DOWN =
+            Collections.unmodifiableList(Arrays.asList(Action.EXIT_ADJUST, Action.PASS));
+    private static final List<Action> STEP_LEFT = Collections.singletonList(Action.step(-1));
+    private static final List<Action> STEP_RIGHT = Collections.singletonList(Action.step(1));
+
     private boolean onSun;
     private boolean adjusting;
-
-    boolean isAdjusting() {
-        return adjusting;
-    }
 
     /** Reports whether the sun item is focused now; only a change produces an action (SHOW or HIDE), otherwise PASS. */
     Action onFocus(boolean focused) {
@@ -62,14 +66,6 @@ final class BrightnessKeyModel {
         adjusting = false;
         return Action.HIDE;
     }
-
-    private static final List<Action> PASS_ONLY = Collections.singletonList(Action.PASS);
-    private static final List<Action> ENTER = Collections.singletonList(Action.ENTER_ADJUST);
-    private static final List<Action> EXIT = Collections.singletonList(Action.EXIT_ADJUST);
-    private static final List<Action> LEAVE_DOWN =
-            Collections.unmodifiableList(Arrays.asList(Action.EXIT_ADJUST, Action.PASS));
-    private static final List<Action> STEP_LEFT = Collections.singletonList(Action.step(-1));
-    private static final List<Action> STEP_RIGHT = Collections.singletonList(Action.step(1));
 
     /** Immutable actions for the key, in execution order; a list containing PASS leaves the key to normal handling. */
     List<Action> onKey(Key key) {

@@ -10,11 +10,11 @@ import dadb.AdbShellResponse;
 import dadb.Dadb;
 
 /**
- * {@link LampShell} over the device's own adbd on 127.0.0.1:5555 (dadb). The RSA key lives in the app's
+ * {@link GmpfShell} over the device's own adbd on 127.0.0.1:5555 (dadb). The RSA key lives in the app's
  * private files; the first connection shows a one-time "Allow USB debugging?" dialog. One connection is
  * kept; a failure drops it so the next call reconnects. Blocking, worker thread only; calls are serialized.
  */
-final class LoopbackAdbShell implements LampShell {
+final class LoopbackAdbShell implements GmpfShell {
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 5555;
     private static final int CONNECT_TIMEOUT_MS = 3_000;
@@ -32,17 +32,17 @@ final class LoopbackAdbShell implements LampShell {
 
     @Override
     public synchronized FetchResult<String> exec(GmpfCommand command) {
-        if (closed) return LampError.fail(LampError.UNREACHABLE, "shell is closed");
+        if (closed) return ShellError.fail(ShellError.UNREACHABLE, "shell is closed");
         try {
             if (adb == null) adb = Dadb.create(HOST, PORT, keys(), CONNECT_TIMEOUT_MS, SOCKET_TIMEOUT_MS);
             AdbShellResponse response = adb.shell(command.shellLine());
             String output = response.getAllOutput();
-            LampError failure = LampErrorClassifier.classifyOutput(response.getExitCode(), output);
+            ShellError failure = ShellErrorClassifier.classifyOutput(response.getExitCode(), output);
             if (failure == null) return FetchResult.ok(response.getOutput());
-            return LampError.fail(failure, "rc=" + response.getExitCode() + " " + output.trim());
+            return ShellError.fail(failure, "rc=" + response.getExitCode() + " " + output.trim());
         } catch (Exception e) { // I/O boundary: nothing may escape as an untyped exception
             dropConnection();
-            return LampError.fail(LampErrorClassifier.classify(e), String.valueOf(e.getMessage()));
+            return ShellError.fail(ShellErrorClassifier.classify(e), String.valueOf(e.getMessage()));
         }
     }
 

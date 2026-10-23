@@ -21,7 +21,7 @@ public class BrightnessControllerTest {
         void drain() { while (!tasks.isEmpty()) tasks.poll().run(); }
     }
 
-    private static final class FakeShell implements LampShell {
+    private static final class FakeShell implements GmpfShell {
         final List<String> commands = new ArrayList<>();
         final Queue<FetchResult<String>> scripted = new ArrayDeque<>();
         boolean closed;
@@ -43,13 +43,13 @@ public class BrightnessControllerTest {
         @Override public void close() { closed = true; }
         void ok(String s) { scripted.add(FetchResult.ok(s)); }
         void level(int n) { ok("return_data : {" + n + " }"); }
-        void fail(LampError kind) { scripted.add(LampError.fail(kind, "x")); }
+        void fail(ShellError kind) { scripted.add(ShellError.fail(kind, "x")); }
     }
 
     private FakeShell shell;
     private Manual worker;
     private Manual main;
-    private List<LampState> states;
+    private List<BrightnessState> states;
     private BrightnessController c;
 
     @Before public void setUp() {
@@ -97,15 +97,15 @@ public class BrightnessControllerTest {
         assertEquals(expected, shell.commands);
     }
 
-    private LampState last() { return states.get(states.size() - 1); }
+    private BrightnessState last() { return states.get(states.size() - 1); }
 
     @Test public void refreshEmitsLoadingThenReadyPosition() {
         device(7, 50, 50);
         c.refresh();
-        assertEquals(LampState.Kind.LOADING, last().kind);
+        assertEquals(BrightnessState.Kind.LOADING, last().kind);
         settle();
         assertEquals(2, states.size());
-        assertEquals(LampState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
         assertEquals(9, last().position);
         assertEquals(READBACK, shell.commands);
     }
@@ -117,17 +117,15 @@ public class BrightnessControllerTest {
         assertEquals(12, last().position);
     }
 
-    @Test public void refreshErrorMessagePerKind() {
-        LampError[] kinds = {LampError.UNAUTHORIZED, LampError.UNREACHABLE, LampError.TOOL_MISSING, LampError.COMMAND_FAILED};
-        String[] msgs = {BrightnessController.MSG_UNAUTHORIZED, BrightnessController.MSG_UNREACHABLE,
-                BrightnessController.MSG_TOOL_MISSING, BrightnessController.MSG_FAILED};
+    @Test public void refreshErrorKindPerShellError() {
+        ShellError[] kinds = {ShellError.UNAUTHORIZED, ShellError.UNREACHABLE, ShellError.TOOL_MISSING, ShellError.COMMAND_FAILED};
         for (int i = 0; i < kinds.length; i++) {
             states.clear();
             shell.fail(kinds[i]);
             c.refresh();
             settle();
-            assertEquals(LampState.Kind.ERROR, last().kind);
-            assertEquals(msgs[i], last().message);
+            assertEquals(BrightnessState.Kind.ERROR, last().kind);
+            assertEquals(kinds[i], last().error);
         }
     }
 
@@ -135,23 +133,23 @@ public class BrightnessControllerTest {
         shell.ok("garbage");
         c.refresh();
         settle();
-        assertEquals(BrightnessController.MSG_FAILED, last().message);
+        assertEquals(ShellError.COMMAND_FAILED, last().error);
         shell.level(5);
         shell.level(101);
         c.refresh();
         settle();
-        assertEquals(BrightnessController.MSG_FAILED, last().message);
+        assertEquals(ShellError.COMMAND_FAILED, last().error);
         shell.level(11);
         c.refresh();
         settle();
-        assertEquals(BrightnessController.MSG_FAILED, last().message);
+        assertEquals(ShellError.COMMAND_FAILED, last().error);
     }
 
     @Test public void stepWithoutConfirmedPositionRefreshesInsteadOfWriting() {
-        shell.fail(LampError.UNAUTHORIZED); // first refresh failed, e.g. RSA dialog still open
+        shell.fail(ShellError.UNAUTHORIZED); // first refresh failed, e.g. RSA dialog still open
         c.refresh();
         settle();
-        assertEquals(LampState.Kind.ERROR, last().kind);
+        assertEquals(BrightnessState.Kind.ERROR, last().kind);
         shell.commands.clear();
         device(7, 50, 50);
         c.step(1);
@@ -159,7 +157,7 @@ public class BrightnessControllerTest {
         assertEquals(1, worker.tasks.size());
         settle();
         assertEquals(READBACK, shell.commands); // read only, nothing written
-        assertEquals(LampState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
         assertEquals(9, last().position);
     }
 
@@ -178,10 +176,10 @@ public class BrightnessControllerTest {
 
     @Test public void failedRefreshForgetsCachedDeviceValues() {
         refreshToPosition(7); // lamp 5, picture 50
-        shell.fail(LampError.UNREACHABLE);
+        shell.fail(ShellError.UNREACHABLE);
         c.refresh();
         settle();
-        assertEquals(LampState.Kind.ERROR, last().kind);
+        assertEquals(BrightnessState.Kind.ERROR, last().kind);
         shell.commands.clear();
         scriptWrites(3);
         device(6, 50, 50);
@@ -193,16 +191,16 @@ public class BrightnessControllerTest {
     @Test public void partialWriteFailureReadsBackAndEmitsRealState() {
         refreshToPosition(13); // lamp 10, picture 57
         shell.ok("");                      // lamp lands (9)
-        shell.fail(LampError.UNREACHABLE); // brightness fails
+        shell.fail(ShellError.UNREACHABLE); // brightness fails
         device(9, 57, 57);                 // what the device really holds
         c.step(-2);
         settle();
         assertEquals(Arrays.asList("gmpfUnit setDlpLumensLevel 9", "gmpfUnit setBrightness 0 50"),
                 shell.commands.subList(0, 2));
         assertEquals(READBACK, shell.commands.subList(2, 5));
-        assertEquals(LampState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
         assertEquals(BrightnessScale.fromDevice(LampLevel.of(9).value(), 57, 57).value(), last().position);
-        assertEquals(LampState.Kind.ERROR, states.get(states.size() - 2).kind); // the failure is still reported
+        assertEquals(BrightnessState.Kind.ERROR, states.get(states.size() - 2).kind); // the failure is still reported
     }
 
     @Test public void stepInLampZoneWritesLampOnlyThenReadsBack() {
@@ -325,13 +323,13 @@ public class BrightnessControllerTest {
     @Test public void writeFailureEmitsErrorKeepsLastGoodPositionAndReadsBack() {
         refreshToPosition(13); // lamp 10, picture 57
         shell.ok("");          // lamp ok
-        shell.fail(LampError.UNREACHABLE); // brightness fails
+        shell.fail(ShellError.UNREACHABLE); // brightness fails
         device(10, 57, 57);    // readback after the failure
         c.step(-2);            // F11
         settle();
-        assertEquals(LampState.Kind.READY, last().kind);
-        assertEquals(LampState.Kind.ERROR, states.get(states.size() - 2).kind);
-        assertEquals(BrightnessController.MSG_UNREACHABLE, states.get(states.size() - 2).message);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.ERROR, states.get(states.size() - 2).kind);
+        assertEquals(ShellError.UNREACHABLE, states.get(states.size() - 2).error);
         shell.commands.clear();
         scriptWrites(2);
         device(10, 50, 50);
@@ -355,8 +353,8 @@ public class BrightnessControllerTest {
         device(5, 50, 50); // readback after the failure
         c.step(1);
         settle();
-        assertEquals(LampState.Kind.READY, last().kind);
-        assertEquals(LampState.Kind.ERROR, states.get(states.size() - 2).kind);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.ERROR, states.get(states.size() - 2).kind);
         shell.commands.clear();
         scriptWrites(1); // the readback refreshed the cache: only the lamp differs
         device(6, 50, 50);
@@ -364,15 +362,15 @@ public class BrightnessControllerTest {
         settle();
         // the loop is not stuck in "applying"
         assertCommands("gmpfUnit setDlpLumensLevel 6");
-        assertEquals(LampState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
     }
 
     @Test public void runtimeExceptionInRefreshStillPostsResult() {
         shell.throwOnce = new IllegalStateException("boom");
         c.refresh();
         settle();
-        assertEquals(LampState.Kind.ERROR, last().kind);
-        assertEquals(BrightnessController.MSG_FAILED, last().message);
+        assertEquals(BrightnessState.Kind.ERROR, last().kind);
+        assertEquals(ShellError.COMMAND_FAILED, last().error);
     }
 
     @Test public void disconnectDropsConnectionOnWorkerAndControllerStaysUsable() {
@@ -385,6 +383,6 @@ public class BrightnessControllerTest {
         device(5, 50, 50);
         c.refresh(); // lazy reconnect happens inside the next exec
         settle();
-        assertEquals(LampState.Kind.READY, last().kind);
+        assertEquals(BrightnessState.Kind.READY, last().kind);
     }
 }

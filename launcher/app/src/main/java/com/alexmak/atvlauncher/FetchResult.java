@@ -29,6 +29,12 @@ final class FetchResult<T> {
         return new FetchResult<>(null, error, kind);
     }
 
+    /** The same failure (message and kind) re-typed for another value type; only valid when not {@link #isOk()}. */
+    <U> FetchResult<U> propagate() {
+        if (error == null) throw new IllegalStateException("ok");
+        return new FetchResult<>(null, error, errorKind);
+    }
+
     boolean isOk() { return error == null; }
 
     /** Only valid when {@link #isOk()}. */

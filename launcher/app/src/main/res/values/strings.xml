@@ -9,6 +9,10 @@
     <string name="bar_wifi">Wi-Fi</string>
     <string name="bar_ethernet">Ethernet</string>
     <string name="bar_offline">Нет сети</string>
+    <string name="brightness_unauthorized">Разрешите отладку на экране проектора</string>
+    <string name="brightness_unreachable">ADB проектора недоступен</string>
+    <string name="brightness_tool_missing">Управление лампой недоступно</string>
+    <string name="brightness_failed">Не удалось изменить яркость</string>
     <string name="all_apps">Все приложения</string>
     <string name="heading_continue">Продолжить просмотр</string>
     <string name="heading_recommended">Рекомендации</string>

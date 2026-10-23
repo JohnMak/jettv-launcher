@@ -24,9 +24,6 @@ final class GmpfParser {
         if (rawOutput.contains("inaccessible")) {
             return FetchResult.err("gmpfUnit inaccessible: " + rawOutput.trim());
         }
-        if (rawOutput.contains("not found")) {
-            return FetchResult.err("gmpfUnit not found: " + rawOutput.trim());
-        }
         return FetchResult.err("gmpfUnit output has no 'return_data : {N }' value: " + rawOutput.trim());
     }
 }

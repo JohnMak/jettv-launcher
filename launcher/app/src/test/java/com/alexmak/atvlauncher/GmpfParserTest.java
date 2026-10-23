@@ -42,7 +42,7 @@ public class GmpfParserTest {
     public void shellErrorsAreDescriptive() {
         FetchResult<Integer> nf = GmpfParser.parseValue("/system/bin/sh: gmpfUnit: not found");
         assertFalse(nf.isOk());
-        assertTrue(nf.error().contains("not found"));
+        assertTrue(nf.error().contains("not found")); // raw output is quoted; classification is ShellErrorClassifier's
         FetchResult<Integer> ina = GmpfParser.parseValue("/system/bin/sh: gmpfUnit: inaccessible or not found");
         assertFalse(ina.isOk());
         assertTrue(ina.error().contains("inaccessible"));

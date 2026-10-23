@@ -1,7 +1,7 @@
 package com.alexmak.atvlauncher;
 
 /** Immutable lamp brightness level in {@link #MIN_LEVEL}..{@link #MAX_LEVEL}. */
-public final class LampLevel {
+final class LampLevel {
     static final int MIN_LEVEL = 1;
     static final int MAX_LEVEL = 10;
 
@@ -11,7 +11,7 @@ public final class LampLevel {
         this.value = value;
     }
 
-    public static FetchResult<LampLevel> of(int value) {
+    static FetchResult<LampLevel> of(int value) {
         if (value < LampLevel.MIN_LEVEL || value > LampLevel.MAX_LEVEL) {
             return FetchResult.err("lamp level must be " + LampLevel.MIN_LEVEL + ".." + LampLevel.MAX_LEVEL
                     + ": " + value);
@@ -19,14 +19,7 @@ public final class LampLevel {
         return FetchResult.ok(new LampLevel(value));
     }
 
-    public int value() { return value; }
-
-    /** New level moved by delta, clamped to the valid range. */
-    public LampLevel step(int delta) {
-        long moved = (long) value + delta;
-        long clamped = Math.max(LampLevel.MIN_LEVEL, Math.min(LampLevel.MAX_LEVEL, moved));
-        return new LampLevel((int) clamped);
-    }
+    int value() { return value; }
 
     @Override public boolean equals(Object o) {
         return o instanceof LampLevel && ((LampLevel) o).value == value;

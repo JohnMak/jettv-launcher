@@ -14,9 +14,13 @@ import android.view.View;
  * keys to it). A small icon under each group names it: dim picture, lamp, bright picture.
  */
 public final class BrightnessPopup extends View {
+    private static final int GROUPS = 3;
+    /** One dash per scale position above 0 (position = number of lit dashes). */
+    private static final int DASHES = BrightnessScale.MAX_POSITION;
     private static final int SMALL_DASHES = BrightnessScale.ZONE_SIZE;
-    private static final int TALL_DASHES = 9;
-    private static final int DASHES = 2 * SMALL_DASHES + TALL_DASHES;
+    private static final int TALL_DASHES = DASHES - 2 * SMALL_DASHES;
+    private static final int DASH_COLOR = 0xFFFFFFFF;
+    private static final int FULL_ALPHA = 255;
     private static final float ICON_DP = 16;
     private static final float ICON_GAP_DP = 8;
     private static final int ICON_DIM_ALPHA = 110;
@@ -44,7 +48,11 @@ public final class BrightnessPopup extends View {
     private final int fillColor;
     private final int strokeColor;
     private final int accentColor;
-    private LampState state = LampState.loading();
+    private final float[] groupStart = new float[GROUPS];
+    private final float[] groupEnd = new float[GROUPS];
+    private BrightnessState state = BrightnessState.loading();
+    /** Error text of the current state, null unless ERROR. */
+    private String message;
     private boolean adjusting;
 
     public BrightnessPopup(Context context, AttributeSet attrs) {
@@ -54,8 +62,8 @@ public final class BrightnessPopup extends View {
         strokeColor = context.getColor(R.color.glass_stroke);
         accentColor = context.getColor(R.color.accent_glow);
         dimPictureIcon = icon(context, R.drawable.ic_image, ICON_DIM_ALPHA);
-        lampIcon = icon(context, R.drawable.ic_lightbulb, 255);
-        brightPictureIcon = icon(context, R.drawable.ic_image, 255);
+        lampIcon = icon(context, R.drawable.ic_lightbulb, FULL_ALPHA);
+        brightPictureIcon = icon(context, R.drawable.ic_image, FULL_ALPHA);
         bg.setCornerRadius(18 * density);
         applyBackground();
         setBackground(bg);
@@ -72,12 +80,24 @@ public final class BrightnessPopup extends View {
         return d;
     }
 
+    /** The single place mapping a shell failure kind to UI text. */
+    private static int messageRes(ShellError error) {
+        switch (error) {
+            case UNAUTHORIZED: return R.string.brightness_unauthorized;
+            case UNREACHABLE: return R.string.brightness_unreachable;
+            case TOOL_MISSING: return R.string.brightness_tool_missing;
+            case COMMAND_FAILED: return R.string.brightness_failed;
+            default: throw new IllegalArgumentException("unmapped shell error: " + error);
+        }
+    }
+
     boolean isShowing() {
         return getVisibility() == VISIBLE;
     }
 
-    void setState(LampState s) {
+    void setState(BrightnessState s) {
         state = s;
+        message = s.kind == BrightnessState.Kind.ERROR ? getContext().getString(messageRes(s.error)) : null;
         requestLayout();
         invalidate();
     }
@@ -120,7 +140,7 @@ public final class BrightnessPopup extends View {
     }
 
     private boolean hasText() {
-        return state.kind == LampState.Kind.ERROR;
+        return message != null;
     }
 
     private float iconRowHeight() {
@@ -135,7 +155,7 @@ public final class BrightnessPopup extends View {
     protected void onMeasure(int widthSpec, int heightSpec) {
         float pad = PAD_DP * density;
         float w = dashesWidth();
-        if (hasText()) w = Math.max(w, textPaint.measureText(state.message));
+        if (hasText()) w = Math.max(w, textPaint.measureText(message));
         setMeasuredDimension(Math.round(w + 2 * pad),
                 Math.round(DASH_H_DP * density + iconRowHeight() + textHeight() + 2 * pad));
     }
@@ -145,16 +165,14 @@ public final class BrightnessPopup extends View {
         float pad = PAD_DP * density;
         float dw = DASH_W_DP * density;
         float left = (getWidth() - dashesWidth()) / 2;
-        int lit = state.kind == LampState.Kind.READY ? state.position : 0;
-        int dimAlpha = state.kind == LampState.Kind.LOADING ? LOADING_ALPHA : DIM_ALPHA;
+        int lit = state.kind == BrightnessState.Kind.READY ? state.position : 0;
+        int dimAlpha = state.kind == BrightnessState.Kind.LOADING ? LOADING_ALPHA : DIM_ALPHA;
         float bottom = pad + DASH_H_DP * density; // small dashes are bottom-aligned with the tall ones
         float x = left;
-        float[] groupStart = new float[3];
-        float[] groupEnd = new float[3];
         for (int i = 0; i < DASHES; i++) {
             boolean small = i < SMALL_DASHES || i >= SMALL_DASHES + TALL_DASHES;
-            dashPaint.setColor(0xFFFFFFFF);
-            dashPaint.setAlpha(i < lit ? 255 : dimAlpha);
+            dashPaint.setColor(DASH_COLOR);
+            dashPaint.setAlpha(i < lit ? FULL_ALPHA : dimAlpha);
             float top = small ? bottom - SMALL_DASH_H_DP * density : pad;
             dash.set(x, top, x + dw, bottom);
             canvas.drawRoundRect(dash, dw / 2, dw / 2, dashPaint);
@@ -170,7 +188,7 @@ public final class BrightnessPopup extends View {
         drawIcon(canvas, brightPictureIcon, (groupStart[2] + groupEnd[2]) / 2, iconTop);
         if (hasText()) {
             float baseline = pad + DASH_H_DP * density + iconRowHeight() + TEXT_GAP_DP * density - textPaint.ascent();
-            canvas.drawText(state.message, getWidth() / 2f, baseline, textPaint);
+            canvas.drawText(message, getWidth() / 2f, baseline, textPaint);
         }
     }
 
