@@ -86,16 +86,25 @@ public class BrightnessKeyModelTest {
     }
 
     @Test
-    public void downWhileAdjustingExitsHidesAndPassesToFocusMove() {
+    public void downWhileAdjustingExitsAndPassesAndStaysSyncedWithRealFocus() {
+        // focus move succeeded: the sync after the key reports the sun lost, which hides the popup
         BrightnessKeyModel m = focused();
         m.onKey(BrightnessKeyModel.Key.DOWN);
-        assertEquals(Arrays.asList(BrightnessKeyModel.Action.EXIT_ADJUST, BrightnessKeyModel.Action.HIDE,
-                BrightnessKeyModel.Action.PASS), key(m, BrightnessKeyModel.Key.DOWN));
+        assertEquals(Arrays.asList(BrightnessKeyModel.Action.EXIT_ADJUST, BrightnessKeyModel.Action.PASS),
+                key(m, BrightnessKeyModel.Key.DOWN));
         assertFalse(m.isAdjusting());
-        // the popup is already hidden: the focus move that follows reports no second HIDE
-        assertSame(BrightnessKeyModel.Action.PASS, m.onFocus(false));
+        assertSame(BrightnessKeyModel.Action.HIDE, m.onFocus(false));
         assertEquals(PASS, key(m, BrightnessKeyModel.Key.DOWN));
         assertSame(BrightnessKeyModel.Action.SHOW, m.onFocus(true));
+
+        // focus move failed (no zone below): the sun is still focused, model and popup stay in sync
+        m = focused();
+        m.onKey(BrightnessKeyModel.Key.DOWN);
+        key(m, BrightnessKeyModel.Key.DOWN);
+        assertSame(BrightnessKeyModel.Action.PASS, m.onFocus(true));
+        assertEquals(Collections.singletonList(BrightnessKeyModel.Action.ENTER_ADJUST),
+                key(m, BrightnessKeyModel.Key.DOWN)); // the sun still owns DOWN
+        assertTrue(m.isAdjusting());
     }
 
     @Test

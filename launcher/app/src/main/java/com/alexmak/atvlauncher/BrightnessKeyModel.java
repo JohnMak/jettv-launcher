@@ -7,8 +7,8 @@ import java.util.List;
 /**
  * Pure key/mode logic of the top-bar brightness item. The owner reports focus gained or lost on the sun item and
  * the D-pad keys; the model answers with the actions to execute in order. Adjust mode exists only while the sun is
- * focused: DOWN enters it, LEFT/RIGHT step the level, UP or BACK leave it and DOWN leaves it, hides the popup and
- * lets the owner move focus down to the content. The sun has no OK action.
+ * focused: DOWN enters it, LEFT/RIGHT step the level, UP or BACK leave it and DOWN leaves it and lets the owner move focus
+ * down to the content; the owner then reports the real focus again (the move may fail), which hides the popup. The sun has no OK action.
  */
 final class BrightnessKeyModel {
     enum Key { BACK, LEFT, RIGHT, UP, DOWN }
@@ -67,7 +67,7 @@ final class BrightnessKeyModel {
     private static final List<Action> ENTER = Collections.singletonList(Action.ENTER_ADJUST);
     private static final List<Action> EXIT = Collections.singletonList(Action.EXIT_ADJUST);
     private static final List<Action> LEAVE_DOWN =
-            Collections.unmodifiableList(Arrays.asList(Action.EXIT_ADJUST, Action.HIDE, Action.PASS));
+            Collections.unmodifiableList(Arrays.asList(Action.EXIT_ADJUST, Action.PASS));
     private static final List<Action> STEP_LEFT = Collections.singletonList(Action.step(-1));
     private static final List<Action> STEP_RIGHT = Collections.singletonList(Action.step(1));
 
@@ -88,9 +88,8 @@ final class BrightnessKeyModel {
             case BACK:
                 adjusting = false;
                 return EXIT;
-            default: // DOWN: the popup goes away with the focus that is about to move to the content
+            default: // DOWN: leave adjust; whether the popup hides depends on the real focus the owner reports next
                 adjusting = false;
-                onSun = false;
                 return LEAVE_DOWN;
         }
     }

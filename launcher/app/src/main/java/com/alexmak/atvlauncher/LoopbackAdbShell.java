@@ -24,24 +24,23 @@ final class LoopbackAdbShell implements LampShell {
     private final File keyDir;
     private AdbKeyPair keys;
     private Dadb adb;
+    private boolean closed;
 
     LoopbackAdbShell(Context context) {
         this.keyDir = new File(context.getFilesDir(), "adb");
     }
 
     @Override
-    public synchronized FetchResult<String> exec(String command) {
-        if (!GmpfCommands.isValid(command)) {
-            return LampError.fail(LampError.COMMAND_FAILED, "rejected, not a gmpfUnit command: " + command);
-        }
+    public synchronized FetchResult<String> exec(GmpfCommand command) {
+        if (closed) return LampError.fail(LampError.UNREACHABLE, "shell is closed");
         try {
             if (adb == null) adb = Dadb.create(HOST, PORT, keys(), CONNECT_TIMEOUT_MS, SOCKET_TIMEOUT_MS);
-            AdbShellResponse response = adb.shell(command);
+            AdbShellResponse response = adb.shell(command.shellLine());
             String output = response.getAllOutput();
             LampError failure = LampErrorClassifier.classifyOutput(response.getExitCode(), output);
             if (failure == null) return FetchResult.ok(response.getOutput());
             return LampError.fail(failure, "rc=" + response.getExitCode() + " " + output.trim());
-        } catch (IOException e) {
+        } catch (Exception e) { // I/O boundary: nothing may escape as an untyped exception
             dropConnection();
             return LampError.fail(LampErrorClassifier.classify(e), String.valueOf(e.getMessage()));
         }
@@ -70,7 +69,13 @@ final class LoopbackAdbShell implements LampShell {
     }
 
     @Override
+    public synchronized void disconnect() {
+        dropConnection();
+    }
+
+    @Override
     public synchronized void close() {
+        closed = true;
         dropConnection();
     }
 }

@@ -457,6 +457,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onPause() {
         weather.stop();
+        runBrightness(brightnessKeys.onFocus(false)); // hides the popup and ends adjust; onResume re-syncs
         super.onPause();
     }
 
@@ -470,7 +471,7 @@ public final class MainActivity extends Activity {
         main.removeCallbacks(refreshRunnable);
         main.removeCallbacks(feedRunnable);
         endMenuAndMove();
-        runBrightness(brightnessKeys.onFocus(false));
+        lamp.disconnect();
         super.onStop();
     }
 
@@ -692,6 +693,7 @@ public final class MainActivity extends Activity {
     private void fillInfo(FeedInfoField field, FeedItem item) {
         field.setContent(item.title,
                 FeedInfoLine.season(item.season, item.episode), item.rating, kinopoisk.info(item));
+        field.setDescription(item.description);
     }
 
     /** Kinopoisk data arrived for {@code key}: refresh the info field when that card is the focused one. */
@@ -990,10 +992,9 @@ public final class MainActivity extends Activity {
                 break;
             default:
                 if (runBrightnessKey(brightnessKeys.onKey(brightnessKey(dir)))) break;
-                if (focus.move(dir)) { // a press clamped at the row end changes nothing
-                    syncBrightness();
-                    scheduleFocusVisuals();
-                }
+                boolean moved = focus.move(dir); // a press clamped at the row end changes nothing
+                syncBrightness(); // always: the brightness model re-reads the real focus after the key
+                if (moved) scheduleFocusVisuals();
                 break;
         }
     }
