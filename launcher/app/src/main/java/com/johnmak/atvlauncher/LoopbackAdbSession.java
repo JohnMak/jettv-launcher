@@ -45,7 +45,7 @@ final class LoopbackAdbSession implements AdbSession {
             AdbShellResponse response = connection().shell(command.shellLine());
             String output = response.getAllOutput();
             if (command.verb().isPackageManagement()) {
-                return PmOutputParser.parse(command.verb(), response.getExitCode(), output);
+                return PmOutputParser.parse(command.verb(), response.getExitCode(), response.getOutput(), response.getErrorOutput());
             }
             ShellError failure = ShellErrorClassifier.classifyOutput(response.getExitCode(), output);
             if (failure == null) return FetchResult.ok(response.getOutput());
