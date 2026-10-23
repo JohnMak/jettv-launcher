@@ -112,6 +112,8 @@ public final class LauncherSettingsActivity extends Activity {
     /** Section header added by {@link #addSection}, attached to the next row. */
     private View pendingHeader;
     private boolean layoutPending;
+    private int updateRow = -1;
+    private final UpdateController.Listener updateListener = state -> refreshUpdateRow();
 
     private EditText input;
     private boolean editing;
@@ -157,6 +159,23 @@ public final class LauncherSettingsActivity extends Activity {
     protected void onStart() {
         super.onStart();
         if (page == Page.MAIN && !rows.isEmpty()) refreshValues();
+        UpdateController.instance(this).addListener(updateListener);
+    }
+
+    @Override
+    protected void onStop() {
+        UpdateController.instance(this).removeListener(updateListener);
+        super.onStop();
+    }
+
+    private String updateText() {
+        return UpdateStatusText.of(UpdateController.instance(this).state(), (id, args) -> getString(id, args));
+    }
+
+    /** Only the update row's value changes while a check runs; the list is not rebuilt. */
+    private void refreshUpdateRow() {
+        if (page != Page.MAIN || updateRow < 0 || updateRow >= rows.size()) return;
+        rows.get(updateRow).refresh(updateRow == focus);
     }
 
     @Override
@@ -218,8 +237,10 @@ public final class LauncherSettingsActivity extends Activity {
         addRow(R.string.settings_vpn_app, this::vpnAppText, null,
                 () -> changeVpnApp(-1), () -> changeVpnApp(1));
 
-        // «Проверить обновления» joins this section later: one more addRow here
         addSection(R.string.settings_section_about);
+        updateRow = rows.size();
+        addRow(R.string.settings_check_update, this::updateText,
+                () -> UpdateController.instance(this).checkNow(), null, null);
         addRow(R.string.settings_about_name, () -> BuildConfig.VERSION_NAME, null, null, null);
 
         focus = focusRow < 0 ? cityRow : focusRow;
