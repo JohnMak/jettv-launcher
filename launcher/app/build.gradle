@@ -48,6 +48,10 @@ android {
             }
         }
     }
+    sourceSets {
+        // Cleanup profiles: tools/debloat/*.txt are the single source of truth, bundled as-is.
+        main.assets.srcDir "${rootDir.parentFile}/tools/debloat"
+    }
     buildTypes {
         debug { debuggable true }
         release {

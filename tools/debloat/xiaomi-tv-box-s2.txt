@@ -1,37 +1,42 @@
-# Debloat list: Xiaomi TV Box S (2nd gen), Android 14 Google TV. One package per line, "#" starts a comment.
-# Applied with: tools/debloat.sh <serial> tools/debloat/xiaomi-tv-box-s2.txt
-# Every entry is only `pm disable-user --user 0`: fully reversible with tools/undebloat.sh.
-# Lines starting with "#?" are optional: uncomment if you do not need the feature.
+# Cleanup profile: Xiaomi TV Box S (2nd gen), Android 14 Google TV.
+# Format: "<action>[?] <package> [requires=home] [# comment]"; action = disable | remove | reset.
+#   disable = pm disable-user --user 0     remove = pm uninstall -k --user 0     reset = pm uninstall (drop updates)
+#   "?" marks an optional entry: never applied automatically (tools: only with --include-optional).
+#   A line without an action is "disable". "requires=home" = only when our launcher holds the HOME role.
+# "@match" lines select the profile by device: model=<ro.product.model>, product=<ro.product.name>; any match selects it.
+# Everything is reversible (tools/undebloat.sh: enable + install-existing).
+@match model=MiTV-AYFR0
+@match product=soul
 
-com.google.android.tungsten.setupwraith   # first-run setup wizard
-com.miui.tv.analytics                     # Xiaomi analytics
-com.xiaomi.statistic                      # Xiaomi usage statistics
-com.google.android.feedback               # feedback reporter
-com.android.tv.feedbackconsent            # feedback consent dialogs
-com.xm.webcontent                         # Xiaomi web content / promo service
-com.mitv.tvhome.oemtab                    # Xiaomi OEM home tab
-com.mitv.tvhome.michannel                 # Xiaomi Mi channel (PatchWall content)
-com.mitv.tvhome.atv                       # Xiaomi PatchWall home
-com.mitv.tvhome.mitvplus                  # Mi TV+ content
-com.xiaomi.mi_connect_service             # Mi Connect
-com.xiaomi.mitv.smartshare                # Xiaomi SmartShare
-com.xiaomi.wfdsinkhelperservice           # Miracast sink helper
-com.android.printspooler                  # print spooler, no printers on a TV
-com.android.nearby.halfsheet              # Nearby share pop-ups
-com.google.android.play.games             # Play Games
-com.mitv.videoplayer                      # Xiaomi video player
-com.mitv.gallery                          # Xiaomi gallery
-com.xiaomi.mitv.mediaexplorer             # Xiaomi media explorer
-com.xiaomi.mimusic2                       # Xiaomi music
-com.google.android.youtube.tvmusic        # YouTube Music for TV
-com.google.android.backdrop               # stock Ambient mode screensaver, replaced by the JetTV screensaver
-com.google.android.tvrecommendations      # stock recommendations service, replaced by the JetTV feed rows
-com.xiaomi.tvqs.overseas                  # Xiaomi quick-start / promo service
-com.xiaomo.tv.milegal                     # Xiaomi legal/terms pop-ups
+disable com.google.android.tungsten.setupwraith   # first-run setup wizard
+disable com.miui.tv.analytics                     # Xiaomi analytics
+disable com.xiaomi.statistic                      # Xiaomi usage statistics
+disable com.google.android.feedback               # feedback reporter
+disable com.android.tv.feedbackconsent            # feedback consent dialogs
+disable com.xm.webcontent                         # Xiaomi web content / promo service
+disable com.mitv.tvhome.oemtab                    # Xiaomi OEM home tab
+remove com.mitv.tvhome.michannel                  # Xiaomi Mi channel (PatchWall content)
+remove com.mitv.tvhome.atv                        # Xiaomi PatchWall home
+remove com.mitv.tvhome.mitvplus                   # Mi TV+ content
+disable com.xiaomi.mi_connect_service             # Mi Connect
+remove com.xiaomi.mitv.smartshare                 # Xiaomi SmartShare
+remove com.xiaomi.wfdsinkhelperservice            # Miracast sink helper
+remove com.android.printspooler                   # print spooler, no printers on a TV
+disable com.android.nearby.halfsheet              # Nearby share pop-ups
+disable com.google.android.play.games             # Play Games
+remove com.mitv.videoplayer                       # Xiaomi video player
+disable com.mitv.gallery                          # Xiaomi gallery
+disable com.xiaomi.mitv.mediaexplorer             # Xiaomi media explorer
+disable com.xiaomi.mimusic2                       # Xiaomi music
+disable com.google.android.youtube.tvmusic        # YouTube Music for TV
+remove com.google.android.backdrop                # stock Ambient mode screensaver, replaced by the JetTV screensaver
+remove com.google.android.tvrecommendations       # stock recommendations service, replaced by the JetTV feed rows
+remove com.xiaomi.tvqs.overseas                   # Xiaomi quick-start / promo service
+remove com.xiaomo.tv.milegal                      # Xiaomi legal/terms pop-ups
 
-#? com.google.android.marvin.talkback     # TalkBack screen reader
-#? com.google.android.tts                 # Google text-to-speech (needed by TalkBack)
-#? com.google.android.katniss             # Google Assistant / voice search: disabling breaks the remote's mic button
-#? com.google.android.apps.mediashell     # Google Cast receiver: disabling breaks casting to the box
-#? com.google.android.apps.tv.launcherx   # stock Google TV launcher; disable only after JetTV holds the HOME role
-#? com.google.android.tvlauncher          # older stock launcher package name; same rule as above
+remove? com.google.android.marvin.talkback        # TalkBack screen reader
+remove? com.google.android.tts                    # Google text-to-speech (needed by TalkBack)
+remove? com.google.android.katniss                # Google Assistant / voice search: breaks the remote's mic button
+remove? com.google.android.apps.mediashell        # Google Cast receiver: breaks casting to the box
+disable? com.google.android.apps.tv.launcherx requires=home   # stock Google TV launcher; only after JetTV holds HOME
+disable? com.google.android.tvlauncher requires=home           # older stock launcher package name; same rule

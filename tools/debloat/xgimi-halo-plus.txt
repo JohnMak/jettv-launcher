@@ -1,19 +1,24 @@
-# Debloat list: XGIMI HALO+ projector (Android 11, XK03H). One package per line, "#" starts a comment.
-# Applied with: tools/debloat.sh <serial> tools/debloat/xgimi-halo-plus.txt
-# Every entry is only `pm disable-user --user 0`: fully reversible with tools/undebloat.sh.
-# Lines starting with "#?" are optional: uncomment if you do not need the feature.
+# Cleanup profile: XGIMI HALO+ projector (Android 11, XK03H).
+# Format: "<action>[?] <package> [requires=home] [# comment]"; action = disable | remove | reset.
+#   disable = pm disable-user --user 0     remove = pm uninstall -k --user 0     reset = pm uninstall (drop updates)
+#   "?" marks an optional entry: never applied automatically (tools: only with --include-optional).
+#   A line without an action is "disable". "requires=home" = only when our launcher holds the HOME role.
+# "@match" lines select the profile by device: model=<ro.product.model>, product=<ro.product.name>; any match selects it.
+# Everything is reversible (tools/undebloat.sh: enable + install-existing).
+@match model=XK03H
+@match product=aiolia
 
-com.google.android.tungsten.setupwraith   # first-run setup wizard, not needed after setup
-com.google.android.youtube.tvmusic        # YouTube Music for TV, background updater
-com.google.android.tvrecommendations      # stock recommendations service, replaced by the JetTV feed rows
-com.google.android.tts                    # Google text-to-speech, only needed by TalkBack
-com.google.android.marvin.talkback        # TalkBack screen reader
-com.google.android.backdrop               # stock Ambient mode screensaver, replaced by the JetTV screensaver
-com.xgimi.gimiplayer                      # vendor media player
-com.xgimi.doubanfm                        # vendor music app (Douban FM)
-com.xgimi.atmosphere                      # vendor ambient/atmosphere app
-com.xgimi.filemanager                     # vendor file manager
-com.ted.android.tv                        # vendor content/ads service
-fusion.android.tv.demo                    # retail demo mode (RetailDisplay)
+remove com.google.android.tungsten.setupwraith   # first-run setup wizard, not needed after setup
+remove com.google.android.youtube.tvmusic        # YouTube Music for TV, background updater
+remove com.google.android.tvrecommendations      # stock recommendations service, replaced by the JetTV feed rows
+remove com.google.android.tts                    # Google text-to-speech, only needed by TalkBack
+remove com.google.android.marvin.talkback        # TalkBack screen reader
+remove com.google.android.backdrop               # stock Ambient mode screensaver, replaced by the JetTV screensaver
+remove com.xgimi.gimiplayer                      # vendor media player
+remove com.xgimi.doubanfm                        # vendor music app (Douban FM)
+remove com.xgimi.atmosphere                      # vendor ambient/atmosphere app
+remove com.xgimi.filemanager                     # vendor file manager
+remove com.ted.android.tv                        # vendor content/ads service
+remove fusion.android.tv.demo                    # retail demo mode (RetailDisplay)
 
-#? com.google.android.tvlauncher          # stock Google TV launcher; disable only after JetTV holds the HOME role
+disable? com.google.android.tvlauncher requires=home   # stock Google TV launcher; only after JetTV holds the HOME role
