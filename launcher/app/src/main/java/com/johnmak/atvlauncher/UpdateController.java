@@ -80,7 +80,7 @@ final class UpdateController {
     static synchronized UpdateController instance(Context context) {
         if (instance == null) {
             Context app = context.getApplicationContext();
-            String userAgent = "JetTV-Launcher/" + BuildConfig.VERSION_NAME;
+            String userAgent = HttpText.USER_AGENT;
             FetchResult<SemVer> current = SemVer.ofVersionName(BuildConfig.VERSION_NAME);
             if (!current.isOk()) throw new IllegalStateException("build version: " + current.error());
             Handler handler = new Handler(Looper.getMainLooper());

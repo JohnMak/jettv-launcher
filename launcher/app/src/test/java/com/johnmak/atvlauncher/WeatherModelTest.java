@@ -52,8 +52,9 @@ public class WeatherModelTest {
     @Test public void urlAndUserAgent() {
         assertEquals("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=55.7558&lon=-37.6000",
                 WeatherModel.url(55.7558, -37.6));
-        assertTrue(HttpText.USER_AGENT.startsWith("atvlauncher/"));
-        assertTrue(HttpText.USER_AGENT.contains("@"));
+        assertTrue(HttpText.USER_AGENT.startsWith("JetTV-Launcher/" + BuildConfig.VERSION_NAME + " "));
+        assertTrue(HttpText.USER_AGENT.contains("+https://github.com/johnmak/jettv-launcher"));
+        assertFalse(HttpText.USER_AGENT.contains("@"));
     }
 
     @Test public void dayFlag() {

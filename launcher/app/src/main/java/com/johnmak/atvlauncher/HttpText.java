@@ -11,8 +11,8 @@ import java.util.Map;
 
 /** Blocking HTTPS GET returning the body text; call on a worker thread. */
 final class HttpText {
-    /** Identifying User-Agent with contact (MET Norway requires one). */
-    static final String USER_AGENT = "atvlauncher/1.0 (personal Android TV launcher; makeev.john@gmail.com)";
+    /** Identifying User-Agent with a project URL as contact (MET Norway requires one); used by every HTTP client. */
+    static final String USER_AGENT = "JetTV-Launcher/" + BuildConfig.VERSION_NAME + " (+https://github.com/johnmak/jettv-launcher)";
     /** The error of a 429 response, so callers can back off. */
     static final String RATE_LIMITED = "HTTP 429";
     private static final int TIMEOUT_MS = 10_000;
