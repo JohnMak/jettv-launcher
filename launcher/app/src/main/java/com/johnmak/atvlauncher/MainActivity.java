@@ -264,6 +264,7 @@ public final class MainActivity extends Activity {
         zonePrefs = new WeatherPrefs(this);
         settingsStore = new LauncherSettingsStore(this);
         LauncherSettings loaded = settingsStore.load();
+        SystemScreensaver.sync(this, loaded);
         uiScalePercent = loaded.uiScalePercent;
         previewScalePercent = loaded.previewScalePercent;
 

@@ -534,14 +534,10 @@ public final class LauncherSettingsActivity extends Activity {
         return value == 0 ? getString(R.string.settings_off) : getString(unitRes, value);
     }
 
-    /** The system dream follows the launcher screensaver: on for any delay, off when the delay crosses to 0. */
+    /** The system dream follows the launcher screensaver delay: enabled for any delay, off for 0. */
     private void changeScreensaverDelay(LauncherSettings next) {
-        boolean wasOn = settings.screensaverDelayMin != 0;
-        boolean nowOn = next.screensaverDelayMin != 0;
         change(next);
-        if (wasOn != nowOn) {
-            status(SystemScreensaver.apply(this, nowOn) ? "" : getString(R.string.settings_screensaver_denied));
-        }
+        status(SystemScreensaver.sync(this, next) ? "" : getString(R.string.settings_screensaver_denied));
     }
 
     // ---------------------------------------------------------------- city
