@@ -1336,12 +1336,15 @@ public final class MainActivity extends Activity {
     private void openChecklist(FeedSource source, List<String> publishers) {
         Set<String> excluded = settingsStore.excluded(source);
         List<GlassMenu.Check> lines = new ArrayList<>();
+        List<String> shown = new ArrayList<>();
         for (String pkg : publishers) {
             AppEntry app = apps.byPackage.get(pkg);
+            if (app == null) continue; // uninstalled since the publisher list was built
             lines.add(new GlassMenu.Check(app.icon, app.label, ExcludedApps.isIncluded(excluded, pkg)));
+            shown.add(pkg);
         }
         checklistSource = source;
-        checklistPackages = new ArrayList<>(publishers);
+        checklistPackages = shown;
         mode = Mode.CHECKLIST;
         menu.showChecklist(getString(source.titleRes), lines);
     }

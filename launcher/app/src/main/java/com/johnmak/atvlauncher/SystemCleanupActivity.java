@@ -67,6 +67,7 @@ public final class SystemCleanupActivity extends Activity {
     private String progress = "";
 
     private final Handler main = new Handler(Looper.getMainLooper());
+    private volatile boolean destroyed;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final ExecutorService icons = Executors.newSingleThreadExecutor();
 
@@ -113,6 +114,7 @@ public final class SystemCleanupActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        destroyed = true;
         main.removeCallbacksAndMessages(null);
         worker.shutdownNow();
         icons.shutdownNow();
@@ -176,6 +178,7 @@ public final class SystemCleanupActivity extends Activity {
             int failed = 0;
             String stop = null;
             for (CleanupPlanner.Step s : steps) {
+                if (destroyed || Thread.currentThread().isInterrupted()) return; // screen closed: no further writes
                 CleanupSections.Op op = CleanupSections.Op.of(s.action);
                 FetchResult<PackageName> name = PackageName.parse(s.pkg);
                 if (!name.isOk()) {
