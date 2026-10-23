@@ -21,11 +21,6 @@
         android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
 
-    <!-- Granted by the user via pm grant: dumpsys access for the real in-memory dot. -->
-    <uses-permission
-        android:name="android.permission.DUMP"
-        tools:ignore="ProtectedPermissions" />
-
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />

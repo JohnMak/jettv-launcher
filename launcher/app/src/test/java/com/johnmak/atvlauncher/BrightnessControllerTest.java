@@ -26,7 +26,7 @@ public class BrightnessControllerTest {
         final Queue<FetchResult<String>> scripted = new ArrayDeque<>();
         int disconnects;
         RuntimeException throwOnce;
-        @Override public FetchResult<String> exec(GmpfCommand command) {
+        @Override public FetchResult<String> exec(ShellCommand command) {
             commands.add(command.shellLine());
             String c = command.shellLine();
             if (throwOnce != null) {
@@ -88,7 +88,7 @@ public class BrightnessControllerTest {
     private void scriptWrites(int count) { for (int i = 0; i < count; i++) shell.ok(""); }
 
     private static final List<String> READBACK = Arrays.asList(
-            GmpfCommand.getLevel().shellLine(), GmpfCommand.getBrightness().shellLine(), GmpfCommand.getContrast().shellLine());
+            ShellCommand.Gmpf.getLevel().shellLine(), ShellCommand.Gmpf.getBrightness().shellLine(), ShellCommand.Gmpf.getContrast().shellLine());
 
     private void assertCommands(String... writes) {
         List<String> expected = new ArrayList<>(Arrays.asList(writes));

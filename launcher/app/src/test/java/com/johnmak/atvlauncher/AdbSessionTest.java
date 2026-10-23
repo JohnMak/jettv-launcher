@@ -21,7 +21,7 @@ public class AdbSessionTest {
         }
         assertEquals(new TreeSet<>(Arrays.asList(
                 "disconnect[]",
-                "exec[class com.johnmak.atvlauncher.GmpfCommand]",
+                "exec[class com.johnmak.atvlauncher.ShellCommand]",
                 "install[class com.johnmak.atvlauncher.VerifiedApk]")), ops);
     }
 

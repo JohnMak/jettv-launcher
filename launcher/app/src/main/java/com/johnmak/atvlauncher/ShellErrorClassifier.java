@@ -11,7 +11,7 @@ import dadb.AdbTimeoutException;
 /** Pure mapping from dadb exceptions and shell output to {@link ShellError}; no I/O. */
 final class ShellErrorClassifier {
     private static final String HANDSHAKE = "handshake";
-    private static final String NOT_FOUND = "not found";
+    private static final String NOT_FOUND = "inaccessible or not found";
     private static final int EXIT_NOT_FOUND = 127;
 
     private ShellErrorClassifier() {}
@@ -32,7 +32,10 @@ final class ShellErrorClassifier {
         return ShellError.UNREACHABLE;
     }
 
-    /** null = success. The single place that decides "tool missing": exit 127 or "not found" text on a non-zero exit. */
+    /**
+     * null = success. The single place that decides "tool missing" for the gmpfUnit binary: exit 127 or the shell's
+     * "inaccessible or not found" on a non-zero exit. Package-manager output goes through {@link PmOutputParser}.
+     */
     static ShellError classifyOutput(int exitCode, String output) {
         if (exitCode == 0) return null;
         if (exitCode == EXIT_NOT_FOUND || lower(output).contains(NOT_FOUND)) return ShellError.TOOL_MISSING;

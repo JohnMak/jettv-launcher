@@ -40,10 +40,13 @@ final class LoopbackAdbSession implements AdbSession {
     }
 
     @Override
-    public synchronized FetchResult<String> exec(GmpfCommand command) {
+    public synchronized FetchResult<String> exec(ShellCommand command) {
         try {
             AdbShellResponse response = connection().shell(command.shellLine());
             String output = response.getAllOutput();
+            if (command.verb().isPackageManagement()) {
+                return PmOutputParser.parse(command.verb(), response.getExitCode(), output);
+            }
             ShellError failure = ShellErrorClassifier.classifyOutput(response.getExitCode(), output);
             if (failure == null) return FetchResult.ok(response.getOutput());
             return ShellError.fail(failure, "rc=" + response.getExitCode() + " " + output.trim());

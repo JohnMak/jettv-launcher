@@ -93,7 +93,7 @@ final class BrightnessController {
     }
 
     /** The single shell boundary: a throwing shell becomes a typed failure instead of escaping the worker. */
-    private FetchResult<String> exec(GmpfCommand command) {
+    private FetchResult<String> exec(ShellCommand command) {
         try {
             return shell.exec(command);
         } catch (RuntimeException e) {
@@ -102,12 +102,12 @@ final class BrightnessController {
     }
 
     /** Same boundary for commands that may have failed validation. */
-    private FetchResult<String> exec(FetchResult<GmpfCommand> command) {
+    private FetchResult<String> exec(FetchResult<ShellCommand> command) {
         if (!command.isOk()) return command.propagate();
         return exec(command.value());
     }
 
-    private FetchResult<Integer> readValue(GmpfCommand command, int min, int max, String what) {
+    private FetchResult<Integer> readValue(ShellCommand command, int min, int max, String what) {
         FetchResult<String> raw = exec(command);
         if (!raw.isOk()) {
             return FetchResult.err(raw.error(), errorKindOf(raw));
@@ -134,13 +134,13 @@ final class BrightnessController {
     }
 
     private FetchResult<BrightnessScale.Position> readDeviceValues() {
-        FetchResult<Integer> lamp = readValue(GmpfCommand.getLevel(), LampLevel.MIN_LEVEL, LampLevel.MAX_LEVEL, "lamp level");
+        FetchResult<Integer> lamp = readValue(ShellCommand.Gmpf.getLevel(), LampLevel.MIN_LEVEL, LampLevel.MAX_LEVEL, "lamp level");
         if (!lamp.isOk()) return lamp.propagate();
-        FetchResult<Integer> brightness = readValue(GmpfCommand.getBrightness(),
-                GmpfCommand.PICTURE_MIN, GmpfCommand.PICTURE_MAX, "brightness");
+        FetchResult<Integer> brightness = readValue(ShellCommand.Gmpf.getBrightness(),
+                ShellCommand.Gmpf.PICTURE_MIN, ShellCommand.Gmpf.PICTURE_MAX, "brightness");
         if (!brightness.isOk()) return brightness.propagate();
-        FetchResult<Integer> contrast = readValue(GmpfCommand.getContrast(),
-                GmpfCommand.PICTURE_MIN, GmpfCommand.PICTURE_MAX, "contrast");
+        FetchResult<Integer> contrast = readValue(ShellCommand.Gmpf.getContrast(),
+                ShellCommand.Gmpf.PICTURE_MIN, ShellCommand.Gmpf.PICTURE_MAX, "contrast");
         if (!contrast.isOk()) return contrast.propagate();
         deviceLamp = lamp.value();
         deviceBrightness = brightness.value();
@@ -163,7 +163,7 @@ final class BrightnessController {
     private FetchResult<String> writeLamp(BrightnessScale.Position t) {
         LampLevel lamp = BrightnessScale.lamp(t);
         if (lamp.value() == deviceLamp) return FetchResult.ok("");
-        FetchResult<String> r = exec(GmpfCommand.setLevel(lamp));
+        FetchResult<String> r = exec(ShellCommand.Gmpf.setLevel(lamp));
         if (r.isOk()) deviceLamp = lamp.value();
         return r;
     }
@@ -171,12 +171,12 @@ final class BrightnessController {
     private FetchResult<String> writePicture(BrightnessScale.Position t) {
         int picture = BrightnessScale.picture(t);
         if (picture != deviceBrightness) {
-            FetchResult<String> r = exec(GmpfCommand.setBrightness(picture));
+            FetchResult<String> r = exec(ShellCommand.Gmpf.setBrightness(picture));
             if (!r.isOk()) return r;
             deviceBrightness = picture;
         }
         if (picture != deviceContrast) {
-            FetchResult<String> r = exec(GmpfCommand.setContrast(picture));
+            FetchResult<String> r = exec(ShellCommand.Gmpf.setContrast(picture));
             if (!r.isOk()) return r;
             deviceContrast = picture;
         }

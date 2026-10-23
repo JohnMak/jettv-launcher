@@ -7,7 +7,7 @@ package com.johnmak.atvlauncher;
  */
 interface AdbSession {
     /** ok(stdout) on exit code 0; err carries a {@link ShellError} kind. */
-    FetchResult<String> exec(GmpfCommand command);
+    FetchResult<String> exec(ShellCommand command);
 
     /** Replaces the installed app with {@code apk} (`-r`); ok(output) on success, err carries a {@link ShellError} kind. */
     FetchResult<String> install(VerifiedApk apk);

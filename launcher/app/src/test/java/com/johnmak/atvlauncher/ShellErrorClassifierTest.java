@@ -45,8 +45,10 @@ public class ShellErrorClassifierTest {
         assertEquals(ShellError.COMMAND_FAILED, ShellErrorClassifier.classifyOutput(1, "boom"));
         assertEquals(ShellError.TOOL_MISSING, ShellErrorClassifier.classifyOutput(127, "gmpfUnit: inaccessible or not found"));
         assertEquals(ShellError.TOOL_MISSING, ShellErrorClassifier.classifyOutput(127, "boom"));
-        assertEquals(ShellError.TOOL_MISSING, ShellErrorClassifier.classifyOutput(1, "sh: gmpfUnit: Not Found"));
-        assertNull(ShellErrorClassifier.classifyOutput(0, "sh: gmpfUnit: Not Found"));
+        assertEquals(ShellError.TOOL_MISSING, ShellErrorClassifier.classifyOutput(1, "sh: gmpfUnit: inaccessible or not found"));
+        assertNull(ShellErrorClassifier.classifyOutput(0, "sh: gmpfUnit: inaccessible or not found"));
+        assertEquals(ShellError.COMMAND_FAILED, ShellErrorClassifier.classifyOutput(1, "Failure [not found]"));
+        assertEquals(ShellError.COMMAND_FAILED, ShellErrorClassifier.classifyOutput(1, "Unknown package: com.x"));
     }
 
     @Test
