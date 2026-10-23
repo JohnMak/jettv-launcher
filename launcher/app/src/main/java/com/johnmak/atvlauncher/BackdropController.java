@@ -38,11 +38,6 @@ final class BackdropController {
         this.sources = sources;
     }
 
-    /** Applies the animation policy: crossfade or instant swap. */
-    void setMotion(Motion motion) {
-        view.setFades(motion.crossfade());
-    }
-
     /** Sets the backdrop that should be shown; null fades it out. Calling again with the same key retries a source that was not ready. */
     void want(String key) {
         long now = SystemClock.uptimeMillis();

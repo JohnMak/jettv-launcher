@@ -581,7 +581,6 @@ public final class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         motion = Motion.of(settingsStore.load());
-        backdrop.setMotion(motion);
         weather.start();
         refreshUsage();
         page.post(this::syncBrightness);
@@ -924,7 +923,7 @@ public final class MainActivity extends Activity {
             }
             case FAVORITES:
                 if (!locateFavorite(focus.index(), glassTarget)) return;
-                radius = Tiles.surround(glassTarget, density, 10);
+                radius = Tiles.grow(glassTarget, density, 10);
                 break;
             case WATCH_NEXT:
                 if (focus.config()) {
@@ -987,7 +986,7 @@ public final class MainActivity extends Activity {
             }
             case FAVORITES: {
                 RecyclerView.ViewHolder vh = favoritesRow.findViewHolderForAdapterPosition(ref.index);
-                if (vh != null) ((FavoritesAdapter.Holder) vh).image.setFocused(focused, animate);
+                if (vh != null) { FavoritesAdapter.Holder h = (FavoritesAdapter.Holder) vh; Tiles.setSelected(h.image, h.shadow, focused, animate); }
                 break;
             }
             case WATCH_NEXT: {
@@ -1031,7 +1030,7 @@ public final class MainActivity extends Activity {
             View child = row.getChildAt(i);
             boolean focused = row.getChildAdapterPosition(child) == selected;
             if (zone == FocusModel.Zone.FAVORITES) {
-                ((DimImageView) child.findViewById(R.id.tile_image)).setFocused(focused, animate);
+                Tiles.setSelected(child.findViewById(R.id.tile_image), child.findViewById(R.id.shadow), focused, animate);
             } else {
                 Tiles.setCardSelected(child, focused, animate);
             }

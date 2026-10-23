@@ -128,7 +128,7 @@ final class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Holde
         FrameLayout.LayoutParams slp = (FrameLayout.LayoutParams) h.shadow.getLayoutParams();
         slp.height = geometry.tileHeight;
         h.shadow.setLayoutParams(slp);
-        h.image.setFocused(position == selected, false);
+        Tiles.setSelected(h.image, h.shadow, position == selected, false);
         boolean dot = entry != null && dotted.contains(entry.packageName);
         h.dot.setVisibility(dot ? View.VISIBLE : View.GONE);
         if (dot) {

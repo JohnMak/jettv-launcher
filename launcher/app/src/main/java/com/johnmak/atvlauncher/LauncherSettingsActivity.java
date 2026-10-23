@@ -243,7 +243,7 @@ public final class LauncherSettingsActivity extends Activity {
                 () -> changeUiScale(settings.prevUiScale()), () -> changeUiScale(settings.nextUiScale()));
         addRow(R.string.settings_preview_scale, () -> getString(R.string.settings_percent, settings.previewScalePercent), null,
                 () -> change(settings.prevPreviewScale()), () -> change(settings.nextPreviewScale()));
-        addRow(R.string.settings_animations_off, () -> onOff(settings.animationsOff), this::toggleAnimations,
+        addRow(R.string.settings_animations_off, () -> onOff(!settings.animationsOff), this::toggleAnimations,
                 this::toggleAnimations, this::toggleAnimations);
         addRow(R.string.settings_dim_delay, () -> delayText(settings.dimDelaySec, R.string.settings_seconds), null,
                 () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));

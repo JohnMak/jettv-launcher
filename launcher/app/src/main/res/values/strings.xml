@@ -32,7 +32,7 @@
     <string name="settings_type_starfield">Звёзды</string>
     <string name="settings_type_video">Видео NASA</string>
     <string name="settings_video_credit">Видео потоком, ничего не сохраняется · %1$s</string>
-    <string name="settings_animations_off">Выключить анимации</string>
+    <string name="settings_animations_off">Анимация выбора</string>
     <string name="settings_dim_delay">Притемнять через</string>
     <string name="settings_vpn_button">Кнопка VPN</string>
     <string name="settings_vpn_show">Показывать</string>

@@ -10,15 +10,13 @@ public class MotionTest {
         Motion m = Motion.of(LauncherSettings.DEFAULTS.withAnimationsOff(false));
         assertTrue(m.focusAnimated(true));
         assertFalse(m.focusAnimated(false));
-        assertTrue(m.crossfade());
         assertTrue(m.scrollAnimated());
     }
 
-    @Test public void animationsOffMakesFocusAndBackdropInstantButKeepsScrolling() {
+    @Test public void animationsOffMakesSelectionInstantButKeepsScrolling() {
         Motion m = Motion.of(LauncherSettings.DEFAULTS.withAnimationsOff(true));
         assertFalse(m.focusAnimated(true));
         assertFalse(m.focusAnimated(false));
-        assertFalse(m.crossfade());
         assertTrue(m.scrollAnimated());
     }
 }
