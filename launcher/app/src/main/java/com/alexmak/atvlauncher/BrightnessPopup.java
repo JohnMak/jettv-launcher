@@ -8,12 +8,16 @@ import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.view.View;
 
-/** Frosted popup with ten tall dashes showing the lamp brightness (the owner routes the D-pad keys to it). */
+/** Frosted popup with 4 small, 9 tall and 4 small dashes showing the brightness position (the owner routes the D-pad keys to it). */
 public final class BrightnessPopup extends View {
-    private static final int DASHES = LampState.MAX_LEVEL;
+    private static final int SMALL_DASHES = BrightnessScale.ZONE_SIZE;
+    private static final int TALL_DASHES = 9;
+    private static final int DASHES = 2 * SMALL_DASHES + TALL_DASHES;
     private static final float DASH_W_DP = 8;
     private static final float DASH_H_DP = 36;
+    private static final float SMALL_DASH_H_DP = 18;
     private static final float GAP_DP = 8;
+    private static final float GROUP_GAP_DP = 16;
     private static final float PAD_DP = 18;
     private static final float TEXT_SP = 16;
     private static final float TEXT_GAP_DP = 12;
@@ -93,7 +97,7 @@ public final class BrightnessPopup extends View {
     }
 
     private float dashesWidth() {
-        return DASHES * DASH_W_DP * density + (DASHES - 1) * GAP_DP * density;
+        return DASHES * DASH_W_DP * density + (DASHES - 3) * GAP_DP * density + 2 * GROUP_GAP_DP * density;
     }
 
     private boolean hasText() {
@@ -117,16 +121,20 @@ public final class BrightnessPopup extends View {
     protected void onDraw(Canvas canvas) {
         float pad = PAD_DP * density;
         float dw = DASH_W_DP * density;
-        float step = dw + GAP_DP * density;
         float left = (getWidth() - dashesWidth()) / 2;
-        int lit = state.kind == LampState.Kind.READY ? state.level : 0;
+        int lit = state.kind == LampState.Kind.READY ? state.position : 0;
         int dimAlpha = state.kind == LampState.Kind.LOADING ? LOADING_ALPHA : DIM_ALPHA;
+        float bottom = pad + DASH_H_DP * density; // small dashes are bottom-aligned with the tall ones
+        float x = left;
         for (int i = 0; i < DASHES; i++) {
+            boolean small = i < SMALL_DASHES || i >= SMALL_DASHES + TALL_DASHES;
             dashPaint.setColor(0xFFFFFFFF);
             dashPaint.setAlpha(i < lit ? 255 : dimAlpha);
-            float x = left + i * step;
-            dash.set(x, pad, x + dw, pad + DASH_H_DP * density);
+            float top = small ? bottom - SMALL_DASH_H_DP * density : pad;
+            dash.set(x, top, x + dw, bottom);
             canvas.drawRoundRect(dash, dw / 2, dw / 2, dashPaint);
+            boolean groupEnd = i == SMALL_DASHES - 1 || i == SMALL_DASHES + TALL_DASHES - 1;
+            x += dw + (groupEnd ? GROUP_GAP_DP : GAP_DP) * density;
         }
         if (hasText()) {
             float baseline = pad + DASH_H_DP * density + TEXT_GAP_DP * density - textPaint.ascent();

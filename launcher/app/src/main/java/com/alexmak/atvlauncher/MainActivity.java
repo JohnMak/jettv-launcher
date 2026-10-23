@@ -92,7 +92,7 @@ public final class MainActivity extends Activity {
     private GlassMenu menu;
     private BrightnessPopup brightnessPopup;
     private final BrightnessKeyModel brightnessKeys = new BrightnessKeyModel();
-    private LampController lamp;
+    private BrightnessController lamp;
     private ExecutorService lampWorker;
     private TopBarItem vpnItem;
     private TopBarItem wifiItem;
@@ -314,7 +314,7 @@ public final class MainActivity extends Activity {
     /** The lamp connection is opened lazily by the first refresh, i.e. when the sun first gets focus. */
     private void setupLamp() {
         lampWorker = Executors.newSingleThreadExecutor();
-        lamp = new LampController(new LoopbackAdbShell(this), lampWorker, main::post, state -> {
+        lamp = new BrightnessController(new LoopbackAdbShell(this), lampWorker, main::post, state -> {
             brightnessPopup.setState(state);
             if (brightnessPopup.isShowing()) showBrightnessPopup(); // the popup may have changed size
         });

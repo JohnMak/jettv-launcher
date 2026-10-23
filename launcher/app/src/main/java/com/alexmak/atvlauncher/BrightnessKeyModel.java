@@ -32,7 +32,7 @@ final class BrightnessKeyModel {
         static final Action PASS = new Action(Kind.PASS, 0);
 
         final Kind kind;
-        /** Level delta for STEP, 0 otherwise. */
+        /** Position delta for STEP, 0 otherwise. */
         final int delta;
 
         private Action(Kind kind, int delta) {

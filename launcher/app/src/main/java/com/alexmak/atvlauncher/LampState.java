@@ -1,21 +1,18 @@
 package com.alexmak.atvlauncher;
 
-/** Immutable state of the lamp brightness control: loading, ready at a level 1..10, or an error message. */
+/** Immutable state of the brightness control: loading, ready at a scale position 0..17, or an error message. */
 public final class LampState {
-    public static final int MIN_LEVEL = 1;
-    public static final int MAX_LEVEL = 10;
-
     public enum Kind { LOADING, READY, ERROR }
 
     public final Kind kind;
-    /** Brightness level 1..10 for READY, 0 otherwise. */
-    public final int level;
+    /** Brightness scale position 0..17 for READY (0 = all dashes empty), meaningless otherwise. */
+    public final int position;
     /** Error text for ERROR, null otherwise. */
     public final String message;
 
-    private LampState(Kind kind, int level, String message) {
+    private LampState(Kind kind, int position, String message) {
         this.kind = kind;
-        this.level = level;
+        this.position = position;
         this.message = message;
     }
 
@@ -23,11 +20,11 @@ public final class LampState {
         return new LampState(Kind.LOADING, 0, null);
     }
 
-    public static LampState ready(int level) {
-        if (level < MIN_LEVEL || level > MAX_LEVEL) {
-            throw new IllegalArgumentException("level must be 1..10: " + level);
+    public static LampState ready(int position) {
+        if (position < BrightnessScale.MIN_POSITION || position > BrightnessScale.MAX_POSITION) {
+            throw new IllegalArgumentException("position must be 0..17: " + position);
         }
-        return new LampState(Kind.READY, level, null);
+        return new LampState(Kind.READY, position, null);
     }
 
     public static LampState error(String message) {

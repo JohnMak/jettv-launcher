@@ -1,0 +1,289 @@
+package com.alexmak.atvlauncher;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.Executor;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class BrightnessControllerTest {
+    /** Executor that queues tasks until {@link #drain()}; models a held worker / main looper. */
+    private static final class Manual implements Executor {
+        final Queue<Runnable> tasks = new ArrayDeque<>();
+        @Override public void execute(Runnable r) { tasks.add(r); }
+        void drain() { while (!tasks.isEmpty()) tasks.poll().run(); }
+    }
+
+    private static final class FakeShell implements LampShell {
+        final List<String> commands = new ArrayList<>();
+        final Queue<FetchResult<String>> scripted = new ArrayDeque<>();
+        boolean closed;
+        @Override public FetchResult<String> exec(String command) {
+            commands.add(command);
+            FetchResult<String> r = scripted.poll();
+            if (r == null) throw new AssertionError("unscripted command: " + command);
+            return r;
+        }
+        @Override public void close() { closed = true; }
+        void ok(String s) { scripted.add(FetchResult.ok(s)); }
+        void level(int n) { ok("return_data : {" + n + " }"); }
+        void fail(LampError kind) { scripted.add(LampError.fail(kind, "x")); }
+    }
+
+    private FakeShell shell;
+    private Manual worker;
+    private Manual main;
+    private List<LampState> states;
+    private BrightnessController c;
+
+    @Before public void setUp() {
+        shell = new FakeShell();
+        worker = new Manual();
+        main = new Manual();
+        states = new ArrayList<>();
+        c = new BrightnessController(shell, worker, main, states::add);
+    }
+
+    private void settle() {
+        while (!worker.tasks.isEmpty() || !main.tasks.isEmpty()) { worker.drain(); main.drain(); }
+    }
+
+    /** Scripts the three getters (lamp, brightness, contrast). */
+    private void device(int lamp, int brightness, int contrast) {
+        shell.level(lamp);
+        shell.level(brightness);
+        shell.level(contrast);
+    }
+
+    private void refreshTo(int lamp, int brightness, int contrast) {
+        device(lamp, brightness, contrast);
+        c.refresh();
+        settle();
+        states.clear();
+        shell.commands.clear();
+    }
+
+    /** Refreshes to the exact device values of scale position p. */
+    private void refreshToPosition(int p) {
+        BrightnessScale.Position pos = BrightnessScale.Position.of(p).value();
+        int pic = BrightnessScale.picture(pos);
+        refreshTo(BrightnessScale.lamp(pos).value(), pic, pic);
+    }
+
+    private void scriptWrites(int count) { for (int i = 0; i < count; i++) shell.ok(""); }
+
+    private static final List<String> READBACK = Arrays.asList(
+            GmpfCommands.GET_LEVEL, GmpfCommands.GET_BRIGHTNESS, GmpfCommands.GET_CONTRAST);
+
+    private void assertCommands(String... writes) {
+        List<String> expected = new ArrayList<>(Arrays.asList(writes));
+        expected.addAll(READBACK);
+        assertEquals(expected, shell.commands);
+    }
+
+    private LampState last() { return states.get(states.size() - 1); }
+
+    @Test public void refreshEmitsLoadingThenReadyPosition() {
+        device(7, 50, 50);
+        c.refresh();
+        assertEquals(LampState.Kind.LOADING, last().kind);
+        settle();
+        assertEquals(2, states.size());
+        assertEquals(LampState.Kind.READY, last().kind);
+        assertEquals(10, last().position);
+        assertEquals(READBACK, shell.commands);
+    }
+
+    @Test public void refreshOffGridPictureMapsByLamp() {
+        device(10, 50, 30);
+        c.refresh();
+        settle();
+        assertEquals(13, last().position);
+    }
+
+    @Test public void refreshErrorMessagePerKind() {
+        LampError[] kinds = {LampError.UNAUTHORIZED, LampError.UNREACHABLE, LampError.TOOL_MISSING, LampError.COMMAND_FAILED};
+        String[] msgs = {BrightnessController.MSG_UNAUTHORIZED, BrightnessController.MSG_UNREACHABLE,
+                BrightnessController.MSG_TOOL_MISSING, BrightnessController.MSG_FAILED};
+        for (int i = 0; i < kinds.length; i++) {
+            states.clear();
+            shell.fail(kinds[i]);
+            c.refresh();
+            settle();
+            assertEquals(LampState.Kind.ERROR, last().kind);
+            assertEquals(msgs[i], last().message);
+        }
+    }
+
+    @Test public void unparsableOrOutOfRangeOutputIsCommandFailed() {
+        shell.ok("garbage");
+        c.refresh();
+        settle();
+        assertEquals(BrightnessController.MSG_FAILED, last().message);
+        shell.level(5);
+        shell.level(101);
+        c.refresh();
+        settle();
+        assertEquals(BrightnessController.MSG_FAILED, last().message);
+        shell.level(11);
+        c.refresh();
+        settle();
+        assertEquals(BrightnessController.MSG_FAILED, last().message);
+    }
+
+    @Test public void stepIgnoredBeforeFirstRefresh() {
+        c.step(1);
+        settle();
+        assertTrue(states.isEmpty());
+        assertTrue(shell.commands.isEmpty());
+    }
+
+    @Test public void stepInLampZoneWritesLampOnlyThenReadsBack() {
+        refreshToPosition(8);
+        scriptWrites(1);
+        device(6, 50, 50);
+        c.step(1);
+        assertEquals(9, last().position); // before any worker work
+        assertTrue(shell.commands.isEmpty());
+        settle();
+        assertCommands("gmpfUnit setDlpLumensLevel 6");
+        assertEquals(9, last().position);
+    }
+
+    @Test public void stepDownIntoLeftZoneWritesPictureOnly() {
+        refreshToPosition(4);
+        scriptWrites(2);
+        device(1, 42, 42);
+        c.step(-1);
+        settle();
+        assertCommands("gmpfUnit setBrightness 0 42", "gmpfUnit setContrast 0 42");
+        assertEquals(3, last().position);
+    }
+
+    @Test public void stepUpOutOfLeftZoneWritesNeutralPictureOnly() {
+        refreshToPosition(3);
+        scriptWrites(2);
+        device(1, 50, 50);
+        c.step(1);
+        settle();
+        assertCommands("gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");
+        assertEquals(4, last().position);
+    }
+
+    @Test public void stepIntoRightZoneWritesPictureOnly() {
+        refreshToPosition(13);
+        scriptWrites(2);
+        device(10, 57, 57);
+        c.step(1);
+        settle();
+        assertCommands("gmpfUnit setBrightness 0 57", "gmpfUnit setContrast 0 57");
+        assertEquals(14, last().position);
+    }
+
+    @Test public void decreasingPositionWritesLampBeforePicture() {
+        refreshToPosition(14); // lamp 10, picture 57
+        scriptWrites(3);
+        device(9, 50, 50);
+        c.step(-2); // F12: lamp 9, picture 50
+        settle();
+        assertCommands("gmpfUnit setDlpLumensLevel 9", "gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");
+        assertEquals(12, last().position);
+    }
+
+    @Test public void increasingPositionWritesPictureBeforeLamp() {
+        refreshToPosition(3); // lamp 1, picture 42
+        scriptWrites(3);
+        device(2, 50, 50);
+        c.step(2); // F5: lamp 2, picture 50
+        settle();
+        assertCommands("gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50", "gmpfUnit setDlpLumensLevel 2");
+        assertEquals(5, last().position);
+    }
+
+    @Test public void offGridContrastIsNormalizedOnNextWrite() {
+        refreshTo(10, 50, 30); // F13, contrast off-grid
+        scriptWrites(1);
+        device(10, 50, 50);
+        c.step(0);
+        settle();
+        assertCommands("gmpfUnit setContrast 0 50");
+    }
+
+    @Test public void rapidStepsCoalesceIntoOneWriteSet() {
+        refreshToPosition(7);
+        scriptWrites(1);
+        device(9, 50, 50);
+        for (int i = 0; i < 5; i++) c.step(1);
+        assertEquals(12, last().position);
+        assertEquals(5, states.size());
+        settle();
+        assertCommands("gmpfUnit setDlpLumensLevel 9");
+        assertEquals(12, last().position);
+    }
+
+    @Test public void clampsAtBounds() {
+        refreshToPosition(17);
+        device(10, 80, 80);
+        c.step(1);
+        assertEquals(17, last().position);
+        settle();
+        assertCommands(); // already at the target: nothing to write, only the readback
+
+        states.clear();
+        shell.commands.clear();
+        shell.scripted.clear();
+        refreshToPosition(0);
+        device(1, 20, 20);
+        c.step(-1);
+        assertEquals(0, last().position);
+        settle();
+        assertCommands();
+    }
+
+    @Test public void readbackMismatchEmitsRealPositionAndContinuesFromIt() {
+        refreshToPosition(8);
+        scriptWrites(1);
+        device(5, 50, 50); // device kept lamp 5 (F8) instead of 6
+        c.step(1);
+        settle();
+        assertEquals(8, last().position);
+        scriptWrites(1);
+        device(6, 50, 50);
+        c.step(1); // continues from the real value
+        assertEquals(9, last().position);
+        settle();
+        assertEquals("gmpfUnit setDlpLumensLevel 6", shell.commands.get(4));
+    }
+
+    @Test public void writeFailureEmitsErrorKeepsLastGoodPositionAndRewritesEverything() {
+        refreshToPosition(14); // lamp 10, picture 57
+        shell.ok("");          // lamp ok
+        shell.fail(LampError.UNREACHABLE); // brightness fails
+        c.step(-2);            // F12
+        settle();
+        assertEquals(LampState.Kind.ERROR, last().kind);
+        assertEquals(BrightnessController.MSG_UNREACHABLE, last().message);
+        shell.commands.clear();
+        scriptWrites(3);
+        device(9, 50, 50);
+        c.step(-1); // 14 - 1 = 13, not 12 - 1
+        assertEquals(13, last().position);
+        settle();
+        // known device state was forgotten after the failure: everything is rewritten
+        assertCommands("gmpfUnit setDlpLumensLevel 10", "gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");
+    }
+
+    @Test public void releaseClosesShellOnWorker() {
+        c.release();
+        assertTrue(!shell.closed);
+        settle();
+        assertTrue(shell.closed);
+    }
+}

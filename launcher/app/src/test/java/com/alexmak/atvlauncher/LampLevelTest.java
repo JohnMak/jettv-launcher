@@ -10,7 +10,7 @@ import org.junit.Test;
 public class LampLevelTest {
     @Test
     public void acceptsRangeBoundsAndRejectsOutside() {
-        for (int v = LampState.MIN_LEVEL; v <= LampState.MAX_LEVEL; v++) {
+        for (int v = LampLevel.MIN_LEVEL; v <= LampLevel.MAX_LEVEL; v++) {
             FetchResult<LampLevel> r = LampLevel.of(v);
             assertTrue(r.isOk());
             assertEquals(v, r.value().value());

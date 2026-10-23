@@ -8,21 +8,21 @@ import org.junit.Test;
 
 public class LampStateTest {
     @Test
-    public void readyKeepsEveryValidLevel() {
-        for (int level = LampState.MIN_LEVEL; level <= LampState.MAX_LEVEL; level++) {
-            LampState s = LampState.ready(level);
+    public void readyKeepsEveryValidPosition() {
+        for (int position = BrightnessScale.MIN_POSITION; position <= BrightnessScale.MAX_POSITION; position++) {
+            LampState s = LampState.ready(position);
             assertEquals(LampState.Kind.READY, s.kind);
-            assertEquals(level, s.level);
+            assertEquals(position, s.position);
             assertNull(s.message);
         }
     }
 
     @Test
-    public void readyRejectsOutOfRangeLevels() {
-        for (int level : new int[] {0, -1, 11, 100}) {
+    public void readyRejectsOutOfRangePositions() {
+        for (int position : new int[] {-1, 18, 100}) {
             try {
-                LampState.ready(level);
-                fail("level " + level + " must be rejected");
+                LampState.ready(position);
+                fail("position " + position + " must be rejected");
             } catch (IllegalArgumentException expected) {
                 // invariant enforced
             }
