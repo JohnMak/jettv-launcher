@@ -79,9 +79,16 @@
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|uiMode|density|locale|layoutDirection"
             android:excludeFromRecents="true"
             android:exported="false"
-            android:noHistory="true"
             android:screenOrientation="landscape"
             android:windowSoftInputMode="stateHidden|adjustPan" />
+
+        <activity
+            android:name=".AppPickerActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|uiMode|density|locale|layoutDirection"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:screenOrientation="landscape" />
 
 
         <service

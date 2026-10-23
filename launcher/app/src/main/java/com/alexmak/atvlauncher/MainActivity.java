@@ -107,6 +107,8 @@ public final class MainActivity extends Activity {
     private IdleController idle;
     /** UI scale (percent) this activity was created with. */
     private int uiScalePercent;
+    /** Feed card size applied to the rows right now ({@link PreviewScale}). */
+    private int previewScalePercent;
 
     // Data
     private AppLoader.Result apps;
@@ -154,6 +156,9 @@ public final class MainActivity extends Activity {
     private PosterCache posters;
     private FeedLoader feedLoader;
     private KinopoiskService kinopoisk;
+    private KinopoiskTokenStore kinopoiskTokens;
+    /** Token the current {@link #kinopoisk} was created with; empty = lookups are off. */
+    private String kinopoiskToken;
     private NetworkStatus network;
     private LauncherSettingsStore settingsStore;
     /** VPN app of the top-bar button resolved from the settings; empty = button hidden. */
@@ -211,7 +216,9 @@ public final class MainActivity extends Activity {
         dateFormat = new SimpleDateFormat("EEEE, d MMMM", new Locale(dateLang));
         zonePrefs = new WeatherPrefs(this);
         settingsStore = new LauncherSettingsStore(this);
-        uiScalePercent = settingsStore.load().uiScalePercent;
+        LauncherSettings loaded = settingsStore.load();
+        uiScalePercent = loaded.uiScalePercent;
+        previewScalePercent = loaded.previewScalePercent;
 
         headerPackages = new HashSet<>(java.util.Arrays.asList(res.getStringArray(R.array.app_header_packages)));
 
@@ -245,8 +252,11 @@ public final class MainActivity extends Activity {
         backdrop = new BackdropController(findViewById(R.id.backdrop), main, worker,
                 key -> BackdropKeys.isApp(key) ? appImages.load(BackdropKeys.packageOf(key)) : posters.loadForBackdrop(key, BackdropBlur.W * 2, BackdropBlur.H * 2));
         favAdapter = new FavoritesAdapter(density);
-        watchAdapter = new FeedAdapter(posters, posterWorker, main, density, this::updateBackdrop, this::appIcon);
-        mixedAdapter = new FeedAdapter(posters, posterWorker, main, density, this::updateBackdrop, this::appIcon);
+        watchAdapter = new FeedAdapter(posters, posterWorker, main, density, this::updateBackdrop, this::appIcon,
+                previewScalePercent);
+        mixedAdapter = new FeedAdapter(posters, posterWorker, main, density, this::updateBackdrop, this::appIcon,
+                previewScalePercent);
+        setFeedRowHeight(previewScalePercent);
         setupRow(favoritesRow, favAdapter, FocusModel.Zone.FAVORITES);
         favoritesRow.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             if (r - l != or - ol) relayoutFavorites();
@@ -255,8 +265,9 @@ public final class MainActivity extends Activity {
         setupRow(mixedRow, mixedAdapter, FocusModel.Zone.MIXED);
 
         feedLoader = new FeedLoader(getContentResolver());
-        kinopoisk = new KinopoiskService(BuildConfig.KINOPOISK_TOKEN, new File(getFilesDir(), "kinopoisk_cache.json"),
-                main, this::onKinopoiskInfo);
+        kinopoiskTokens = new KinopoiskTokenStore(this);
+        kinopoiskToken = kinopoiskTokens.token();
+        kinopoisk = newKinopoisk(kinopoiskToken);
         network = new NetworkStatus(this, new NetworkStatus.Listener() {
             @Override
             public void onVpnChanged(boolean on) {
@@ -422,6 +433,7 @@ public final class MainActivity extends Activity {
         getContentResolver().registerContentObserver(TvContract.Channels.CONTENT_URI, true, feedObserver);
         network.register();
         applyZone();
+        applyFeedSettings();
         idle.start();
         updateVpnItemVisibility();
         if (backdropTrimmed) {
@@ -436,6 +448,44 @@ public final class MainActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         resetFavoritesRow();
+    }
+
+    private KinopoiskService newKinopoisk(String token) {
+        return new KinopoiskService(token, new File(getFilesDir(), "kinopoisk_cache.json"), main, this::onKinopoiskInfo);
+    }
+
+    /**
+     * Back from the settings: a new Kinopoisk token restarts the lookups (empty = off), a new card size resizes the
+     * rows in place. Excluded apps need nothing here: {@link #refreshFeed} reads them on every refresh.
+     */
+    private void applyFeedSettings() {
+        String token = kinopoiskTokens.token();
+        if (!token.equals(kinopoiskToken)) {
+            kinopoisk.shutdown();
+            kinopoiskToken = token;
+            kinopoisk = newKinopoisk(token);
+            lastFeedSignature = ""; // the same cards, but their info must be looked up again
+        }
+        int scale = settingsStore.load().previewScalePercent;
+        if (scale != previewScalePercent) {
+            previewScalePercent = scale;
+            setFeedRowHeight(scale);
+            watchScroller.cancel();
+            mixedScroller.cancel();
+            watchAdapter.setPreviewScale(scale);
+            mixedAdapter.setPreviewScale(scale);
+            appliedSelection = null;
+            applySelectionAfterLayout();
+        }
+    }
+
+    private void setFeedRowHeight(int percent) {
+        int px = Math.round(PreviewScale.rowHeightDp(percent) * density);
+        for (RecyclerView row : new RecyclerView[]{watchRow, mixedRow}) {
+            ViewGroup.LayoutParams lp = row.getLayoutParams();
+            lp.height = px;
+            row.setLayoutParams(lp);
+        }
     }
 
     /** HOME or a fresh start: the row is back at its start and focus is no further than the apps button. */
@@ -579,10 +629,12 @@ public final class MainActivity extends Activity {
     private void refreshFeed() {
         if (apps == null) return;
         final Set<String> allowed = new HashSet<>(apps.byPackage.keySet());
+        final Set<String> excludedContinue = settingsStore.excluded(FeedSource.CONTINUE);
+        final Set<String> excludedRecommendations = settingsStore.excluded(FeedSource.RECOMMENDATIONS);
         worker.execute(() -> {
             Map<String, Long> launches = LaunchStats.last30Days(this);
             AppCache.setLaunches(launches);
-            FeedLoader.Feed feed = feedLoader.load(allowed, launches);
+            FeedLoader.Feed feed = feedLoader.load(allowed, excludedContinue, excludedRecommendations, launches);
             main.post(() -> {
                 if (isDestroyed()) return;
                 if (!launches.equals(rankedBy)) rebuildFavorites();
@@ -731,7 +783,7 @@ public final class MainActivity extends Activity {
     /** Moves the glass to the current selection, scales tiles and shifts the page for the active zone. */
     private void applySelection(boolean animate) {
         boolean feed = inFeed();
-        float shift = feed ? -FeedPageShift.shiftDp(focus.zone(), watchAdapter.getItemCount() > 0) * density : 0;
+        float shift = feed ? -FeedPageShift.shiftDp(focus.zone(), watchAdapter.getItemCount() > 0, previewScalePercent) * density : 0;
         if (pageShift != shift) {
             pageShift = shift;
             page.animate().translationY(shift).setDuration(300).setInterpolator(new DecelerateInterpolator()).start();

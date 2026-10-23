@@ -52,5 +52,25 @@
     <string name="settings_minutes">%d мин</string>
     <string name="settings_seconds">%d с</string>
     <string name="settings_percent">%d%%</string>
+    <string name="settings_section_appearance">Внешний вид</string>
+    <string name="settings_section_content">Контент</string>
+    <string name="settings_section_network">Сеть</string>
+    <string name="settings_section_about">О лаунчере</string>
+    <string name="settings_preview_scale">Масштаб карточек превью</string>
+    <string name="settings_sources_recommendations">Источники «Рекомендаций»</string>
+    <string name="settings_sources_continue">Источники «Продолжить просмотр»</string>
+    <string name="settings_sources_all">все</string>
+    <string name="settings_sources_some">%1$d из %2$d</string>
+    <string name="settings_sources_unknown">—</string>
+    <string name="settings_kinopoisk_token">Токен Кинопоиска</string>
+    <string name="settings_token_none">не задан</string>
+    <string name="settings_token_hint">UUID токена (пусто — удалить)</string>
+    <string name="settings_token_save">Сохранить</string>
+    <string name="settings_token_invalid">Токен должен быть в формате UUID</string>
+    <string name="settings_about_name">JetTV Launcher</string>
+    <string name="picker_title_recommendations">Источники «Рекомендаций»</string>
+    <string name="picker_title_continue">Источники «Продолжить просмотр»</string>
+    <string name="picker_hint">OK — включить или выключить приложение, Назад — закрыть</string>
+    <string name="picker_loading">Загрузка…</string>
     <string name="settings_ui_scale">Масштаб интерфейса</string>
 </resources>

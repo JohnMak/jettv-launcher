@@ -3,14 +3,14 @@ package com.alexmak.atvlauncher;
 /**
  * How far the home page moves up when focus is in a feed row, so the focused row and its info field are fully on the
  * screen. The dp constants mirror activity_main.xml / view_feed_info.xml / styles.xml (screen 540dp = 1080p at UI
- * scale 100 %); FeedPageShiftTest checks that the result fits.
+ * scale 100 %); the height of a feed row follows the preview scale ({@link PreviewScale#rowHeightDp}).
+ * FeedPageShiftTest checks that the result fits.
  */
 final class FeedPageShift {
     static final int SCREEN_DP = 540;
     /** Top of the feed block on the page (activity_main.xml feed_block marginTop). */
     static final int FEED_TOP_DP = 460;
     static final int HEADING_DP = 30;
-    static final int ROW_DP = 150;
     /** Info field incl. its top margin (view_feed_info.xml). */
     static final int INFO_DP = 94;
     /** Gap above the second heading (activity_main.xml mixed_heading marginTop). */
@@ -22,11 +22,16 @@ final class FeedPageShift {
 
     private FeedPageShift() {}
 
+    /** Bottom of the second row's info field on the page (dp from the page top) when both rows are shown. */
+    static float mixedInfoBottomDp(int previewScalePercent) {
+        int row = PreviewScale.rowHeightDp(previewScalePercent);
+        return FEED_TOP_DP + HEADING_DP + row + INFO_DP + ROW_GAP_DP + HEADING_DP + row + INFO_DP;
+    }
+
     /** Upward shift in dp for the focused feed row; {@code watchVisible} is whether the first row has any cards. */
-    static float shiftDp(FocusModel.Zone zone, boolean watchVisible) {
+    static float shiftDp(FocusModel.Zone zone, boolean watchVisible, int previewScalePercent) {
         float first = FEED_TOP_DP - HEADING_TOP_DP;
         if (zone != FocusModel.Zone.MIXED || !watchVisible) return first;
-        float mixedInfoBottom = FEED_TOP_DP + HEADING_DP + ROW_DP + INFO_DP + ROW_GAP_DP + HEADING_DP + ROW_DP + INFO_DP;
-        return Math.max(first, mixedInfoBottom - (SCREEN_DP - BOTTOM_MARGIN_DP));
+        return Math.max(first, mixedInfoBottomDp(previewScalePercent) - (SCREEN_DP - BOTTOM_MARGIN_DP));
     }
 }

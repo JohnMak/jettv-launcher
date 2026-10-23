@@ -9,7 +9,8 @@ import java.util.Set;
 
 /**
  * Collects feed rows while the provider cursors are read and keeps only what can be displayed,
- * so thousands of rows never sit in memory. Rows of packages outside {@code allowed} are skipped.
+ * so thousands of rows never sit in memory. Rows of packages outside {@code allowed} are skipped; watch-next rows
+ * of packages in {@code excludedContinue} and preview rows of packages in {@code excludedRecommendations} too.
  * <p>
  * The mixed row gives every publishing app at least one card (its most popular program) and splits the
  * remaining slots between apps in proportion to how often the user launched them.
@@ -27,24 +28,29 @@ final class FeedBuilder {
                     .thenComparingLong(i -> i.channelId);
 
     private final Set<String> allowed;
+    private final Set<String> excludedContinue;
+    private final Set<String> excludedRecommendations;
     private final Map<String, Long> launches;
     private final List<FeedItem> watchNext = new ArrayList<>();
     private final Map<String, List<FeedItem>> previews = new LinkedHashMap<>();
 
     /** @param launches launch count per package; packages missing from the map count as never opened. */
-    FeedBuilder(Set<String> allowed, Map<String, Long> launches) {
+    FeedBuilder(Set<String> allowed, Set<String> excludedContinue, Set<String> excludedRecommendations,
+                Map<String, Long> launches) {
         this.allowed = allowed;
+        this.excludedContinue = excludedContinue;
+        this.excludedRecommendations = excludedRecommendations;
         this.launches = launches;
     }
 
     void addWatchNext(FeedItem item) {
-        if (!allowed.contains(item.packageName)) return;
+        if (!allowed.contains(item.packageName) || !ExcludedApps.isIncluded(excludedContinue, item.packageName)) return;
         watchNext.add(item);
         if (watchNext.size() >= TRIM_AT) trimWatchNext();
     }
 
     void addPreview(FeedItem item) {
-        if (!allowed.contains(item.packageName)) return;
+        if (!allowed.contains(item.packageName) || !ExcludedApps.isIncluded(excludedRecommendations, item.packageName)) return;
         List<FeedItem> list = previews.computeIfAbsent(item.packageName, k -> new ArrayList<>());
         list.add(item);
         if (list.size() >= TRIM_AT) trimPreviews(list);

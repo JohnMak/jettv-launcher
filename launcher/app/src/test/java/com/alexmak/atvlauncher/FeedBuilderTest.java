@@ -18,6 +18,10 @@ public class FeedBuilderTest {
         return new FeedItem(pkg, title, null, "intent:" + title, 0, channel, weight, engagement, null, 0, null, null, null, -1, null, null);
     }
 
+    private static FeedBuilder builder(Set<String> allowed, Map<String, Long> launches) {
+        return new FeedBuilder(allowed, Collections.emptySet(), Collections.emptySet(), launches);
+    }
+
     private static List<String> titles(List<FeedItem> items) {
         List<String> out = new ArrayList<>();
         for (FeedItem i : items) out.add(i.title);
@@ -46,7 +50,7 @@ public class FeedBuilderTest {
 
     @Test
     public void watchNextSortedByRecencyAndCapped() {
-        FeedBuilder b = new FeedBuilder(pkgs("a", "b"), Collections.emptyMap());
+        FeedBuilder b = builder(pkgs("a", "b"), Collections.emptyMap());
         for (int i = 1; i <= 200; i++) b.addWatchNext(item(i % 2 == 0 ? "a" : "b", "w" + i, 0, 0, i));
         List<FeedItem> row = b.watchNext();
         assertEquals(FeedBuilder.WATCH_NEXT_MAX, row.size());
@@ -56,7 +60,7 @@ public class FeedBuilderTest {
 
     @Test
     public void watchNextWithoutEngagementTimeGoesLast() {
-        FeedBuilder b = new FeedBuilder(pkgs("a"), Collections.emptyMap());
+        FeedBuilder b = builder(pkgs("a"), Collections.emptyMap());
         b.addWatchNext(item("a", "none", 0, 0, 0));
         b.addWatchNext(item("a", "old", 0, 0, 5));
         b.addWatchNext(item("a", "new", 0, 0, 9));
@@ -65,7 +69,7 @@ public class FeedBuilderTest {
 
     @Test
     public void unknownPackagesAreSkipped() {
-        FeedBuilder b = new FeedBuilder(pkgs("a"), Collections.emptyMap());
+        FeedBuilder b = builder(pkgs("a"), Collections.emptyMap());
         b.addWatchNext(item("gone", "x", 0, 0, 5));
         b.addPreview(item("gone", "y", 0, 0, 0));
         b.addPreview(item("a", "z", 0, 0, 0));
@@ -75,7 +79,7 @@ public class FeedBuilderTest {
 
     @Test
     public void everyPublishingAppGetsAtLeastOneCardEvenWhenNeverOpened() {
-        FeedBuilder b = new FeedBuilder(pkgs("a", "b", "c"), launches("a", 10));
+        FeedBuilder b = builder(pkgs("a", "b", "c"), launches("a", 10));
         fill(b, "a", 50);
         fill(b, "b", 50);
         fill(b, "c", 50);
@@ -87,7 +91,7 @@ public class FeedBuilderTest {
 
     @Test
     public void spareSlotsFollowLaunchCountsProportionally() {
-        FeedBuilder b = new FeedBuilder(pkgs("kino", "lampa"), launches("kino", 30, "lampa", 10));
+        FeedBuilder b = builder(pkgs("kino", "lampa"), launches("kino", 30, "lampa", 10));
         fill(b, "kino", 50);
         fill(b, "lampa", 50);
         List<FeedItem> row = b.mixed();
@@ -100,7 +104,7 @@ public class FeedBuilderTest {
     @Test
     public void roundingUsesLargestRemainderAndAlwaysFillsTheRow() {
         // 3 apps, 27 spare slots, shares 1:1:1 -> 9 each; with 28 spare (4 apps? use 2 apps, odd spare)
-        FeedBuilder b = new FeedBuilder(pkgs("a", "b", "c"), launches("a", 1, "b", 1, "c", 1));
+        FeedBuilder b = builder(pkgs("a", "b", "c"), launches("a", 1, "b", 1, "c", 1));
         fill(b, "a", 50);
         fill(b, "b", 50);
         fill(b, "c", 50);
@@ -111,7 +115,7 @@ public class FeedBuilderTest {
         assertEquals(10, (int) n.get("b"));
         assertEquals(10, (int) n.get("c"));
 
-        b = new FeedBuilder(pkgs("a", "b"), launches("a", 2, "b", 1));
+        b = builder(pkgs("a", "b"), launches("a", 2, "b", 1));
         fill(b, "a", 50);
         fill(b, "b", 50);
         n = countByPackage(b.mixed());
@@ -122,7 +126,7 @@ public class FeedBuilderTest {
 
     @Test
     public void smallAppsAreCappedAndTheRestIsRedistributed() {
-        FeedBuilder b = new FeedBuilder(pkgs("big", "tiny"), launches("big", 1, "tiny", 100));
+        FeedBuilder b = builder(pkgs("big", "tiny"), launches("big", 1, "tiny", 100));
         fill(b, "big", 50);
         fill(b, "tiny", 3);
         Map<String, Integer> n = countByPackage(b.mixed());
@@ -132,7 +136,7 @@ public class FeedBuilderTest {
 
     @Test
     public void rowStaysShortWhenOnlyNeverOpenedAppsPublish() {
-        FeedBuilder b = new FeedBuilder(pkgs("a", "b"), Collections.emptyMap());
+        FeedBuilder b = builder(pkgs("a", "b"), Collections.emptyMap());
         fill(b, "a", 50);
         fill(b, "b", 50);
         assertEquals(2, b.mixed().size());
@@ -148,7 +152,7 @@ public class FeedBuilderTest {
             l.put(p, i < 5 ? 0L : 1L); // p00..p04 never opened, the rest tie
         }
         l.put("p34", 9L);
-        FeedBuilder b = new FeedBuilder(all, l);
+        FeedBuilder b = builder(all, l);
         for (String p : all) fill(b, p, 2);
         List<FeedItem> row = b.mixed();
         assertEquals(30, row.size());
@@ -163,13 +167,13 @@ public class FeedBuilderTest {
 
     @Test
     public void orderInterleavesAppsByShareAndIsDeterministic() {
-        FeedBuilder b = new FeedBuilder(pkgs("a", "b"), launches("a", 3, "b", 1));
+        FeedBuilder b = builder(pkgs("a", "b"), launches("a", 3, "b", 1));
         fill(b, "a", 50);
         fill(b, "b", 50);
         List<String> t = titles(b.mixed());
         // b has 8 cards, a has 22: b's cards must be spread out, never two in a row
         for (int i = 1; i < t.size(); i++) assertTrue(!(t.get(i).startsWith("b") && t.get(i - 1).startsWith("b")));
-        FeedBuilder again = new FeedBuilder(pkgs("a", "b"), launches("a", 3, "b", 1));
+        FeedBuilder again = builder(pkgs("a", "b"), launches("a", 3, "b", 1));
         fill(again, "a", 50);
         fill(again, "b", 50);
         assertEquals(t, titles(again.mixed()));
@@ -177,13 +181,13 @@ public class FeedBuilderTest {
 
     @Test
     public void mostPopularProgramComesFirstWithinAnApp() {
-        FeedBuilder b = new FeedBuilder(pkgs("a"), Collections.emptyMap());
+        FeedBuilder b = builder(pkgs("a"), Collections.emptyMap());
         b.addPreview(item("a", "c2", 2, 0, 0));
         b.addPreview(item("a", "c1", 1, 0, 0));
         b.addPreview(item("a", "heavy", 3, 9, 0));
         assertEquals("heavy", titles(b.mixed()).get(0));
 
-        b = new FeedBuilder(pkgs("a"), Collections.emptyMap());
+        b = builder(pkgs("a"), Collections.emptyMap());
         b.addPreview(item("a", "c2", 2, 0, 0));
         b.addPreview(item("a", "c1", 1, 0, 0));
         assertEquals("c1", titles(b.mixed()).get(0)); // no weights: first channel
@@ -191,7 +195,7 @@ public class FeedBuilderTest {
 
     @Test
     public void trimmingNeverLosesTheBestItemsOfAnApp() {
-        FeedBuilder b = new FeedBuilder(pkgs("a"), launches("a", 1));
+        FeedBuilder b = builder(pkgs("a"), launches("a", 1));
         for (int i = 0; i < 500; i++) b.addPreview(item("a", "p" + i, 500 - i, 0, 0));
         List<FeedItem> row = b.mixed();
         assertEquals("p499", row.get(0).title); // lowest channel id sorts first
@@ -239,5 +243,40 @@ public class FeedBuilderTest {
                 new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, -1, " ", " Коротко. ").description);
         assertEquals("", item.description);
         assertEquals(FeedItem.NO_TYPE, new FeedItem("a", "t", null, "i", 0, 0, 0, 0, null, 0, null, null, null, FeedItem.NO_TYPE, null, null).type);
+    }
+
+    @Test
+    public void excludedAppsAreFilteredPerRowAndNewAppsAreIncluded() {
+        FeedBuilder b = new FeedBuilder(pkgs("a", "b", "c"), pkgs("a"), pkgs("b"), Collections.emptyMap());
+        for (String p : new String[]{"a", "b", "c"}) {
+            b.addWatchNext(item(p, "w" + p, 0, 0, 1));
+            b.addPreview(item(p, "p" + p, 1, 0, 0));
+        }
+        // «Продолжить просмотр» drops its own set only, «Рекомендации» drops its own
+        assertEquals(Arrays.asList("wb", "wc"), sorted(titles(b.watchNext())));
+        assertEquals(Arrays.asList("pa", "pc"), sorted(titles(b.mixed())));
+        // an app absent from both sets (installed later) is shown in both
+        assertTrue(titles(b.watchNext()).contains("wc"));
+        assertTrue(titles(b.mixed()).contains("pc"));
+    }
+
+    @Test
+    public void excludedAppsRules() {
+        Set<String> none = Collections.emptySet();
+        Set<String> a = ExcludedApps.toggled(none, "a");
+        assertEquals(pkgs("a"), a);
+        assertEquals(none, ExcludedApps.toggled(a, "a"));
+        assertTrue("sets are not mutated", none.isEmpty());
+        assertEquals(false, ExcludedApps.isIncluded(a, "a"));
+        assertTrue(ExcludedApps.isIncluded(a, "b"));
+        // a package that is no longer installed does not count
+        assertEquals(1, ExcludedApps.includedCount(Arrays.asList("a", "b"), pkgs("a", "gone")));
+        assertEquals(2, ExcludedApps.includedCount(Arrays.asList("a", "b"), none));
+    }
+
+    private static List<String> sorted(List<String> l) {
+        List<String> out = new ArrayList<>(l);
+        Collections.sort(out);
+        return out;
     }
 }

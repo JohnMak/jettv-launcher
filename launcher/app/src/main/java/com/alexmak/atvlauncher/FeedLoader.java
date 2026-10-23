@@ -73,8 +73,9 @@ final class FeedLoader {
         this.resolver = resolver;
     }
 
-    Feed load(Set<String> allowedPackages, Map<String, Long> launches) {
-        FeedBuilder builder = new FeedBuilder(allowedPackages, launches);
+    Feed load(Set<String> allowedPackages, Set<String> excludedContinue, Set<String> excludedRecommendations,
+              Map<String, Long> launches) {
+        FeedBuilder builder = new FeedBuilder(allowedPackages, excludedContinue, excludedRecommendations, launches);
         read(TvContract.WatchNextPrograms.CONTENT_URI, WATCH_NEXT_COLUMNS, false, builder);
         read(TvContract.PreviewPrograms.CONTENT_URI, PREVIEW_COLUMNS, true, builder);
         return new Feed(builder.watchNext(), builder.mixed());

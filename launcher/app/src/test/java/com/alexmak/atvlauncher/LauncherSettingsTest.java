@@ -17,6 +17,7 @@ public class LauncherSettingsTest {
         assertTrue(s.vpnButtonVisible);
         assertEquals("", s.vpnPackage);
         assertEquals(100, s.uiScalePercent);
+        assertEquals(100, s.previewScalePercent);
     }
 
     @Test public void screensaverDelayCyclesThroughOptionsAndWraps() {
@@ -60,7 +61,7 @@ public class LauncherSettingsTest {
     }
 
     @Test public void storedValuesOutsideTheOptionsFallBackToDefaults() {
-        LauncherSettings s = LauncherSettings.fromStored(false, 7, "BOGUS", false, 45, false, null, 66);
+        LauncherSettings s = LauncherSettings.fromStored(false, 7, "BOGUS", false, 45, false, null, 66, 95);
         assertFalse(s.screensaverEnabled);
         assertFalse(s.dimEnabled);
         assertEquals(2, s.screensaverDelayMin);
@@ -69,17 +70,19 @@ public class LauncherSettingsTest {
         assertFalse(s.vpnButtonVisible);
         assertEquals("", s.vpnPackage);
         assertEquals(100, s.uiScalePercent);
-        LauncherSettings ok = LauncherSettings.fromStored(true, 10, "NASA_VIDEO", true, 120, true, "p.q", 85);
+        assertEquals(100, s.previewScalePercent);
+        LauncherSettings ok = LauncherSettings.fromStored(true, 10, "NASA_VIDEO", true, 120, true, "p.q", 85, 130);
         assertEquals(10, ok.screensaverDelayMin);
         assertEquals(120, ok.dimDelaySec);
         assertEquals(LauncherSettings.ScreensaverType.NASA_VIDEO, ok.screensaverType);
         assertEquals("p.q", ok.vpnPackage);
         assertEquals(85, ok.uiScalePercent);
+        assertEquals(130, ok.previewScalePercent);
     }
 
     @Test public void constructorRejectsUnknownDelays() {
         try {
-            new LauncherSettings(true, 4, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 100);
+            new LauncherSettings(true, 4, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 100, 100);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
@@ -104,7 +107,35 @@ public class LauncherSettingsTest {
 
     @Test public void constructorRejectsAScaleOutsideTheList() {
         try {
-            new LauncherSettings(true, 2, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 101);
+            new LauncherSettings(true, 2, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 101, 100);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            // ok
+        }
+    }
+
+    @Test public void previewScaleStepsByTenStopsAtTheEndsAndIsIndependentOfUiScale() {
+        LauncherSettings s = LauncherSettings.DEFAULTS;
+        assertEquals(110, s.nextPreviewScale().previewScalePercent);
+        assertEquals(90, s.prevPreviewScale().previewScalePercent);
+        LauncherSettings max = s;
+        for (int i = 0; i < 20; i++) max = max.nextPreviewScale();
+        assertEquals(150, max.previewScalePercent);
+        LauncherSettings min = s;
+        for (int i = 0; i < 20; i++) min = min.prevPreviewScale();
+        assertEquals(70, min.previewScalePercent);
+        assertEquals(70, min.withDimEnabled(false).nextDimDelay().nextUiScale().withVpnPackage("x").previewScalePercent);
+        assertEquals(105, min.nextPreviewScale().nextUiScale().uiScalePercent);
+        assertEquals(80, min.nextPreviewScale().previewScalePercent);
+        assertEquals(135, PreviewScale.cardHeightDp(100));
+        assertEquals(150, PreviewScale.rowHeightDp(100));
+        assertEquals(203, PreviewScale.cardHeightDp(150));
+        assertEquals(95, PreviewScale.cardHeightDp(70));
+    }
+
+    @Test public void constructorRejectsAPreviewScaleOutsideTheList() {
+        try {
+            new LauncherSettings(true, 2, LauncherSettings.ScreensaverType.STARFIELD, true, 30, true, "", 100, 105);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok

@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.view.View;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,9 +16,8 @@ import java.util.function.Function;
 
 /** One horizontal feed row of poster cards; posters load asynchronously through the shared cache. */
 final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
-    static final int CARD_HEIGHT_DP = 135;
     /** Poster top inside the card frame (item_card.xml) and the badge's top: the badge is flush with the poster bottom. */
-    private static final float POSTER_TOP_DP = 7;
+    private static final float POSTER_TOP_DP = PreviewScale.POSTER_TOP_DP;
     private static final float BADGE_SIZE_DP = 22;
     private static final float CARD_RADIUS_DP = 12;
     private static final float BADGE_CORNER_DP = 6;
@@ -45,9 +45,13 @@ final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
     /** Launcher icon of a feed item's source app; null when the app is gone. */
     private final Function<String, Bitmap> appIcon;
     private int selected = -1;
+    /** Card size in percent of the base card ({@link PreviewScale}); rows are rebound when it changes. */
+    private int previewScalePercent;
 
     FeedAdapter(PosterCache posters, ExecutorService executor, Handler main, float density,
-                Runnable onPosterShown, Function<String, Bitmap> appIcon) {
+                Runnable onPosterShown, Function<String, Bitmap> appIcon,
+                int previewScalePercent) {
+        this.previewScalePercent = previewScalePercent;
         this.onPosterShown = onPosterShown;
         this.appIcon = appIcon;
         this.posters = posters;
@@ -62,9 +66,20 @@ final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
         notifyDataSetChanged();
     }
 
+    /** Applies a new card size to every card; no-op when unchanged. */
+    void setPreviewScale(int percent) {
+        if (percent == previewScalePercent) return;
+        previewScalePercent = percent;
+        notifyDataSetChanged();
+    }
+
+    private int cardHeightDp() {
+        return PreviewScale.cardHeightDp(previewScalePercent);
+    }
+
     /** Width of a card (px) as laid out by {@link #onBindViewHolder}. */
     int cardWidthPx(int position) {
-        return Math.round(Math.round(CARD_HEIGHT_DP * items.get(position).cardAspect()) * density);
+        return Math.round(Math.round(cardHeightDp() * items.get(position).cardAspect()) * density);
     }
 
     /** Space between a card and the next one (px). */
@@ -93,11 +108,18 @@ final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
     @Override
     public void onBindViewHolder(Holder h, int position) {
         FeedItem item = items.get(position);
-        int widthDp = Math.round(CARD_HEIGHT_DP * item.cardAspect());
+        int heightDp = cardHeightDp();
+        int widthDp = Math.round(heightDp * item.cardAspect());
         RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(
                 cardWidthPx(position), ViewGroup.LayoutParams.MATCH_PARENT);
         lp.rightMargin = gapPx();
         h.itemView.setLayoutParams(lp);
+
+        setHeight(h.image, Math.round(heightDp * density));
+        setHeight(h.shadow, Math.round(heightDp * density));
+        FrameLayout.LayoutParams badge = (FrameLayout.LayoutParams) h.badge.getLayoutParams();
+        badge.topMargin = Math.round((POSTER_TOP_DP + heightDp - BADGE_SIZE_DP) * density);
+        h.badge.setLayoutParams(badge);
 
         h.boundUri = item.posterUri;
         h.image.setImageDrawable(null);
@@ -106,7 +128,7 @@ final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
         h.badge.setVisibility(icon == null ? View.GONE : View.VISIBLE);
         // the badge grows around the poster's centre so both scale as one card
         h.badge.setPivotX(widthDp * density / 2);
-        h.badge.setPivotY((POSTER_TOP_DP + CARD_HEIGHT_DP / 2f - (POSTER_TOP_DP + CARD_HEIGHT_DP - BADGE_SIZE_DP)) * density);
+        h.badge.setPivotY((BADGE_SIZE_DP - heightDp / 2f) * density);
         Tiles.setCardSelected(h.itemView, position == selected, false);
         if (item.posterUri == null) return;
 
@@ -117,7 +139,7 @@ final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
         }
         final String uri = item.posterUri;
         final int reqW = Math.round(widthDp * density);
-        final int reqH = Math.round(CARD_HEIGHT_DP * density);
+        final int reqH = Math.round(heightDp * density);
         executor.execute(() -> {
             Bitmap bmp = posters.load(uri, reqW, reqH);
             if (bmp == null) return;
@@ -128,6 +150,12 @@ final class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.Holder> {
                 }
             });
         });
+    }
+
+    private static void setHeight(View v, int px) {
+        ViewGroup.LayoutParams lp = v.getLayoutParams();
+        lp.height = px;
+        v.setLayoutParams(lp);
     }
 
     private static void show(Holder h, Bitmap bmp) {

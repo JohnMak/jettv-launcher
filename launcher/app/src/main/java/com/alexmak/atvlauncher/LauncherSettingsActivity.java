@@ -27,14 +27,16 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 /**
- * Launcher settings: screensaver and dimming, and the city (weather and clock timezone). A D-pad list with the
- * glass highlight behind the focused row: LEFT/RIGHT cycle a value, OK toggles or activates. Manual city entry is
- * a second page (text field + results). Changes are saved at once; the home screen reads them in onStart.
+ * Launcher settings in titled sections (appearance, content, network, about). A D-pad list with the glass highlight
+ * behind the focused row; section headers are not rows, so focus skips them. LEFT/RIGHT cycle a value, OK toggles or
+ * activates. Manual city entry and the Kinopoisk token are second pages (text field + results). Changes are saved at
+ * once; the home screen reads them in onStart.
  */
 public final class LauncherSettingsActivity extends Activity {
     private static final String TAG = "AtvSettings";
@@ -50,6 +52,8 @@ public final class LauncherSettingsActivity extends Activity {
     /** One focusable line: label on the left, value (or the search field) on the right. */
     private final class Row {
         final LinearLayout view;
+        /** Header of the section this row opens (shown above it); null for the other rows. */
+        View header;
         final TextView value;
         final Supplier<String> valueText;
         final Runnable ok;
@@ -82,7 +86,7 @@ public final class LauncherSettingsActivity extends Activity {
         }
     }
 
-    private enum Page { MAIN, SEARCH }
+    private enum Page { MAIN, SEARCH, TOKEN }
 
     private View root;
     private ScrollView scroll;
@@ -94,6 +98,7 @@ public final class LauncherSettingsActivity extends Activity {
 
     private LauncherSettingsStore store;
     private WeatherPrefs weatherPrefs;
+    private KinopoiskTokenStore tokens;
     private LauncherSettings settings;
     private List<VpnApps.App> vpnApps;
 
@@ -103,6 +108,9 @@ public final class LauncherSettingsActivity extends Activity {
     private int focus;
     private int cityRow;
     private int manualRow;
+    private int tokenRow;
+    /** Section header added by {@link #addSection}, attached to the next row. */
+    private View pendingHeader;
     private boolean layoutPending;
 
     private EditText input;
@@ -126,6 +134,7 @@ public final class LauncherSettingsActivity extends Activity {
         statusView = findViewById(R.id.status);
         store = new LauncherSettingsStore(this);
         weatherPrefs = new WeatherPrefs(this);
+        tokens = new KinopoiskTokenStore(this);
         settings = store.load();
         vpnApps = VpnAppsLoader.installed(getPackageManager());
         root.setOnApplyWindowInsetsListener((v, insets) -> {
@@ -141,6 +150,13 @@ public final class LauncherSettingsActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(STATE_ROW, focus);
+    }
+
+    /** Back from the app picker: the «N из M» values changed. */
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (page == Page.MAIN && !rows.isEmpty()) refreshValues();
     }
 
     @Override
@@ -161,6 +177,18 @@ public final class LauncherSettingsActivity extends Activity {
     private void showMain(int focusRow) {
         page = Page.MAIN;
         clearRows();
+
+        addSection(R.string.settings_section_appearance);
+        addRow(R.string.settings_ui_scale, () -> getString(R.string.settings_percent, settings.uiScalePercent), null,
+                () -> changeUiScale(settings.prevUiScale()), () -> changeUiScale(settings.nextUiScale()));
+        addRow(R.string.settings_preview_scale, () -> getString(R.string.settings_percent, settings.previewScalePercent), null,
+                () -> change(settings.prevPreviewScale()), () -> change(settings.nextPreviewScale()));
+        addRow(R.string.settings_dim, () -> onOff(settings.dimEnabled),
+                () -> change(settings.withDimEnabled(!settings.dimEnabled)),
+                () -> change(settings.withDimEnabled(!settings.dimEnabled)),
+                () -> change(settings.withDimEnabled(!settings.dimEnabled)));
+        addRow(R.string.settings_dim_delay, () -> getString(R.string.settings_seconds, settings.dimDelaySec), null,
+                () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
         addRow(R.string.settings_screensaver, () -> onOff(settings.screensaverEnabled),
                 this::toggleScreensaver, this::toggleScreensaver, this::toggleScreensaver);
         addRow(R.string.settings_screensaver_delay,
@@ -170,23 +198,30 @@ public final class LauncherSettingsActivity extends Activity {
                 () -> changeType(settings.prevScreensaverType()), () -> changeType(settings.nextScreensaverType()));
         videoNote = addNote(getString(R.string.settings_screensaver_hint));
         updateVideoNote();
-        addRow(R.string.settings_dim, () -> onOff(settings.dimEnabled),
-                () -> change(settings.withDimEnabled(!settings.dimEnabled)),
-                () -> change(settings.withDimEnabled(!settings.dimEnabled)),
-                () -> change(settings.withDimEnabled(!settings.dimEnabled)));
-        addRow(R.string.settings_dim_delay, () -> getString(R.string.settings_seconds, settings.dimDelaySec), null,
-                () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
-        addRow(R.string.settings_ui_scale, () -> getString(R.string.settings_percent, settings.uiScalePercent), null,
-                () -> changeUiScale(settings.prevUiScale()), () -> changeUiScale(settings.nextUiScale()));
-        addRow(R.string.settings_vpn_button, this::vpnButtonText, this::toggleVpnButton,
-                this::toggleVpnButton, this::toggleVpnButton);
-        addRow(R.string.settings_vpn_app, this::vpnAppText, null,
-                () -> changeVpnApp(-1), () -> changeVpnApp(1));
+
+        addSection(R.string.settings_section_content);
+        addRow(R.string.settings_sources_recommendations, () -> sourcesText(FeedSource.RECOMMENDATIONS),
+                () -> AppPickerActivity.open(this, FeedSource.RECOMMENDATIONS), null, null);
+        addRow(R.string.settings_sources_continue, () -> sourcesText(FeedSource.CONTINUE),
+                () -> AppPickerActivity.open(this, FeedSource.CONTINUE), null, null);
+        tokenRow = rows.size();
+        addRow(R.string.settings_kinopoisk_token, this::tokenText, this::showToken, null, null);
         cityRow = rows.size();
         addRow(R.string.settings_city, this::cityText, null, null, null);
         addRow(R.string.settings_detect, null, this::detectCity, null, null);
         manualRow = rows.size();
         addRow(R.string.settings_manual, null, this::showSearch, null, null);
+
+        addSection(R.string.settings_section_network);
+        addRow(R.string.settings_vpn_button, this::vpnButtonText, this::toggleVpnButton,
+                this::toggleVpnButton, this::toggleVpnButton);
+        addRow(R.string.settings_vpn_app, this::vpnAppText, null,
+                () -> changeVpnApp(-1), () -> changeVpnApp(1));
+
+        // «Проверить обновления» joins this section later: one more addRow here
+        addSection(R.string.settings_section_about);
+        addRow(R.string.settings_about_name, () -> BuildConfig.VERSION_NAME, null, null, null);
+
         focus = focusRow < 0 ? cityRow : focusRow;
         status("");
         applyFocusAfterLayout(false);
@@ -195,21 +230,8 @@ public final class LauncherSettingsActivity extends Activity {
     private void showSearch() {
         page = Page.SEARCH;
         clearRows();
-        input = new EditText(this);
-        styleText(input, R.color.text_primary, R.font.outfit_regular);
-        input.setHint(R.string.settings_search_hint);
-        input.setHintTextColor(getColor(R.color.text_secondary));
-        input.setBackground(null);
-        input.setPadding(0, 0, 0, 0);
-        input.setSingleLine(true);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        input.setFocusable(false);
-        input.setOnEditorActionListener((v, actionId, event) -> {
-            stopEditing();
-            search();
-            return true;
-        });
+        input = createInput(R.string.settings_search_hint,
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS, EditorInfo.IME_ACTION_SEARCH, this::search);
         addRow(R.string.settings_city, input, null, this::startEditing, null, null);
         addRow(R.string.settings_search_go, null, () -> search(), null, null);
         resultsStart = rows.size();
@@ -218,7 +240,59 @@ public final class LauncherSettingsActivity extends Activity {
         applyFocusAfterLayout(false);
     }
 
+    /** Second page for the Kinopoisk token: a text field and «Сохранить»; empty input removes the token. */
+    private void showToken() {
+        page = Page.TOKEN;
+        clearRows();
+        input = createInput(R.string.settings_token_hint,
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS, EditorInfo.IME_ACTION_DONE,
+                this::saveToken);
+        addRow(R.string.settings_kinopoisk_token, input, null, this::startEditing, null, null);
+        addRow(R.string.settings_token_save, null, this::saveToken, null, null);
+        focus = 0;
+        status("");
+        applyFocusAfterLayout(false);
+    }
+
+    private void saveToken() {
+        stopEditing();
+        String raw = input.getText().toString();
+        if (raw.trim().isEmpty()) {
+            tokens.clear();
+            showMain(tokenRow);
+            return;
+        }
+        FetchResult<String> saved = tokens.save(raw);
+        if (saved.isOk()) {
+            showMain(tokenRow);
+        } else {
+            Log.w(TAG, "token rejected: " + saved.error());
+            status(getString(R.string.settings_token_invalid));
+        }
+    }
+
+    /** A borderless single-line field in the value cell; {@code onAction} runs when the keyboard's action key is pressed. */
+    private EditText createInput(int hint, int inputType, int imeAction, Runnable onAction) {
+        EditText field = new EditText(this);
+        styleText(field, R.color.text_primary, R.font.outfit_regular);
+        field.setHint(hint);
+        field.setHintTextColor(getColor(R.color.text_secondary));
+        field.setBackground(null);
+        field.setPadding(0, 0, 0, 0);
+        field.setSingleLine(true);
+        field.setInputType(inputType);
+        field.setImeOptions(imeAction);
+        field.setFocusable(false);
+        field.setOnEditorActionListener((v, actionId, event) -> {
+            stopEditing();
+            onAction.run();
+            return true;
+        });
+        return field;
+    }
+
     private void clearRows() {
+        pendingHeader = null;
         rows.clear();
         list.removeAllViews();
     }
@@ -231,7 +305,19 @@ public final class LauncherSettingsActivity extends Activity {
         addRowView(new Row(getString(label), value, valueText, ok, left, right));
     }
 
+    /** A non-focusable title above the next row; focus never lands on it. */
+    private void addSection(int title) {
+        TextView header = text(getString(title), R.color.text_secondary, R.font.outfit_regular);
+        header.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        header.setPadding(dp(16), dp(rows.isEmpty() ? 0 : 14), dp(16), dp(6));
+        list.addView(header, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        pendingHeader = header;
+    }
+
     private void addRowView(Row row) {
+        row.header = pendingHeader;
+        pendingHeader = null;
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(44));
         lp.bottomMargin = dp(4);
@@ -272,6 +358,23 @@ public final class LauncherSettingsActivity extends Activity {
 
     private String onOff(boolean on) {
         return getString(on ? R.string.settings_on : R.string.settings_off);
+    }
+
+    /** «все» or «N из M» for the apps that publish into a feed row. */
+    private String sourcesText(FeedSource source) {
+        Set<String> excluded = store.excluded(source);
+        if (excluded.isEmpty()) return getString(R.string.settings_sources_all);
+        AppLoader.Result apps = AppCache.apps();
+        if (apps == null) return getString(R.string.settings_sources_unknown);
+        int total = apps.byPackage.size();
+        int included = ExcludedApps.includedCount(apps.byPackage.keySet(), excluded);
+        return included == total ? getString(R.string.settings_sources_all)
+                : getString(R.string.settings_sources_some, included, total);
+    }
+
+    private String tokenText() {
+        String token = tokens.token();
+        return token.isEmpty() ? getString(R.string.settings_token_none) : KinopoiskTokenStore.mask(token);
     }
 
     private String cityText() {
@@ -479,9 +582,12 @@ public final class LauncherSettingsActivity extends Activity {
             FocusDim.applyAlpha(r.view, FocusDim.Role.TEXT, i == focus, animate);
         }
         View v = rows.get(focus).view;
+        View header = rows.get(focus).header;
         int margin = dp(8);
-        if (v.getTop() - margin < scroll.getScrollY()) {
-            scroll.scrollTo(0, Math.max(0, v.getTop() - margin));
+        // a section's first row scrolls its header into view too
+        int top = header != null ? header.getTop() : v.getTop();
+        if (top - margin < scroll.getScrollY()) {
+            scroll.scrollTo(0, Math.max(0, top - margin));
         } else if (v.getBottom() + margin > scroll.getScrollY() + scroll.getHeight()) {
             scroll.scrollTo(0, v.getBottom() + margin - scroll.getHeight());
         }
@@ -543,6 +649,8 @@ public final class LauncherSettingsActivity extends Activity {
             stopEditing();
         } else if (page == Page.SEARCH) {
             showMain(manualRow);
+        } else if (page == Page.TOKEN) {
+            showMain(tokenRow);
         } else {
             finish();
         }
