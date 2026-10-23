@@ -27,12 +27,13 @@ public class FocusModelTest {
 
     @Test
     public void topBarClampsAtBothEnds() {
-        FocusModel m = model(4, 5, 4, 6); // VPN, Wi-Fi, launcher settings, gear
+        FocusModel m = model(5, 5, 4, 6); // VPN, Wi-Fi, sun, launcher settings, gear
         m.move(FocusModel.Dir.UP);
         assertEquals(FocusModel.Zone.TOP, m.zone());
-        assertEquals(3, m.index()); // enters on the last top-bar item
+        assertEquals(4, m.index()); // enters on the last top-bar item
         assertFalse(m.move(FocusModel.Dir.RIGHT));
-        assertEquals(3, m.index());
+        assertEquals(4, m.index());
+        m.move(FocusModel.Dir.LEFT);
         m.move(FocusModel.Dir.LEFT);
         m.move(FocusModel.Dir.LEFT);
         m.move(FocusModel.Dir.LEFT);

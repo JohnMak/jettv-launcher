@@ -90,8 +90,13 @@ public final class MainActivity extends Activity {
     /** The backdrop was dropped by a memory trim and must be asked for again in onStart. */
     private boolean backdropTrimmed;
     private GlassMenu menu;
+    private BrightnessPopup brightnessPopup;
+    private final BrightnessKeyModel brightnessKeys = new BrightnessKeyModel();
+    private LampController lamp;
+    private ExecutorService lampWorker;
     private TopBarItem vpnItem;
     private TopBarItem wifiItem;
+    private TopBarItem brightnessItem;
     private TopBarItem launcherSettingsItem;
     private TopBarItem settingsItem;
     private WeatherItem weatherItem;
@@ -227,11 +232,13 @@ public final class MainActivity extends Activity {
         FocusDim.applyAlpha(clock, FocusDim.Role.AMBIENT, false, false);
         FocusDim.applyAlpha(date, FocusDim.Role.AMBIENT, false, false);
         menu = findViewById(R.id.menu);
+        brightnessPopup = findViewById(R.id.brightness_popup);
 
         setupWallpaper();
         setupTopBar();
         idle = new IdleController((FrameLayout) root, main, () -> backdrop.evictCache());
         setupWeather();
+        setupLamp();
 
         posters = new PosterCache(getContentResolver(), getCacheDir());
         AppBackdropImage appImages = new AppBackdropImage(getPackageManager());
@@ -289,17 +296,28 @@ public final class MainActivity extends Activity {
         LinearLayout bar = findViewById(R.id.top_bar);
         vpnItem = new TopBarItem(this, true, false, true);
         wifiItem = new TopBarItem(this, false, true, true);
+        brightnessItem = new TopBarItem(this, false, true, false);
+        brightnessItem.setIcon(R.drawable.ic_sun);
         launcherSettingsItem = new TopBarItem(this, false, true, false);
         launcherSettingsItem.setIcon(R.drawable.ic_sliders_horizontal);
         settingsItem = new TopBarItem(this, false, true, false);
         settingsItem.setIcon(R.drawable.ic_settings);
-        for (TopBarItem item : new TopBarItem[]{vpnItem, wifiItem, launcherSettingsItem, settingsItem}) {
+        for (TopBarItem item : new TopBarItem[]{vpnItem, wifiItem, brightnessItem, launcherSettingsItem, settingsItem}) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, Math.round(40 * density));
             lp.setMarginStart(Math.round(TOP_ITEM_GAP_DP * density));
             bar.addView(item, lp);
         }
         renderLink(LinkState.offline());
+    }
+
+    /** The lamp connection is opened lazily by the first refresh, i.e. when the sun first gets focus. */
+    private void setupLamp() {
+        lampWorker = Executors.newSingleThreadExecutor();
+        lamp = new LampController(new LoopbackAdbShell(this), lampWorker, main::post, state -> {
+            brightnessPopup.setState(state);
+            if (brightnessPopup.isShowing()) showBrightnessPopup(); // the popup may have changed size
+        });
     }
 
     private void setupWeather() {
@@ -433,6 +451,7 @@ public final class MainActivity extends Activity {
         super.onResume();
         weather.start();
         refreshUsage();
+        page.post(this::syncBrightness);
     }
 
     @Override
@@ -451,6 +470,7 @@ public final class MainActivity extends Activity {
         main.removeCallbacks(refreshRunnable);
         main.removeCallbacks(feedRunnable);
         endMenuAndMove();
+        runBrightness(brightnessKeys.onFocus(false));
         super.onStop();
     }
 
@@ -471,6 +491,8 @@ public final class MainActivity extends Activity {
         backdrop.release();
         stopVpnPulse();
         weather.release();
+        lamp.release();
+        lampWorker.shutdown(); // runs the queued shell close
         kinopoisk.shutdown();
         worker.shutdownNow();
         posterWorker.shutdownNow();
@@ -603,6 +625,7 @@ public final class MainActivity extends Activity {
         List<TopBarItem> items = new ArrayList<>();
         if (vpnItem.getVisibility() == View.VISIBLE) items.add(vpnItem);
         items.add(wifiItem);
+        items.add(brightnessItem);
         items.add(launcherSettingsItem);
         items.add(settingsItem);
         return items;
@@ -613,6 +636,7 @@ public final class MainActivity extends Activity {
     }
 
     private void onFocusChanged(boolean animate) {
+        syncBrightness();
         updateInfo();
         updateBackdrop();
         applySelection(animate);
@@ -811,7 +835,7 @@ public final class MainActivity extends Activity {
     private void applyAllViews(boolean animate) {
         boolean top = focus.zone() == FocusModel.Zone.TOP;
         List<TopBarItem> items = visibleTopItems();
-        for (TopBarItem item : new TopBarItem[]{vpnItem, wifiItem, launcherSettingsItem, settingsItem}) {
+        for (TopBarItem item : new TopBarItem[]{vpnItem, wifiItem, brightnessItem, launcherSettingsItem, settingsItem}) {
             FocusDim.applyAlpha(item, FocusDim.Role.TOP_BAR, top && items.get(focus.index()) == item, animate);
         }
         FocusDim.applyAlpha(weatherItem, FocusDim.Role.TOP_BAR, focus.zone() == FocusModel.Zone.WEATHER, animate);
@@ -965,13 +989,70 @@ public final class MainActivity extends Activity {
                 else if (dir == FocusModel.Dir.RIGHT) moveFavorite(1);
                 break;
             default:
-                if (focus.move(dir)) scheduleFocusVisuals(); // a press clamped at the row end changes nothing
+                if (runBrightness(brightnessKeys.onKey(brightnessKey(dir)))) break;
+                if (focus.move(dir)) { // a press clamped at the row end changes nothing
+                    syncBrightness();
+                    scheduleFocusVisuals();
+                }
                 break;
+        }
+    }
+
+    private static BrightnessKeyModel.Key brightnessKey(FocusModel.Dir dir) {
+        switch (dir) {
+            case UP: return BrightnessKeyModel.Key.UP;
+            case DOWN: return BrightnessKeyModel.Key.DOWN;
+            case LEFT: return BrightnessKeyModel.Key.LEFT;
+            default: return BrightnessKeyModel.Key.RIGHT;
         }
     }
 
     private void onBack() {
         if (mode != Mode.NAVIGATE) endMenuAndMove();
+        else runBrightness(brightnessKeys.onKey(BrightnessKeyModel.Key.BACK));
+    }
+
+    private boolean sunFocused() {
+        return focus.zone() == FocusModel.Zone.TOP && visibleTopItems().get(focus.index()) == brightnessItem;
+    }
+
+    /** Tells the brightness model whether the sun is focused now. */
+    private void syncBrightness() {
+        runBrightness(brightnessKeys.onFocus(sunFocused()));
+    }
+
+    /** Executes a brightness action; returns whether the key was handled (not PASS). */
+    private boolean runBrightness(BrightnessKeyModel.Action action) {
+        switch (action.kind) {
+            case SHOW:
+                showBrightnessPopup();
+                lamp.refresh();
+                return true;
+            case HIDE:
+                brightnessPopup.setAdjusting(false);
+                brightnessPopup.hide();
+                return true;
+            case ENTER_ADJUST:
+                brightnessPopup.setAdjusting(true);
+                return true;
+            case EXIT_ADJUST:
+                brightnessPopup.setAdjusting(false);
+                return true;
+            case STEP:
+                lamp.step(action.delta);
+                return true;
+            case CONSUME:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void showBrightnessPopup() {
+        RectF anchor = new RectF();
+        if (!Tiles.locate(brightnessItem, root, anchor)) return;
+        anchor.inset(-TOP_GLASS_PAD_X_DP * density, -TOP_GLASS_PAD_Y_DP * density);
+        brightnessPopup.show(anchor);
     }
 
     private void endMenuAndMove() {
@@ -992,6 +1073,7 @@ public final class MainActivity extends Activity {
             default:
                 break;
         }
+        if (runBrightness(brightnessKeys.onKey(BrightnessKeyModel.Key.OK))) return;
         switch (focus.zone()) {
             case WEATHER:
                 if (zonePrefs.location() == null) LauncherSettingsActivity.open(this, true);
@@ -1001,6 +1083,7 @@ public final class MainActivity extends Activity {
                 TopBarItem item = visibleTopItems().get(focus.index());
                 if (item == vpnItem) onVpnPressed();
                 else if (item == wifiItem) startSystem(Settings.ACTION_WIFI_SETTINGS);
+                else if (item == brightnessItem) break; // handled by the brightness model above
                 else if (item == launcherSettingsItem) LauncherSettingsActivity.open(this, false);
                 else startSystem(Settings.ACTION_SETTINGS);
                 break;
