@@ -1,0 +1,198 @@
+# package<TAB>one Russian sentence: what it does and what breaks if removed. Sorted. Sources: TV box 2 and XGIMI Halo+ package lists.
+android.autoinstalls.config.soc.amlogic	Конфигурация автоустановки приложений при первой настройке (Amlogic)
+android.autoinstalls.config.xgimi.xgimigalileo	Конфигурация автоустановки приложений при первой настройке проектора XGIMI
+android.autoinstalls.config.xiaomi.mibox3	Конфигурация автоустановки приложений при первой настройке приставки Xiaomi
+android.autoinstalls.config.xioami.mibox3	Конфигурация автоустановки приложений при первой настройке приставки Xiaomi
+app.hiddify.com	Hiddify: VPN-клиент для обхода блокировок
+ch.protonvpn.android	Proton VPN: VPN-клиент
+com.alphainventor.filemanager	Файловый менеджер для просмотра и копирования файлов
+com.amazon.amazonvideo.livingroom	Amazon Prime Video: онлайн-кинотеатр
+com.android.adservices.api	Рекламные API Android (рекламные идентификаторы); на ТВ не нужны
+com.android.backupconfirm	Окно подтверждения резервного копирования и восстановления
+com.android.bluetooth	Bluetooth: без него не работают пульт, наушники и колонки по Bluetooth
+com.android.bluetooth.auto_generated_rro_product__	Автоматический оверлей настроек Bluetooth
+com.android.bluetooth.auto_generated_rro_vendor__	Автоматический оверлей настроек Bluetooth
+com.android.camera2	Камера
+com.android.cameraextensions	Расширения камеры (режимы съёмки); на ТВ не нужны
+com.android.captiveportallogin	Вход в публичные Wi-Fi сети через страницу авторизации
+com.android.certinstaller	Установка сертификатов безопасности
+com.android.companiondevicemanager	Сопряжение с сопутствующими устройствами
+com.android.connectivity.resources	Ресурсы сетевых подключений Android
+com.android.cts.ctsshim	Служебная заглушка для тестов совместимости Android; безопасна
+com.android.cts.priv.ctsshim	Служебная заглушка для тестов совместимости Android; безопасна
+com.android.devicelockcontroller	Блокировка устройства при покупке в рассрочку; обычно не используется
+com.android.dreams.basic	Базовая экранная заставка
+com.android.dynsystem	Установка динамических системных образов (DSU) для разработчиков
+com.android.externalstorage	Доступ к внешним накопителям и флешкам: без него не видны USB-диски
+com.android.federatedcompute.services	Служба федеративного обучения Google; на ТВ не нужна
+com.android.health.connect.backuprestore	Резервное копирование данных Health Connect; на ТВ не нужно
+com.android.healthconnect.controller	Управление данными здоровья Health Connect; на ТВ не нужно
+com.android.hotspot2.osulogin	Регистрация в сетях Wi-Fi Hotspot 2.0
+com.android.htmlviewer	Просмотр локальных HTML-файлов
+com.android.inputdevices	Раскладки и настройки устройств ввода
+com.android.intentresolver	Окно выбора приложения для открытия файла или ссылки
+com.android.keychain	Хранилище ключей и сертификатов
+com.android.localtransport	Локальное резервное копирование
+com.android.location.fused	Определение местоположения: нужно приложениям с геолокацией
+com.android.managedprovisioning	Настройка корпоративного управления устройством; обычно не используется
+com.android.mitv.framework.rro	Оверлей оформления системы для Xiaomi Mi TV
+com.android.mtp	Подключение к компьютеру как к медиаустройству (MTP)
+com.android.nearby.halfsheet	Обнаружение устройств поблизости и быстрая настройка
+com.android.networkstack	Сетевой стек: без него не работает подключение к сети
+com.android.networkstack.inprocess	Сетевой стек: без него не работает подключение к сети
+com.android.networkstack.permissionconfig	Права сетевого стека Android
+com.android.networkstack.tethering	Раздача интернета и сетевые функции системы
+com.android.networkstack.tethering.droidlogic	Раздача интернета, версия для Amlogic
+com.android.networkstack.tethering.inprocess	Раздача интернета и сетевые функции системы
+com.android.networkstack.tethering.inprocess.rro	Оверлей настроек раздачи интернета
+com.android.networkstack.tethering.rro	Оверлей настроек раздачи интернета
+com.android.ondevicepersonalization.services	Персонализация на устройстве от Google; на ТВ не нужна
+com.android.pacprocessor	Обработка файлов автонастройки прокси (PAC)
+com.android.printspooler	Печать документов; на ТВ не нужна
+com.android.providers.calendar	Хранилище данных календаря
+com.android.providers.contacts	Хранилище контактов
+com.android.providers.contacts.auto_generated_rro_product__	Автоматический оверлей настроек хранилища контактов
+com.android.providers.downloads	Менеджер загрузок: без него не скачиваются файлы и обновления
+com.android.providers.media	Медиатека: индексирует фото, музыку и видео
+com.android.providers.media.module	Медиатека: индексирует фото, музыку и видео
+com.android.providers.settings	Хранилище системных настроек: без него устройство не работает
+com.android.providers.settings.auto_generated_rro_product__	Автоматический оверлей настроек системного хранилища
+com.android.providers.settings.auto_generated_rro_vendor__	Автоматический оверлей настроек системного хранилища
+com.android.providers.tv	Хранилище каналов и рекомендаций Android TV
+com.android.providers.userdictionary	Пользовательский словарь клавиатуры
+com.android.proxyhandler	Поддержка прокси-сервера в сети
+com.android.rkpdapp	Выдача ключей аттестации устройства
+com.android.sdksandbox	Песочница для SDK рекламных библиотек; на ТВ не нужна
+com.android.se	Поддержка защищённого элемента (NFC-чип)
+com.android.settings.intelligence	Поиск и подсказки в настройках
+com.android.sharedstoragebackup	Резервное копирование общего хранилища
+com.android.shell	Оболочка adb: нужна для отладки по сети и команд с компьютера
+com.android.soundpicker	Выбор рингтонов и звуков
+com.android.statementservice	Проверка привязки ссылок к приложениям
+com.android.systemui	Интерфейс системы: панели, уведомления, меню питания; без него экран не работает
+com.android.systemui.auto_generated_rro_product__	Автоматический оверлей оформления интерфейса системы
+com.android.tv.feedbackconsent	Согласие на отправку отчётов об ошибках
+com.android.tv.frameworkpackagestubs	Заглушки системных обработчиков Android TV
+com.android.tv.mdnsoffloadcmd	Разгрузка mDNS для обнаружения устройств в сети
+com.android.tv.mdnsoffloadmanager	Разгрузка mDNS для обнаружения устройств в сети
+com.android.tv.overlay.framework	Оверлей оформления системы Android TV
+com.android.tv.overlay.networkstack	Оверлей настроек сети Android TV
+com.android.tv.overlay.settingsprovider	Оверлей системных настроек Android TV
+com.android.tv.settings	Настройки Android TV: без них не открыть системные настройки
+com.android.tv.settings.MiBoxATVSettingsOverlay	Оверлей настроек для Xiaomi Mi Box
+com.android.tv.settings.MiBoxATVSettingsProviderOverlay	Оверлей хранилища настроек для Xiaomi Mi Box
+com.android.tv.settings.auto_generated_rro_product__	Автоматический оверлей настроек Android TV
+com.android.tv.settings.gms.resoverlay	Оверлей настроек для сервисов Google
+com.android.uwb.resources	Ресурсы сверхширокополосной связи (UWB)
+com.android.vending	Google Play Маркет: установка и обновление приложений
+com.android.virtualmachine.res	Ресурсы виртуальных машин Android
+com.android.vpndialogs	Окна подтверждения VPN-подключения: без них VPN-клиенты не запустятся
+com.android.wallpaperbackup	Резервное копирование обоев
+com.android.wifi.dialog	Окна подключения к Wi-Fi
+com.android.wifi.resources	Ресурсы Wi-Fi: нужны для работы беспроводной сети
+com.android.wifi.resources.rro	Оверлей настроек Wi-Fi
+com.brouken.player	Just Player: видеоплеер
+com.dolby.android.audio.service	Dolby: обработка и декодирование звука
+com.droid.tv.mdnsoffloadmanager	Разгрузка mDNS для обнаружения устройств в сети (Amlogic)
+com.droidlogic	Системные службы Amlogic: управление видео, звуком и питанием приставки
+com.droidlogic.mdnsoffload	Разгрузка mDNS для обнаружения устройств в сети (Amlogic)
+com.droidlogic.overlay	Оверлей настроек платформы Amlogic
+com.droidlogic.systemui.overlay	Оверлей интерфейса системы для платформы Amlogic
+com.droidlogic.tvprovider.overlay	Оверлей хранилища каналов для платформы Amlogic
+com.droidlogic.wifitetheringoverlay	Оверлей раздачи Wi-Fi для платформы Amlogic
+com.google.android.apps.mediashell	Google Cast: приём трансляций с телефона и компьютера
+com.google.android.apps.nbu.smartconnect.tv	Служба быстрого подключения устройств Google
+com.google.android.backdrop	Заставка Android TV (Ambient Mode) с фото и картинками
+com.google.android.ext.services	Дополнительные службы Android: подсказки и автозаполнение
+com.google.android.ext.shared	Общие библиотеки дополнительных служб Android
+com.google.android.feedback	Отправка отзывов и отчётов об ошибках в Google
+com.google.android.gms	Сервисы Google: нужны для входа в аккаунт, Play Маркета и большинства приложений Google
+com.google.android.gsf	Платформа сервисов Google: нужна для работы Play Маркета и аккаунта Google
+com.google.android.inputmethod.latin	Экранная клавиатура Gboard
+com.google.android.katniss	Google Ассистент и голосовой поиск на пульте
+com.google.android.marvin.talkback	TalkBack: экранный диктор для людей с нарушениями зрения
+com.google.android.modulemetadata	Сведения о обновляемых системных модулях Google
+com.google.android.networkstack.tethering.google	Раздача интернета, версия Google
+com.google.android.onetimeinitializer	Разовая начальная настройка приложений Google; после настройки не нужна
+com.google.android.overlay.googlewebview	Оверлей настроек Android System WebView
+com.google.android.overlay.gtvsconfig	Оверлей конфигурации Google TV
+com.google.android.overlay.modules.ext.services	Оверлей настроек дополнительных служб Android
+com.google.android.overlay.modules.modulemetadata.forframework	Оверлей сведений о системных модулях
+com.google.android.overlay.modules.permissioncontroller	Оверлей настроек управления разрешениями
+com.google.android.overlay.modules.permissioncontroller.forframework	Оверлей настроек управления разрешениями
+com.google.android.packageinstaller	Установщик приложений из APK-файлов
+com.google.android.partnersetup	Партнёрская настройка устройства Google (поиск и закладки)
+com.google.android.permissioncontroller	Управление разрешениями приложений
+com.google.android.play.games	Google Play Игры: достижения и облачные сохранения
+com.google.android.safetycenter.resources	Ресурсы центра безопасности Android
+com.google.android.sss.authbridge	Служба входа в аккаунт Google для системных функций
+com.google.android.syncadapters.calendar	Синхронизация календаря Google
+com.google.android.tts	Синтез речи Google: озвучивает текст для Ассистента и TalkBack
+com.google.android.tungsten.setupwraith	Мастер первоначальной настройки Android TV
+com.google.android.tv.frameworkpackagestubs	Заглушки системных обработчиков Android TV
+com.google.android.tv.overlay.wifi.resources	Оверлей настроек Wi-Fi Android TV
+com.google.android.tv.remote.service	Управление телевизором с телефона через приложение Google TV
+com.google.android.tv.settings.energymodes.resoverlay	Оверлей режимов энергопотребления в настройках
+com.google.android.tvlauncher	Стандартный рабочий стол Android TV
+com.google.android.tvrecommendations	Рекомендации и каналы на главном экране Android TV
+com.google.android.webview	Android System WebView: показывает веб-страницы внутри приложений
+com.google.android.youtube.tv	YouTube для телевизора
+com.google.android.youtube.tvmusic	YouTube Music для телевизора
+com.johnmak.atvlauncher	Этот лаунчер
+com.mdnsoffload.droidlogic.overlay	Оверлей разгрузки mDNS для платформы Amlogic
+com.mi.bluetooth	Bluetooth-служба Xiaomi
+com.mitv.dream	Экранная заставка Xiaomi Mi TV
+com.mitv.tvhome.atv	Стандартный рабочий стол Xiaomi Mi TV
+com.mitv.tvhome.michannel	Каналы и рекомендации Xiaomi на главном экране
+com.mitv.tvhome.mitvplus	Mi TV+: бесплатные каналы Xiaomi
+com.mitv.videoplayer	Видеоплеер Xiaomi
+com.miui.tv.analytics	Сбор статистики использования Xiaomi
+com.nbcast.wirelessscreen	Беспроводная трансляция экрана
+com.netflix.ninja	Netflix: онлайн-кинотеатр
+com.netflix.tokenmanager	Служба входа Netflix
+com.plexapp.android	Plex: медиасервер и плеер для домашней коллекции
+com.spocky.projengmenu	Projectivy Launcher: альтернативный рабочий стол
+com.ted.android.tv	TED: видеолекции
+com.vk.tv	VK Видео: видеосервис
+com.xgimi.atvwifiverify	Проверка Wi-Fi при первой настройке проектора
+com.xgimi.autokst	Автоматическая коррекция трапеции изображения проектора
+com.xgimi.bluetoothservice	Bluetooth-служба проектора XGIMI, режим Bluetooth-колонки
+com.xgimi.bugreportsender	Отправка отчётов об ошибках проектора XGIMI
+com.xgimi.burnin	Защита экрана от выгорания и режим прогона XGIMI
+com.xgimi.doubanfm	Douban FM: китайский музыкальный сервис
+com.xgimi.filemanager	Файловый менеджер XGIMI
+com.xgimi.gimiplayer	Видеоплеер XGIMI
+com.xgimi.minitvfactory	Сервисное и заводское меню проектора XGIMI
+com.xgimi.misckey	Обработка кнопок пульта проектора XGIMI
+com.xgimi.ota.accessories	Обновление прошивки пульта и аксессуаров XGIMI
+com.xgimi.overseas.xgimiatvbootwizard	Мастер первой настройки проектора XGIMI
+com.xgimi.simpservice	Системная служба проектора XGIMI: изображение и настройки
+com.xgimi.soundermodeservice	Режимы звука проектора XGIMI (Harman)
+com.xgimi.tof	Автофокус и защита глаз проектора XGIMI (датчик расстояния)
+com.xgimi.tvinput	Источники сигнала проектора XGIMI: HDMI и входы
+com.xgimi.uiconfiguration	Конфигурация интерфейса и управление питанием проектора XGIMI
+com.xgimi.upgrade	Обновление прошивки проектора XGIMI
+com.xgimi.windowsystem	Оконная система проектора XGIMI
+com.xgimi.xgimiservice	Основная служба проектора XGIMI: без неё не работают функции проектора
+com.xgimi.xhplayer	Медиаплеер XGIMI для HDMI и видео
+com.xgimi.xrmservice	Менеджер ресурсов XGIMI: источник света, HDMI, пробуждение по сети
+com.xiaomi.android.tvsetup.partnercustomizer	Партнёрская настройка Xiaomi при первом запуске
+com.xiaomi.mimusic2	Музыкальный плеер Xiaomi
+com.xiaomi.mitv.smartshare	Xiaomi SmartShare: трансляция контента на телевизор
+com.xiaomi.mitv.updateservice	Обновление прошивки Xiaomi Mi TV
+com.xiaomi.statistic	Сбор статистики использования Xiaomi
+com.xiaomi.wfdsinkhelperservice	Приём беспроводной трансляции экрана (Miracast) Xiaomi
+com.xiaomo.tv.milegal	Юридические документы и соглашения Xiaomi
+com.yandex.browser.tv	Яндекс Браузер для телевизора
+dkc.video.hdbox	HD VideoBox: клиент онлайн-видео
+net.gtvbox.videoplayer	VIMU Player: видеоплеер
+org.smarttube.stable	SmartTube: клиент YouTube без рекламы
+org.videolan.vlc	VLC: видеоплеер
+ru.kinopoisk.tv	КиноПоиск: онлайн-кинотеатр
+ru.mts.mtstv	МТС ТВ: телеканалы и фильмы
+ru.rutube.app	Rutube: видеохостинг
+ru.rutube.app.tv	Rutube: видеохостинг
+ru.twicker.lampa	Lampa: каталог фильмов и сериалов
+ru.vk.store.tv	RuStore: каталог приложений
+top.rootu.lampa	Lampa: каталог фильмов и сериалов
+tv.okko.androidtv	Okko: онлайн-кинотеатр
