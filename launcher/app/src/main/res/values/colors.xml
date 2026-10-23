@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="glass_fill">#2EFFFFFF</color>
+    <color name="glass_stroke">#40FFFFFF</color>
+    <color name="text_primary">#EBFFFFFF</color>
+    <color name="text_secondary">#99FFFFFF</color>
+    <color name="menu_fill">#F01C1C1E</color>
+    <color name="card_placeholder">#1C1C1E</color>
+    <color name="accent_glow">#FFFFFFFF</color>
+</resources>

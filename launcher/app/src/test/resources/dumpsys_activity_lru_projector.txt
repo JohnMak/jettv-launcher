@@ -1,0 +1,43 @@
+ACTIVITY MANAGER LRU PROCESSES (dumpsys activity lru)
+  Activities:
+  #39: fg     TOP  LCM 2050:com.spocky.projengmenu/u0a128 act:activities
+  #38: vis    BTOP LCM 4315:com.google.android.gms/u0a90 act:client
+  #37: vis    BTOP --- 2497:com.android.vending/u0a94 act:client
+  #36: home   HOME --- 2074:com.google.android.tvlauncher/u0a97 act:activities
+  Other:
+  #35: prev   LAST --- 1902:com.google.process.gservices/u0a90
+  #34: psvc   PER  LCM 2022:com.android.providers.media.module/u0a155
+  #33: cch+ 5 CEM  --- 1646:com.android.tv.settings/1000
+  #32: cch+ 5 CEM  --- 3227:com.android.settings.intelligence/u0a98
+  #31: vis    BFGS LCM 1920:com.google.android.katniss:interactor/u0a88
+  #30: prcp   FGS  --- 2259:com.xgimi.uiconfiguration/1000
+  #29: vis    BFGS --- 2827:com.google.android.apps.mediashell/u0a83
+  #28: vis    FGS  --- 1770:com.google.android.tv.remote.service/u0a95
+  #27: cch+15 CEM  --- 1436:com.google.android.permissioncontroller/u0a60
+  #26: prcp   IMPB --- 1710:com.google.android.inputmethod.latin/u0a119
+  #25: cch+15 CEM  --- 5487:com.google.android.katniss:search/u0a88
+  #24: cch+25 CEM  --- 5329:com.android.keychain/1000
+  #23: cch+25 CEM  --- 5377:android.process.media/u0a49
+  #22: cch+35 CEM  --- 5452:com.android.vending:background/u0a94
+  #21: cch+35 CEM  --- 5673:com.google.android.gms.unstable/u0a90
+  #20: vis    BFGS --- 1728:com.google.android.ext.services/u0a57
+  #19: cch+45 CEM  --- 5636:com.android.vending:instant_app_installer/u0a94
+  #18: cch+45 CEM  --- 5050:org.videolan.vlc/u0a143
+  #17: cch+55 CEM  --- 3050:com.google.android.apps.nbu.smartconnect.tv/u0a89
+  #16: cch+55 CEM  --- 4183:android.process.acore/u0a54
+  #15: cch+65 CEM  --- 2201:com.google.process.gapps/u0a90
+  #14: cch+65 CEM  --- 3725:com.google.android.partnersetup/u0a87
+  #13: cch+75 CEM  --- 2174:com.android.providers.calendar/u0a52
+  #12: svc    SVC  --- 4021:com.xgimi.upgrade/1000
+  #11: pers   PER  LCM 1998:com.xgimi.windowsystem/1000
+  #10: pers   PER  LCM 1971:com.android.providers.tv/u0a47
+  # 9: pers   PER  LCM 1953:com.xgimi.misckey/1000
+  # 8: pers   PER  LCM 1632:com.xgimi.xrmservice/1000
+  # 7: pers   PER  LCM 1611:com.android.se/1068
+  # 6: vis    BFGS --- 1566:com.xgimi.tvinput/1000
+  # 5: pers   PER  LCM 1412:com.android.systemui/u0a99
+  # 4: pers   PER  LCM 1390:com.android.bluetooth/1002
+  # 3: pers   PER  LCM 1370:com.xgimi.bluetoothservice/1000
+  # 2: pers   PER  LCM 1298:com.xgimi.xgimiservice/1000
+  # 1: pers   PER  LCM 1172:com.xgimi.soundermodeservice/1000
+  # 0: sys    PER  LCM 889:system/1000

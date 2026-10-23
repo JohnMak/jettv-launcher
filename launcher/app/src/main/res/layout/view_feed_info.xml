@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Total 94dp = FeedPageShift.INFO_DP: 4 margin + 90 field (30 line + 2 gap + 56 description + 2 spare). -->
+<com.alexmak.atvlauncher.FeedInfoField xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="90dp"
+    android:layout_marginStart="56dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="56dp"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/info_title"
+            style="@style/FeedInfoText"
+            android:fontFamily="@font/outfit_extrabold"
+            android:maxWidth="700dp" />
+
+        <TextView
+            android:id="@+id/info_season"
+            style="@style/FeedInfoText"
+            android:layout_marginStart="20dp" />
+
+        <LinearLayout
+            android:id="@+id/info_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/info_rating_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/info_rating_text"
+                style="@style/FeedInfoText"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/info_kp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/FeedInfoLabel"
+                android:text="КП" />
+
+            <TextView
+                android:id="@+id/info_kp_text"
+                style="@style/FeedInfoText"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/info_imdb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/FeedInfoLabel"
+                android:text="IMDb" />
+
+            <TextView
+                android:id="@+id/info_imdb_text"
+                style="@style/FeedInfoText"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/info_description"
+        style="@style/FeedInfoText"
+        android:layout_height="56dp"
+        android:layout_marginTop="2dp"
+        android:maxLines="3"
+        android:maxWidth="760dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
+</com.alexmak.atvlauncher.FeedInfoField>

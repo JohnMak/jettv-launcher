@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Kinopoisk Unofficial API token from the untracked launcher/local.properties; missing or malformed = feature off.
+def localProps = new Properties()
+def localFile = rootProject.file('local.properties')
+if (localFile.exists()) localFile.withInputStream { localProps.load(it) }
+def kinopoiskToken = (localProps.getProperty('kinopoisk.token') ?: '').trim()
+if (!(kinopoiskToken ==~ /[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}/)) {
+    if (!kinopoiskToken.isEmpty()) logger.warn('kinopoisk.token in local.properties is not UUID-like: Kinopoisk ratings are off')
+    kinopoiskToken = ''
+}
+
+android {
+    namespace 'com.alexmak.atvlauncher'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.alexmak.atvlauncher'
+        minSdk 30
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+        buildConfigField 'String', 'KINOPOISK_TOKEN', "\"${kinopoiskToken}\""
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    buildTypes {
+        debug { debuggable true }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20231013'
+}

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Favorites seeded on the first run only, in display order; afterwards the list lives in SharedPreferences
+         and is managed from the all-apps screen. Not-installed packages are dropped. -->
+    <string-array name="favorites_seed">
+        <item>top.rootu.lampa</item>
+        <item>ru.kinopoisk.tv</item>
+        <item>org.smarttube.stable</item>
+        <item>ru.rutube.app.tv</item>
+    </string-array>
+
+    <!-- All-apps sections: titles in display order (the last one collects every app not listed below) and the explicit
+         package lists of the others, in the same order. Within a section apps are ordered by launch count. -->
+    <string-array name="app_group_titles">
+        <item>Онлайн-кинотеатры</item>
+        <item>Плееры и инструменты</item>
+        <item>Другое</item>
+    </string-array>
+    <string-array name="app_group_cinemas">
+        <item>ru.kinopoisk.tv</item>
+        <item>ru.more.play</item>
+        <item>ru.ivi.client</item>
+        <item>ru.mts.mtstv</item>
+        <item>ru.tv1.android.tv</item>
+        <item>ru.rutube.app.tv</item>
+        <item>ru.rutube.app</item>
+        <item>com.vk.tv</item>
+        <item>org.smarttube.stable</item>
+        <item>top.rootu.lampa</item>
+        <item>com.tencent.qqlivei18n</item>
+        <item>com.google.android.youtube.tv</item>
+        <item>com.google.android.youtube.tvmusic</item>
+        <item>com.netflix.ninja</item>
+    </string-array>
+    <string-array name="app_group_tools">
+        <item>net.gtvbox.videoplayer</item>
+        <item>org.videolan.vlc</item>
+        <item>com.brouken.player</item>
+        <item>com.mitv.videoplayer</item>
+        <item>com.limelight</item>
+        <item>com.cxinventor.file.explorer</item>
+        <item>com.rs.explorer.filemanager</item>
+        <item>com.rma.speedtesttv</item>
+        <item>app.hiddify.com</item>
+        <item>com.v2raytun.android</item>
+        <item>com.cybercat.adbappcontrol.tv</item>
+        <item>dev.vodik7.tvquickactions.free</item>
+        <item>com.spocky.projengmenu</item>
+        <item>com.yandex.browser.tv</item>
+    </string-array>
+
+    <!-- All-apps header buttons, left to right (the last one is right-most). Shown only when installed; these
+         packages are excluded from the grid. -->
+    <string name="settings_package">com.android.tv.settings</string>
+    <string-array name="app_header_packages">
+        <item>ru.vk.store.tv</item>
+        <item>com.android.vending</item>
+        <item>com.uptodown</item>
+        <item>@string/settings_package</item>
+    </string-array>
+
+    <!-- NASA video screensaver playlist: direct https URLs, streamed in this order (nothing is stored on the
+         device). To use a mirror (e.g. when nasa.gov is unreachable) change the URLs here, nothing else.
+         Rebuild required. -->
+    <string-array name="nasa_videos">
+        <item>https://svs.gsfc.nasa.gov/vis/a010000/a014900/a014950/14950_Galaxies_FlyThrough_1080.mp4</item>
+        <item>https://svs.gsfc.nasa.gov/vis/a030000/a030600/a030687/hudf-b-1920x1080.m4v</item>
+        <item>https://svs.gsfc.nasa.gov/vis/a030000/a031000/a031035/uds_candels_fly-1920x1080p30.mp4</item>
+    </string-array>
+    <string name="nasa_credit">NASA SVS / STScI / ESA</string>
+
+    <!-- Wallpaper: name of a drawable in res/drawable (e.g. "wallpaper" for wallpaper.jpg). Empty = pitch black. -->
+    <string name="wallpaper_drawable_name"></string>
+
+    <!-- Date language: "ru" or "en". -->
+    <string name="date_language">ru</string>
+
+    <!-- VPN top-bar item: shown/hidden and the VPN app are chosen in the launcher settings (default app = the one
+         below if installed, else the first installed VPN app). OK while the VPN is on fires the package's
+         «toggle-off» component when listed here (parallel arrays: package -> component that switches the VPN off
+         silently); otherwise, or while the VPN is off, OK opens the package's app. -->
+    <string name="vpn_default_package">app.hiddify.com</string>
+    <string-array name="vpn_toggle_off_packages">
+        <item>app.hiddify.com</item>
+    </string-array>
+    <string-array name="vpn_toggle_off_components">
+        <item>app.hiddify.com/com.hiddify.hiddify.ShortcutActivity</item>
+    </string-array>
+
+    <!-- Key interceptor (KeyInterceptService, accessibility service, disabled until enabled in system settings). -->
+    <bool name="KEY_REMAP_SERVICE">false</bool>
+    <bool name="HOME_KEY_SERVICE">false</bool>
+    <!-- KEY_REMAP_SERVICE gates settings/app key mapping; HOME_KEY_SERVICE gates KEYCODE_HOME -> launcher. -->
+    <!-- Keycodes that open system settings (e.g. 176 = KEYCODE_SETTINGS). -->
+    <integer-array name="settings_key_keycodes">
+        <item>176</item>
+    </integer-array>
+    <!-- Keycode -> package, parallel arrays (same index). Active only when KEY_REMAP_SERVICE is true. -->
+    <integer-array name="app_key_keycodes">
+    </integer-array>
+    <string-array name="app_key_packages">
+    </string-array>
+</resources>

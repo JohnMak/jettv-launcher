@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="132dp"
+    android:clipChildren="false"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="152dp"
+        android:layout_height="86dp"
+        android:layout_marginTop="10dp"
+        android:clipChildren="false">
+
+        <com.alexmak.atvlauncher.ShadowView
+            android:id="@+id/shadow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.alexmak.atvlauncher.DimImageView
+            android:id="@+id/tile_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tile_name"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/outfit_regular"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+</LinearLayout>

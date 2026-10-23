@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <ImageView
+        android:id="@+id/wallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.55"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <com.alexmak.atvlauncher.BackdropImageView
+        android:id="@+id/backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <FrameLayout
+        android:id="@+id/page"
+        android:layout_width="match_parent"
+        android:layout_height="1030dp"
+        android:clipChildren="false">
+
+        <com.alexmak.atvlauncher.GlassView
+            android:id="@+id/glass"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.alexmak.atvlauncher.FlatFrameLayout
+            android:id="@+id/top_block"
+            android:layout_width="match_parent"
+            android:layout_height="460dp"
+            android:clipChildren="false">
+
+        <LinearLayout
+            android:id="@+id/left_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="56dp"
+            android:layout_marginTop="30dp"
+            android:orientation="vertical">
+
+            <TextClock
+                android:id="@+id/clock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:format12Hour="HH:mm"
+                android:format24Hour="HH:mm"
+                android:fontFamily="@font/outfit_thin"
+                android:includeFontPadding="false"
+                android:textColor="@color/text_primary"
+                android:textSize="64sp" />
+
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/outfit_light"
+                android:includeFontPadding="false"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="38dp"
+            android:layout_marginEnd="56dp"
+            android:orientation="horizontal" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/favorites"
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:layout_gravity="top"
+            android:layout_marginTop="290dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="56dp"
+            android:paddingEnd="56dp" />
+        <TextView
+            android:id="@+id/move_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="56dp"
+            android:layout_marginTop="248dp"
+            android:layout_marginEnd="56dp"
+            android:alpha="0"
+            android:fontFamily="@font/outfit_light"
+            android:includeFontPadding="false"
+            android:text="@string/move_hint"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+        </com.alexmak.atvlauncher.FlatFrameLayout>
+
+        <LinearLayout
+            android:id="@+id/feed_block"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="460dp"
+            android:clipChildren="false"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/watch_heading"
+                style="@style/FeedHeading"
+                android:text="@string/heading_continue" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/watch_row"
+                style="@style/FeedRow" />
+
+            <include
+                android:id="@+id/watch_info"
+                layout="@layout/view_feed_info" />
+
+            <TextView
+                android:id="@+id/mixed_heading"
+                android:layout_marginTop="8dp"
+                style="@style/FeedHeading"
+                android:text="@string/heading_recommended" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/mixed_row"
+                style="@style/FeedRow" />
+
+            <include
+                android:id="@+id/mixed_info"
+                layout="@layout/view_feed_info" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <com.alexmak.atvlauncher.GlassMenu
+        android:id="@+id/menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</FrameLayout>
