@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Total 94dp = FeedPageShift.INFO_DP: 4 margin + 90 field (30 line + 2 gap + 56 description + 2 spare). -->
-<com.alexmak.atvlauncher.FeedInfoField xmlns:android="http://schemas.android.com/apk/res/android"
+<com.johnmak.atvlauncher.FeedInfoField xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="90dp"
     android:layout_marginStart="56dp"
@@ -93,4 +93,4 @@
         android:maxWidth="760dp"
         android:textColor="@color/text_secondary"
         android:textSize="14sp" />
-</com.alexmak.atvlauncher.FeedInfoField>
+</com.johnmak.atvlauncher.FeedInfoField>

@@ -12,12 +12,12 @@
         android:layout_marginTop="8dp"
         android:clipChildren="false">
 
-        <com.alexmak.atvlauncher.ShadowView
+        <com.johnmak.atvlauncher.ShadowView
             android:id="@+id/shadow"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <com.alexmak.atvlauncher.DimImageView
+        <com.johnmak.atvlauncher.DimImageView
             android:id="@+id/tile_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

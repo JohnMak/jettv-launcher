@@ -4,13 +4,13 @@
     android:layout_height="match_parent"
     android:clipChildren="false">
 
-    <com.alexmak.atvlauncher.ShadowView
+    <com.johnmak.atvlauncher.ShadowView
         android:id="@+id/shadow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="7dp" />
 
-    <com.alexmak.atvlauncher.DimImageView
+    <com.johnmak.atvlauncher.DimImageView
         android:id="@+id/card_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,7 +20,7 @@
         android:scaleType="centerCrop" />
 
     <!-- Source app: flush with the poster's bottom-left corner; poster height (preview scale), badge margin, pivot and corners are set in FeedAdapter -->
-    <com.alexmak.atvlauncher.DimImageView
+    <com.johnmak.atvlauncher.DimImageView
         android:id="@+id/card_badge"
         android:layout_width="22dp"
         android:layout_height="22dp"

@@ -13,7 +13,7 @@
         android:importantForAccessibility="no"
         android:scaleType="centerCrop" />
 
-    <com.alexmak.atvlauncher.BackdropImageView
+    <com.johnmak.atvlauncher.BackdropImageView
         android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -26,12 +26,12 @@
         android:layout_height="1030dp"
         android:clipChildren="false">
 
-        <com.alexmak.atvlauncher.GlassView
+        <com.johnmak.atvlauncher.GlassView
             android:id="@+id/glass"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <com.alexmak.atvlauncher.FlatFrameLayout
+        <com.johnmak.atvlauncher.FlatFrameLayout
             android:id="@+id/top_block"
             android:layout_width="match_parent"
             android:layout_height="460dp"
@@ -102,7 +102,7 @@
             android:text="@string/move_hint"
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
-        </com.alexmak.atvlauncher.FlatFrameLayout>
+        </com.johnmak.atvlauncher.FlatFrameLayout>
 
         <LinearLayout
             android:id="@+id/feed_block"
@@ -141,12 +141,12 @@
         </LinearLayout>
     </FrameLayout>
 
-    <com.alexmak.atvlauncher.GlassMenu
+    <com.johnmak.atvlauncher.GlassMenu
         android:id="@+id/menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <com.alexmak.atvlauncher.BrightnessPopup
+    <com.johnmak.atvlauncher.BrightnessPopup
         android:id="@+id/brightness_popup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />

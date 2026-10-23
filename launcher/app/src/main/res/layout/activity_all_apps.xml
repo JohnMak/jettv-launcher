@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <com.alexmak.atvlauncher.GlassView
+    <com.johnmak.atvlauncher.GlassView
         android:id="@+id/glass"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
@@ -43,7 +43,7 @@
         android:paddingEnd="40dp"
         android:paddingBottom="24dp" />
 
-    <com.alexmak.atvlauncher.GlassMenu
+    <com.johnmak.atvlauncher.GlassMenu
         android:id="@+id/menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
