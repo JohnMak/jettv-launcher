@@ -1,12 +1,17 @@
 package com.alexmak.atvlauncher;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Pure key/mode logic of the top-bar brightness item. The owner reports focus gained or lost on the sun item and
- * the D-pad keys; the model answers with the single action to execute. Adjust mode exists only while the sun is
- * focused: OK enters it, OK or BACK leave it, LEFT/RIGHT step the level and UP/DOWN are swallowed.
+ * the D-pad keys; the model answers with the actions to execute in order. Adjust mode exists only while the sun is
+ * focused: DOWN enters it, LEFT/RIGHT step the level, UP or BACK leave it and DOWN leaves it, hides the popup and
+ * lets the owner move focus down to the content. The sun has no OK action.
  */
 final class BrightnessKeyModel {
-    enum Key { OK, BACK, LEFT, RIGHT, UP, DOWN }
+    enum Key { BACK, LEFT, RIGHT, UP, DOWN }
 
     enum Kind {
         /** Show the popup under the sun and refresh the level. */
@@ -17,9 +22,7 @@ final class BrightnessKeyModel {
         EXIT_ADJUST,
         /** Move the level by {@link Action#delta}. */
         STEP,
-        /** The key is handled and must do nothing else. */
-        CONSUME,
-        /** Not ours: normal handling continues. */
+        /** Normal handling of the key continues after the other actions of the list ran. */
         PASS
     }
 
@@ -28,7 +31,6 @@ final class BrightnessKeyModel {
         static final Action HIDE = new Action(Kind.HIDE, 0);
         static final Action ENTER_ADJUST = new Action(Kind.ENTER_ADJUST, 0);
         static final Action EXIT_ADJUST = new Action(Kind.EXIT_ADJUST, 0);
-        static final Action CONSUME = new Action(Kind.CONSUME, 0);
         static final Action PASS = new Action(Kind.PASS, 0);
 
         final Kind kind;
@@ -61,24 +63,35 @@ final class BrightnessKeyModel {
         return Action.HIDE;
     }
 
-    Action onKey(Key key) {
-        if (!onSun) return Action.PASS;
+    private static final List<Action> PASS_ONLY = Collections.singletonList(Action.PASS);
+    private static final List<Action> ENTER = Collections.singletonList(Action.ENTER_ADJUST);
+    private static final List<Action> EXIT = Collections.singletonList(Action.EXIT_ADJUST);
+    private static final List<Action> LEAVE_DOWN =
+            Collections.unmodifiableList(Arrays.asList(Action.EXIT_ADJUST, Action.HIDE, Action.PASS));
+    private static final List<Action> STEP_LEFT = Collections.singletonList(Action.step(-1));
+    private static final List<Action> STEP_RIGHT = Collections.singletonList(Action.step(1));
+
+    /** Immutable actions for the key, in execution order; a list containing PASS leaves the key to normal handling. */
+    List<Action> onKey(Key key) {
+        if (!onSun) return PASS_ONLY;
         if (!adjusting) {
-            if (key != Key.OK) return Action.PASS;
+            if (key != Key.DOWN) return PASS_ONLY;
             adjusting = true;
-            return Action.ENTER_ADJUST;
+            return ENTER;
         }
         switch (key) {
-            case OK:
+            case LEFT:
+                return STEP_LEFT;
+            case RIGHT:
+                return STEP_RIGHT;
+            case UP:
             case BACK:
                 adjusting = false;
-                return Action.EXIT_ADJUST;
-            case LEFT:
-                return Action.step(-1);
-            case RIGHT:
-                return Action.step(1);
-            default:
-                return Action.CONSUME;
+                return EXIT;
+            default: // DOWN: the popup goes away with the focus that is about to move to the content
+                adjusting = false;
+                onSun = false;
+                return LEAVE_DOWN;
         }
     }
 }

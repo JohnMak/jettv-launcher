@@ -1,22 +1,22 @@
 package com.alexmak.atvlauncher;
 
 /**
- * The unified 18-position brightness scale 0..17 (= number of filled dashes). Positions 0..3 dim the picture at the
- * minimum lamp level, 4..13 walk the lamp 1..10 at the neutral picture, 14..17 boost the picture at the maximum lamp level. Brightness and
- * contrast always carry the same picture value.
+ * The unified 16-position brightness scale 0..15 (= number of filled dashes). Positions 0..2 dim the picture at the
+ * minimum lamp level, 3..12 walk the lamp 1..10 at the neutral picture, 13..15 boost the picture at the maximum lamp
+ * level. Brightness and contrast always carry the same picture value.
  */
 final class BrightnessScale {
     static final int MIN_POSITION = 0;
-    static final int MAX_POSITION = 17;
+    static final int MAX_POSITION = 15;
     /** Number of positions left of the lamp zone (picture below neutral) and right of it (above neutral). */
-    static final int ZONE_SIZE = 4;
+    static final int ZONE_SIZE = 3;
     static final int NEUTRAL_PICTURE = 50;
 
     /** Picture value per position, index = position; the only place these numbers live. */
     private static final int[] PICTURE = {
-            20, 27, 35, 42,
+            27, 35, 42,
             50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
-            57, 65, 72, 80};
+            57, 65, 72};
 
     private BrightnessScale() {}
 
@@ -73,7 +73,7 @@ final class BrightnessScale {
         if (lamp.value() == LampLevel.MIN_LEVEL && picture < NEUTRAL_PICTURE) {
             first = MIN_POSITION;
         } else if (lamp.value() == LampLevel.MAX_LEVEL && picture > NEUTRAL_PICTURE) {
-            first = MAX_POSITION - ZONE_SIZE + 1; // 14
+            first = MAX_POSITION - ZONE_SIZE + 1; // 13
         } else {
             return Position.of(lamp.value() + ZONE_SIZE - 1).value();
         }

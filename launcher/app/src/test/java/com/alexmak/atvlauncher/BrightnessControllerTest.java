@@ -97,7 +97,7 @@ public class BrightnessControllerTest {
         settle();
         assertEquals(2, states.size());
         assertEquals(LampState.Kind.READY, last().kind);
-        assertEquals(10, last().position);
+        assertEquals(9, last().position);
         assertEquals(READBACK, shell.commands);
     }
 
@@ -105,7 +105,7 @@ public class BrightnessControllerTest {
         device(10, 50, 30);
         c.refresh();
         settle();
-        assertEquals(13, last().position);
+        assertEquals(12, last().position);
     }
 
     @Test public void refreshErrorMessagePerKind() {
@@ -146,69 +146,69 @@ public class BrightnessControllerTest {
     }
 
     @Test public void stepInLampZoneWritesLampOnlyThenReadsBack() {
-        refreshToPosition(8);
+        refreshToPosition(7);
         scriptWrites(1);
         device(6, 50, 50);
         c.step(1);
-        assertEquals(9, last().position); // before any worker work
+        assertEquals(8, last().position); // before any worker work
         assertTrue(shell.commands.isEmpty());
         settle();
         assertCommands("gmpfUnit setDlpLumensLevel 6");
-        assertEquals(9, last().position);
+        assertEquals(8, last().position);
     }
 
     @Test public void stepDownIntoLeftZoneWritesPictureOnly() {
-        refreshToPosition(4);
+        refreshToPosition(3);
         scriptWrites(2);
         device(1, 42, 42);
         c.step(-1);
         settle();
         assertCommands("gmpfUnit setBrightness 0 42", "gmpfUnit setContrast 0 42");
-        assertEquals(3, last().position);
+        assertEquals(2, last().position);
     }
 
     @Test public void stepUpOutOfLeftZoneWritesNeutralPictureOnly() {
-        refreshToPosition(3);
+        refreshToPosition(2);
         scriptWrites(2);
         device(1, 50, 50);
         c.step(1);
         settle();
         assertCommands("gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");
-        assertEquals(4, last().position);
+        assertEquals(3, last().position);
     }
 
     @Test public void stepIntoRightZoneWritesPictureOnly() {
-        refreshToPosition(13);
+        refreshToPosition(12);
         scriptWrites(2);
         device(10, 57, 57);
         c.step(1);
         settle();
         assertCommands("gmpfUnit setBrightness 0 57", "gmpfUnit setContrast 0 57");
-        assertEquals(14, last().position);
+        assertEquals(13, last().position);
     }
 
     @Test public void decreasingPositionWritesLampBeforePicture() {
-        refreshToPosition(14); // lamp 10, picture 57
+        refreshToPosition(13); // lamp 10, picture 57
         scriptWrites(3);
         device(9, 50, 50);
-        c.step(-2); // F12: lamp 9, picture 50
+        c.step(-2); // F11: lamp 9, picture 50
         settle();
         assertCommands("gmpfUnit setDlpLumensLevel 9", "gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");
-        assertEquals(12, last().position);
+        assertEquals(11, last().position);
     }
 
     @Test public void increasingPositionWritesPictureBeforeLamp() {
-        refreshToPosition(3); // lamp 1, picture 42
+        refreshToPosition(2); // lamp 1, picture 42
         scriptWrites(3);
         device(2, 50, 50);
-        c.step(2); // F5: lamp 2, picture 50
+        c.step(2); // F4: lamp 2, picture 50
         settle();
         assertCommands("gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50", "gmpfUnit setDlpLumensLevel 2");
-        assertEquals(5, last().position);
+        assertEquals(4, last().position);
     }
 
     @Test public void offGridContrastIsNormalizedOnNextWrite() {
-        refreshTo(10, 50, 30); // F13, contrast off-grid
+        refreshTo(10, 50, 30); // F12, contrast off-grid
         scriptWrites(1);
         device(10, 50, 50);
         c.step(0);
@@ -217,22 +217,22 @@ public class BrightnessControllerTest {
     }
 
     @Test public void rapidStepsCoalesceIntoOneWriteSet() {
-        refreshToPosition(7);
+        refreshToPosition(6);
         scriptWrites(1);
         device(9, 50, 50);
         for (int i = 0; i < 5; i++) c.step(1);
-        assertEquals(12, last().position);
+        assertEquals(11, last().position);
         assertEquals(5, states.size());
         settle();
         assertCommands("gmpfUnit setDlpLumensLevel 9");
-        assertEquals(12, last().position);
+        assertEquals(11, last().position);
     }
 
     @Test public void clampsAtBounds() {
-        refreshToPosition(17);
-        device(10, 80, 80);
+        refreshToPosition(15);
+        device(10, 72, 72);
         c.step(1);
-        assertEquals(17, last().position);
+        assertEquals(15, last().position);
         settle();
         assertCommands(); // already at the target: nothing to write, only the readback
 
@@ -240,7 +240,7 @@ public class BrightnessControllerTest {
         shell.commands.clear();
         shell.scripted.clear();
         refreshToPosition(0);
-        device(1, 20, 20);
+        device(1, 27, 27);
         c.step(-1);
         assertEquals(0, last().position);
         settle();
@@ -248,33 +248,33 @@ public class BrightnessControllerTest {
     }
 
     @Test public void readbackMismatchEmitsRealPositionAndContinuesFromIt() {
-        refreshToPosition(8);
+        refreshToPosition(7);
         scriptWrites(1);
-        device(5, 50, 50); // device kept lamp 5 (F8) instead of 6
+        device(5, 50, 50); // device kept lamp 5 (F7) instead of 6
         c.step(1);
         settle();
-        assertEquals(8, last().position);
+        assertEquals(7, last().position);
         scriptWrites(1);
         device(6, 50, 50);
         c.step(1); // continues from the real value
-        assertEquals(9, last().position);
+        assertEquals(8, last().position);
         settle();
         assertEquals("gmpfUnit setDlpLumensLevel 6", shell.commands.get(4));
     }
 
     @Test public void writeFailureEmitsErrorKeepsLastGoodPositionAndRewritesEverything() {
-        refreshToPosition(14); // lamp 10, picture 57
+        refreshToPosition(13); // lamp 10, picture 57
         shell.ok("");          // lamp ok
         shell.fail(LampError.UNREACHABLE); // brightness fails
-        c.step(-2);            // F12
+        c.step(-2);            // F11
         settle();
         assertEquals(LampState.Kind.ERROR, last().kind);
         assertEquals(BrightnessController.MSG_UNREACHABLE, last().message);
         shell.commands.clear();
         scriptWrites(3);
         device(9, 50, 50);
-        c.step(-1); // 14 - 1 = 13, not 12 - 1
-        assertEquals(13, last().position);
+        c.step(-1); // 13 - 1 = 12, not 11 - 1
+        assertEquals(12, last().position);
         settle();
         // known device state was forgotten after the failure: everything is rewritten
         assertCommands("gmpfUnit setDlpLumensLevel 10", "gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");

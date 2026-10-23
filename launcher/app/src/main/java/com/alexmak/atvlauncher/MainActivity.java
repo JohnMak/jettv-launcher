@@ -989,7 +989,7 @@ public final class MainActivity extends Activity {
                 else if (dir == FocusModel.Dir.RIGHT) moveFavorite(1);
                 break;
             default:
-                if (runBrightness(brightnessKeys.onKey(brightnessKey(dir)))) break;
+                if (runBrightnessKey(brightnessKeys.onKey(brightnessKey(dir)))) break;
                 if (focus.move(dir)) { // a press clamped at the row end changes nothing
                     syncBrightness();
                     scheduleFocusVisuals();
@@ -1009,7 +1009,7 @@ public final class MainActivity extends Activity {
 
     private void onBack() {
         if (mode != Mode.NAVIGATE) endMenuAndMove();
-        else runBrightness(brightnessKeys.onKey(BrightnessKeyModel.Key.BACK));
+        else runBrightnessKey(brightnessKeys.onKey(BrightnessKeyModel.Key.BACK));
     }
 
     private boolean sunFocused() {
@@ -1021,7 +1021,19 @@ public final class MainActivity extends Activity {
         runBrightness(brightnessKeys.onFocus(sunFocused()));
     }
 
-    /** Executes a brightness action; returns whether the key was handled (not PASS). */
+    /**
+     * Executes the actions the model answered for a key, in order; returns whether the key was fully handled
+     * (the list has no PASS, otherwise normal key handling continues).
+     */
+    private boolean runBrightnessKey(List<BrightnessKeyModel.Action> actions) {
+        boolean handled = true;
+        for (BrightnessKeyModel.Action action : actions) {
+            if (!runBrightness(action)) handled = false;
+        }
+        return handled;
+    }
+
+    /** Executes one brightness action; returns false for PASS. */
     private boolean runBrightness(BrightnessKeyModel.Action action) {
         switch (action.kind) {
             case SHOW:
@@ -1040,8 +1052,6 @@ public final class MainActivity extends Activity {
                 return true;
             case STEP:
                 lamp.step(action.delta);
-                return true;
-            case CONSUME:
                 return true;
             default:
                 return false;
@@ -1073,7 +1083,6 @@ public final class MainActivity extends Activity {
             default:
                 break;
         }
-        if (runBrightness(brightnessKeys.onKey(BrightnessKeyModel.Key.OK))) return;
         switch (focus.zone()) {
             case WEATHER:
                 if (zonePrefs.location() == null) LauncherSettingsActivity.open(this, true);
@@ -1083,7 +1092,7 @@ public final class MainActivity extends Activity {
                 TopBarItem item = visibleTopItems().get(focus.index());
                 if (item == vpnItem) onVpnPressed();
                 else if (item == wifiItem) startSystem(Settings.ACTION_WIFI_SETTINGS);
-                else if (item == brightnessItem) break; // handled by the brightness model above
+                else if (item == brightnessItem) break; // the sun has no OK action
                 else if (item == launcherSettingsItem) LauncherSettingsActivity.open(this, false);
                 else startSystem(Settings.ACTION_SETTINGS);
                 break;

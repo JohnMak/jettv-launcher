@@ -26,3 +26,5 @@ cloud-fog
 cloud-off
 shield-lock
 sliders-horizontal
+image
+lightbulb

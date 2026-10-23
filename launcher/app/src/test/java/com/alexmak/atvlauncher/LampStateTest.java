@@ -19,7 +19,7 @@ public class LampStateTest {
 
     @Test
     public void readyRejectsOutOfRangePositions() {
-        for (int position : new int[] {-1, 18, 100}) {
+        for (int position : new int[] {-1, 16, 100}) {
             try {
                 LampState.ready(position);
                 fail("position " + position + " must be rejected");
