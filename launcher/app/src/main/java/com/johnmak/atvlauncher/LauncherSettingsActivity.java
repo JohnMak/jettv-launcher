@@ -275,6 +275,10 @@ public final class LauncherSettingsActivity extends Activity {
         addRow(R.string.settings_vpn_app, this::vpnAppText, null,
                 () -> changeVpnApp(-1), () -> changeVpnApp(1));
 
+        addSection(R.string.settings_section_system);
+        addRow(R.string.settings_cleanup, null,
+                () -> startActivity(new Intent(this, SystemCleanupActivity.class)), null, null);
+
         addSection(R.string.settings_section_about);
         updateRow = rows.size();
         addRow(R.string.settings_check_update, this::updateText,

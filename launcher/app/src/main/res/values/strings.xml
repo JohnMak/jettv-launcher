@@ -98,4 +98,25 @@
     <string name="settings_right_home">Лаунчер</string>
     <string name="settings_set_home">Сделать лаунчером по умолчанию</string>
     <string name="feed_configure">Настроить</string>
+    <string name="settings_section_system">Система</string>
+    <string name="settings_cleanup">Очистка системы</string>
+    <string name="cleanup_title">Очистка системы</string>
+    <string name="cleanup_loading">Читаю список приложений…</string>
+    <string name="cleanup_auto">Сделать автоматически</string>
+    <string name="cleanup_auto_actions">%1$d действий по профилю %2$s</string>
+    <string name="cleanup_auto_none_left">Профиль %1$s: всё уже сделано</string>
+    <string name="cleanup_no_profile">Профиль для этого устройства не найден</string>
+    <string name="cleanup_confirm">Нажмите ещё раз для подтверждения</string>
+    <string name="cleanup_progress">%1$d / %2$d</string>
+    <string name="cleanup_done">Готово: %1$d, ошибок: %2$d</string>
+    <string name="cleanup_failed">Не удалось (%1$s)</string>
+    <string name="cleanup_recommended">★ рекомендуется</string>
+    <string name="cleanup_ours">★ из вашей очистки</string>
+    <string name="cleanup_working">Выполняю…</string>
+    <string name="cleanup_log_broken">Журнал очистки повреждён и начат заново</string>
+    <string name="cleanup_section_auto">Автоматически</string>
+    <string name="cleanup_section_remove">Можно удалить</string>
+    <string name="cleanup_section_disable">Можно отключить</string>
+    <string name="cleanup_section_updates">Удалить обновления</string>
+    <string name="cleanup_section_restore">Вернуть</string>
 </resources>

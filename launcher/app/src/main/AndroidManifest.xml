@@ -21,6 +21,11 @@
         android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
 
+    <!-- Cleanup screen: the inventory of every installed package, system ones included. -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -76,6 +81,13 @@
             android:exported="false"
             android:screenOrientation="landscape"
             android:windowSoftInputMode="stateHidden|adjustPan" />
+
+        <activity
+            android:name=".SystemCleanupActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|uiMode|density|locale|layoutDirection"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:screenOrientation="landscape" />
 
 
 
