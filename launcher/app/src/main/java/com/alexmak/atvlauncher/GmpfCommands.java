@@ -13,4 +13,12 @@ final class GmpfCommands {
     static String setLevel(LampLevel level) {
         return "gmpfUnit setDlpLumensLevel " + level.value();
     }
+
+    private static final java.util.regex.Pattern VALID =
+            java.util.regex.Pattern.compile("gmpfUnit [A-Za-z]+( [0-9]{1,3})?");
+
+    /** True only for `gmpfUnit <Name>` or `gmpfUnit <Name> <number>`: no shell metacharacters can pass. */
+    static boolean isValid(String command) {
+        return command != null && VALID.matcher(command).matches();
+    }
 }

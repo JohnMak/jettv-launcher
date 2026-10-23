@@ -38,6 +38,8 @@ android {
 
 dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    // ADB client over TCP (Apache-2.0); lamp commands go to the device's own adbd on loopback.
+    implementation 'dev.mobile:dadb:2.0.0'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20231013'
 }

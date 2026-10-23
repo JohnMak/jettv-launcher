@@ -1,0 +1,76 @@
+package com.alexmak.atvlauncher;
+
+import android.content.Context;
+
+import java.io.File;
+import java.io.IOException;
+
+import dadb.AdbKeyPair;
+import dadb.AdbShellResponse;
+import dadb.Dadb;
+
+/**
+ * {@link LampShell} over the device's own adbd on 127.0.0.1:5555 (dadb). The RSA key lives in the app's
+ * private files; the first connection shows a one-time "Allow USB debugging?" dialog. One connection is
+ * kept; a failure drops it so the next call reconnects. Blocking, worker thread only; calls are serialized.
+ */
+final class LoopbackAdbShell implements LampShell {
+    private static final String HOST = "127.0.0.1";
+    private static final int PORT = 5555;
+    private static final int CONNECT_TIMEOUT_MS = 3_000;
+    /** Also how long the user has to answer the first-time authorization dialog. */
+    private static final int SOCKET_TIMEOUT_MS = 30_000;
+
+    private final File keyDir;
+    private AdbKeyPair keys;
+    private Dadb adb;
+
+    LoopbackAdbShell(Context context) {
+        this.keyDir = new File(context.getFilesDir(), "adb");
+    }
+
+    @Override
+    public synchronized FetchResult<String> exec(String command) {
+        if (!GmpfCommands.isValid(command)) {
+            return LampError.fail(LampError.COMMAND_FAILED, "rejected, not a gmpfUnit command: " + command);
+        }
+        try {
+            if (adb == null) adb = Dadb.create(HOST, PORT, keys(), CONNECT_TIMEOUT_MS, SOCKET_TIMEOUT_MS);
+            AdbShellResponse response = adb.shell(command);
+            String output = response.getAllOutput();
+            LampError failure = LampErrorClassifier.classifyOutput(response.getExitCode(), output);
+            if (failure == null) return FetchResult.ok(response.getOutput());
+            return LampError.fail(failure, "rc=" + response.getExitCode() + " " + output.trim());
+        } catch (IOException e) {
+            dropConnection();
+            return LampError.fail(LampErrorClassifier.classify(e), String.valueOf(e.getMessage()));
+        }
+    }
+
+    private AdbKeyPair keys() throws IOException {
+        if (keys != null) return keys;
+        File priv = new File(keyDir, "adbkey");
+        File pub = new File(keyDir, "adbkey.pub");
+        if (!priv.isFile() || !pub.isFile()) {
+            if (!keyDir.isDirectory() && !keyDir.mkdirs()) throw new IOException("cannot create " + keyDir);
+            AdbKeyPair.generate(priv, pub);
+        }
+        keys = AdbKeyPair.read(priv, pub);
+        return keys;
+    }
+
+    private void dropConnection() {
+        if (adb == null) return;
+        try {
+            adb.close();
+        } catch (Exception ignored) {
+            // already broken; the next exec reconnects
+        }
+        adb = null;
+    }
+
+    @Override
+    public synchronized void close() {
+        dropConnection();
+    }
+}
