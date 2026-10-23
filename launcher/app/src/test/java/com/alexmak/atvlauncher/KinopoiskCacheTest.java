@@ -17,7 +17,7 @@ import org.junit.rules.TemporaryFolder;
 public class KinopoiskCacheTest {
     private static final long T0 = 1_000_000_000_000L;
     private static final long HOUR = 60L * 60 * 1000;
-    private static final KinopoiskInfo HIT = new KinopoiskInfo("7.9", "8.1", "Описание.");
+    private static final KinopoiskInfo HIT = new KinopoiskInfo("7.9", "8.1");
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
@@ -56,8 +56,15 @@ public class KinopoiskCacheTest {
         KinopoiskInfo a = again.get("a", T0 + HOUR);
         assertEquals("7.9", a.kp);
         assertEquals("8.1", a.imdb);
-        assertEquals("Описание.", a.description);
         assertTrue(again.get("b", T0 + HOUR).isEmpty());
+    }
+
+    @Test
+    public void fileOfAnotherVersionIsDiscarded() throws java.io.IOException {
+        File file = new File(tmp.getRoot(), "old.json");
+        java.nio.file.Files.write(file.toPath(),
+                "{\"k\":{\"t\":1,\"kp\":\"7.9\",\"imdb\":\"8.1\",\"d\":\"x\"}}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        assertEquals(0, KinopoiskCache.load(file).value().size());
     }
 
     @Test

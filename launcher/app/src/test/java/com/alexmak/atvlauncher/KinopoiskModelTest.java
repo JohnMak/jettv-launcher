@@ -71,35 +71,37 @@ public class KinopoiskModelTest {
 
     @Test
     public void seriesFilmFixture() throws IOException {
-        KinopoiskInfo info = KinopoiskModel.parseFilm(res("kp_film_series.json")).value();
+        KinopoiskInfo info = KinopoiskModel.parseFilm(res("kp_film_series.json"), 2008).value();
         assertEquals("8.9", info.kp);
         assertEquals("9.5", info.imdb);
-        assertTrue(info.description.startsWith("Умирающий учитель химии"));
-        assertFalse(info.description.contains(" "));
     }
 
     @Test
     public void movieFilmFixture() throws IOException {
-        KinopoiskInfo info = KinopoiskModel.parseFilm(res("kp_film_movie.json")).value();
+        KinopoiskInfo info = KinopoiskModel.parseFilm(res("kp_film_movie.json"), 2019).value();
         assertEquals("7.2", info.kp);
         assertEquals("7.3", info.imdb);
-        assertTrue(info.description.startsWith("Джесси (Аарон Пол) бежит"));
     }
 
     @Test
-    public void missingKpRatingAndShortDescriptionFallBack() throws IOException {
-        KinopoiskInfo info = KinopoiskModel.parseFilm(res("kp_film_no_kp_rating.json")).value();
+    public void missingKpRatingIsEmpty() throws IOException {
+        KinopoiskInfo info = KinopoiskModel.parseFilm(res("kp_film_no_kp_rating.json"), 2018).value();
         assertEquals("", info.kp);
         assertEquals("6.3", info.imdb);
-        assertTrue("full description cut to sentences", info.description.startsWith("Успешный бизнесмен всю жизнь"));
-        assertTrue(info.description.length() <= 400);
+    }
+
+    @Test
+    public void filmOfAnotherYearHasNoRatings() throws IOException {
+        assertTrue(KinopoiskModel.parseFilm(res("kp_film_series.json"), 2009).value().isEmpty());
+        assertTrue(KinopoiskModel.parseFilm(res("kp_film_series.json"), 2007).value().isEmpty());
+        assertTrue(KinopoiskModel.parseFilm(res("kp_film_series.json"), 0).value().isEmpty());
     }
 
     @Test
     public void filmRejectsGarbage() {
-        assertFalse(KinopoiskModel.parseFilm("").isOk());
-        assertFalse(KinopoiskModel.parseFilm("{").isOk());
-        assertFalse(KinopoiskModel.parseFilm("{\"message\":\"Not found\"}").isOk());
-        assertEquals("", KinopoiskModel.parseFilm("{\"kinopoiskId\":1,\"ratingKinopoisk\":0,\"ratingImdb\":null}").value().kp);
+        assertFalse(KinopoiskModel.parseFilm("", 2000).isOk());
+        assertFalse(KinopoiskModel.parseFilm("{", 2000).isOk());
+        assertFalse(KinopoiskModel.parseFilm("{\"message\":\"Not found\"}", 2000).isOk());
+        assertEquals("", KinopoiskModel.parseFilm("{\"kinopoiskId\":1,\"year\":2000,\"ratingKinopoisk\":0,\"ratingImdb\":null}", 2000).value().kp);
     }
 }

@@ -32,7 +32,7 @@ final class KinopoiskClient {
         if (!match.isPresent()) return FetchResult.ok(KinopoiskInfo.NONE);
         FetchResult<String> film = get(KinopoiskModel.filmUrl(match.get().id));
         if (!film.isOk()) return FetchResult.err(film.error());
-        return KinopoiskModel.parseFilm(film.value());
+        return KinopoiskModel.parseFilm(film.value(), year);
     }
 
     private FetchResult<String> get(String url) {

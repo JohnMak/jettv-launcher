@@ -50,14 +50,17 @@ final class KinopoiskModel {
         }
     }
 
-    /** Ratings (one decimal, empty when absent or not positive) and the description of one film. */
-    static FetchResult<KinopoiskInfo> parseFilm(String json) {
+    /**
+     * Ratings (one decimal, empty when absent or not positive) of one film, only when its year equals {@code year}
+     * exactly; any other film year gives {@link KinopoiskInfo#NONE}.
+     */
+    static FetchResult<KinopoiskInfo> parseFilm(String json, int year) {
         if (json == null || json.isEmpty()) return FetchResult.err("empty kinopoisk film response");
         try {
             JSONObject f = new JSONObject(json);
             if (f.optLong("kinopoiskId", 0) <= 0) return FetchResult.err("kinopoisk film: no kinopoiskId");
-            return FetchResult.ok(new KinopoiskInfo(rating(f.opt("ratingKinopoisk")), rating(f.opt("ratingImdb")),
-                    KinopoiskInfo.describe(text(f, "shortDescription"), text(f, "description"))));
+            if (year <= 0 || number(f.opt("year")) != year) return FetchResult.ok(KinopoiskInfo.NONE);
+            return FetchResult.ok(new KinopoiskInfo(rating(f.opt("ratingKinopoisk")), rating(f.opt("ratingImdb"))));
         } catch (JSONException e) {
             return FetchResult.err("kinopoisk film: " + e.getMessage());
         }

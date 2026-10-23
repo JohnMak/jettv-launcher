@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * Info field under a feed row, built from separate views so spacing and vertical centring are plain layout.
- * Line 1: title (extra bold) [season / episode] [app rating icon + number] [КП n] [IMDb n]; below it the Kinopoisk
+ * Line 1: title (extra bold) [season / episode] [app rating icon + number] [КП n] [IMDb n]; below it the app's own
  * description (up to 3 lines). It always occupies its fixed height; visibility is only its alpha, so showing,
  * hiding or late data never shifts the layout.
  */
@@ -64,7 +64,11 @@ public final class FeedInfoField extends LinearLayout {
         kp.setVisibility(external.kp.isEmpty() ? GONE : VISIBLE);
         imdbText.setText(external.imdb);
         imdb.setVisibility(external.imdb.isEmpty() ? GONE : VISIBLE);
-        description.setText(external.description);
+    }
+
+    /** The description line under the title (the feed item's own text; empty hides the text). */
+    void setDescription(String text) {
+        description.setText(text);
     }
 
     void setShown(boolean shown) {

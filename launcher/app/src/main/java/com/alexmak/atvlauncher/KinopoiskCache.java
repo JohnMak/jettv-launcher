@@ -23,6 +23,9 @@ final class KinopoiskCache {
     static final long HIT_TTL_MS = 7L * 24 * 60 * 60 * 1000;
     static final long MISS_TTL_MS = 24L * 60 * 60 * 1000;
     static final int MAX_ENTRIES = 400;
+    /** File format / matching rules version; a file of another version is discarded (its matches used other rules). */
+    private static final String VERSION_KEY = "_v";
+    private static final int VERSION = 2;
 
     private static final class Entry {
         final long savedAt;
@@ -59,11 +62,13 @@ final class KinopoiskCache {
         try {
             String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
             JSONObject root = new JSONObject(text);
+            if (root.optInt(VERSION_KEY, 0) != VERSION) return FetchResult.ok(empty(file));
             for (Iterator<String> it = root.keys(); it.hasNext(); ) {
                 String key = it.next();
+                if (key.equals(VERSION_KEY)) continue;
                 JSONObject e = root.getJSONObject(key);
                 map.put(key, new Entry(e.getLong("t"),
-                        new KinopoiskInfo(e.getString("kp"), e.getString("imdb"), e.getString("d"))));
+                        new KinopoiskInfo(e.getString("kp"), e.getString("imdb"))));
             }
             return FetchResult.ok(new KinopoiskCache(file, map));
         } catch (IOException | JSONException e) {
@@ -88,13 +93,12 @@ final class KinopoiskCache {
         sorted.sort((a, b) -> Long.compare(a.getValue().savedAt, b.getValue().savedAt));
         for (int i = 0; i < sorted.size() - MAX_ENTRIES; i++) entries.remove(sorted.get(i).getKey());
         try {
-            JSONObject root = new JSONObject();
+            JSONObject root = new JSONObject().put(VERSION_KEY, VERSION);
             for (Map.Entry<String, Entry> e : entries.entrySet()) {
                 root.put(e.getKey(), new JSONObject()
                         .put("t", e.getValue().savedAt)
                         .put("kp", e.getValue().info.kp)
-                        .put("imdb", e.getValue().info.imdb)
-                        .put("d", e.getValue().info.description));
+                        .put("imdb", e.getValue().info.imdb));
             }
             File tmp = new File(file.getParentFile(), file.getName() + ".tmp");
             Files.write(tmp.toPath(), root.toString().getBytes(StandardCharsets.UTF_8));

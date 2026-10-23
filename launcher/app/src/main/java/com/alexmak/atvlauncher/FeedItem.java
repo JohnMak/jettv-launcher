@@ -29,10 +29,13 @@ final class FeedItem {
     final int year;
     /** TvContract COLUMN_TYPE (TYPE_MOVIE, TYPE_TV_SERIES, ...); {@link #NO_TYPE} when the program has none. */
     final int type;
+    /** App-provided description (long, else short), cut to three sentences; empty when the program has none. */
+    final String description;
 
     FeedItem(String packageName, String title, String posterUri, String intentUri, int posterAspect,
              long channelId, int weight, long engagementMillis, String reviewRating, int reviewRatingStyle,
-             String season, String episode, String releaseDate, int type) {
+             String season, String episode, String releaseDate, int type,
+             String longDescription, String shortDescription) {
         this.packageName = packageName;
         this.title = clean(title);
         this.posterUri = posterUri;
@@ -46,6 +49,7 @@ final class FeedItem {
         this.episode = clean(episode);
         this.year = parseYear(releaseDate);
         this.type = type;
+        this.description = FeedDescription.of(longDescription, shortDescription);
     }
 
     /** Card width / height: the poster ratio, kept between a slim poster and widescreen. */

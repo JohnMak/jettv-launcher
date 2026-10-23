@@ -37,8 +37,6 @@ final class TitleMatch {
     private static final int TYPE_TV_SERIES = 1;
     private static final int TYPE_TV_SEASON = 2;
     private static final int TYPE_TV_EPISODE = 3;
-    /** A release year may differ by this much between the app's data and Kinopoisk. */
-    private static final int YEAR_TOLERANCE = 1;
 
     // No UNICODE_CHARACTER_CLASS: Android 11 (API 30) rejects it ("Unsupported flags: 256"); ICU \p{L}/\s/\d are Unicode-aware there anyway.
     private static final int U = Pattern.UNICODE_CASE;
@@ -77,19 +75,17 @@ final class TitleMatch {
         return Kind.UNKNOWN;
     }
 
-    /**
-     * Cache key of a lookup. An episode's release date is the episode's, not the series', so it is left out;
-     * a title that normalises to nothing has no key (empty).
-     */
+    /** Cache key of a lookup; a title that normalises to nothing, or an unknown year (no lookup is made), has no key (empty). */
     static String key(String title, int year, Kind kind) {
         String name = normalize(title);
-        if (name.isEmpty()) return "";
-        return name + "|" + (kind == Kind.EPISODE ? 0 : year) + "|" + kind;
+        if (name.isEmpty() || year <= 0) return "";
+        return name + "|" + year + "|" + kind;
     }
 
     /**
-     * The candidate whose Russian or original name equals the title, of the right type and (except for episodes)
-     * within a year of the release year when both are known; most votes wins, search order breaks ties.
+     * The candidate whose Russian or original name equals the title, of the right type and with exactly the
+     * release year (series: start year); an unknown year on either side is no match. Most votes wins, search order
+     * breaks ties.
      */
     static Optional<Candidate> pick(String title, int year, Kind kind, List<Candidate> candidates) {
         String wanted = normalize(title);
@@ -98,7 +94,7 @@ final class TitleMatch {
         for (Candidate c : candidates) {
             if (!wanted.equals(normalize(c.nameRu)) && !wanted.equals(normalize(c.nameEn))) continue;
             if (!typeFits(kind, c.type)) continue;
-            if (kind != Kind.EPISODE && year > 0 && c.year > 0 && Math.abs(c.year - year) > YEAR_TOLERANCE) continue;
+            if (year <= 0 || c.year != year) continue;
             if (best == null || c.votes > best.votes) best = c;
         }
         return Optional.ofNullable(best);

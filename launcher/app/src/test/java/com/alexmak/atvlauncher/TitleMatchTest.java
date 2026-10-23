@@ -55,12 +55,13 @@ public class TitleMatchTest {
     }
 
     @Test
-    public void keyIgnoresNoiseAndEpisodeYear() {
+    public void keyIgnoresNoiseButNotYear() {
         assertEquals(TitleMatch.key("Во все тяжкие", 2008, TitleMatch.Kind.SERIES),
                 TitleMatch.key("ВО ВСЕ ТЯЖКИЕ (сериал)", 2008, TitleMatch.Kind.SERIES));
-        assertEquals(TitleMatch.key("X", 2011, TitleMatch.Kind.EPISODE), TitleMatch.key("X", 2020, TitleMatch.Kind.EPISODE));
+        assertFalse(TitleMatch.key("X", 2011, TitleMatch.Kind.EPISODE).equals(TitleMatch.key("X", 2020, TitleMatch.Kind.EPISODE)));
+        assertEquals("unknown year: no lookup, no key", "", TitleMatch.key("X", 0, TitleMatch.Kind.MOVIE));
         assertFalse(TitleMatch.key("X", 2011, TitleMatch.Kind.MOVIE).equals(TitleMatch.key("X", 2012, TitleMatch.Kind.MOVIE)));
-        assertFalse(TitleMatch.key("X", 0, TitleMatch.Kind.MOVIE).equals(TitleMatch.key("X", 0, TitleMatch.Kind.SERIES)));
+        assertFalse(TitleMatch.key("X", 2000, TitleMatch.Kind.MOVIE).equals(TitleMatch.key("X", 2000, TitleMatch.Kind.SERIES)));
         assertEquals("", TitleMatch.key("(2019)", 2019, TitleMatch.Kind.MOVIE));
     }
 
@@ -72,20 +73,21 @@ public class TitleMatchTest {
                 c(3, "El Camino: Во все тяжкие", "El Camino", "FILM", 2019, 111629),
                 c(4, "Во все тяжкие", "La calda vita", "FILM", 1964, 140));
         assertEquals(2, TitleMatch.pick("Во все тяжкие", 2008, TitleMatch.Kind.SERIES, list).get().id);
-        assertEquals(2, TitleMatch.pick("Breaking Bad", 0, TitleMatch.Kind.UNKNOWN, list).get().id);
-        assertEquals(2, TitleMatch.pick("Во все тяжкие", 0, TitleMatch.Kind.UNKNOWN, list).get().id);
+        assertEquals(2, TitleMatch.pick("Breaking Bad", 2008, TitleMatch.Kind.UNKNOWN, list).get().id);
         assertEquals(1, TitleMatch.pick("Во все тяжкие", 2018, TitleMatch.Kind.MOVIE, list).get().id);
-        assertEquals(1, TitleMatch.pick("Во все тяжкие", 2019, TitleMatch.Kind.MOVIE, list).get().id);
         assertEquals(4, TitleMatch.pick("Во все тяжкие", 1964, TitleMatch.Kind.MOVIE, list).get().id);
     }
 
     @Test
-    public void yearOutsideToleranceRejectsAndEpisodesIgnoreYear() {
+    public void onlyTheExactYearMatches() {
         List<TitleMatch.Candidate> list = Collections.singletonList(c(2, "Во все тяжкие", "Breaking Bad", "TV_SERIES", 2008, 10));
         assertFalse(TitleMatch.pick("Во все тяжкие", 2012, TitleMatch.Kind.SERIES, list).isPresent());
-        assertTrue(TitleMatch.pick("Во все тяжкие", 2009, TitleMatch.Kind.SERIES, list).isPresent());
-        assertTrue(TitleMatch.pick("Во все тяжкие", 2013, TitleMatch.Kind.EPISODE, list).isPresent());
-        assertTrue("unknown year on the candidate passes",
+        assertFalse("+1 year", TitleMatch.pick("Во все тяжкие", 2009, TitleMatch.Kind.SERIES, list).isPresent());
+        assertFalse("-1 year", TitleMatch.pick("Во все тяжкие", 2007, TitleMatch.Kind.SERIES, list).isPresent());
+        assertFalse("episode year is checked too", TitleMatch.pick("Во все тяжкие", 2013, TitleMatch.Kind.EPISODE, list).isPresent());
+        assertTrue(TitleMatch.pick("Во все тяжкие", 2008, TitleMatch.Kind.SERIES, list).isPresent());
+        assertFalse("unknown app year", TitleMatch.pick("Во все тяжкие", 0, TitleMatch.Kind.SERIES, list).isPresent());
+        assertFalse("unknown candidate year",
                 TitleMatch.pick("Х", 2012, TitleMatch.Kind.MOVIE, Collections.singletonList(c(5, "Х", "", "FILM", 0, 1))).isPresent());
     }
 
@@ -93,8 +95,8 @@ public class TitleMatchTest {
     public void noExactNameMeansNoMatch() {
         List<TitleMatch.Candidate> list = Collections.singletonList(c(3, "El Camino: Во все тяжкие", "El Camino", "FILM", 2019, 5));
         assertEquals(Optional.empty(), TitleMatch.pick("Во все тяжкие", 2019, TitleMatch.Kind.MOVIE, list));
-        assertEquals(Optional.empty(), TitleMatch.pick("", 0, TitleMatch.Kind.UNKNOWN, list));
-        assertEquals(Optional.empty(), TitleMatch.pick("X", 0, TitleMatch.Kind.UNKNOWN, Collections.emptyList()));
+        assertEquals(Optional.empty(), TitleMatch.pick("", 2000, TitleMatch.Kind.UNKNOWN, list));
+        assertEquals(Optional.empty(), TitleMatch.pick("X", 2000, TitleMatch.Kind.UNKNOWN, Collections.emptyList()));
     }
 
     @Test
