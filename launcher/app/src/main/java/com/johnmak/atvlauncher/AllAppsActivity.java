@@ -61,6 +61,7 @@ public final class AllAppsActivity extends Activity {
     private RecyclerView grid;
     private GlassView glass;
     private GlassMenu menu;
+    private Motion motion = Motion.ANIMATED;
     private float density;
 
     private LinearLayout headerBar;
@@ -85,6 +86,12 @@ public final class AllAppsActivity extends Activity {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(UiScale.wrap(base));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        motion = Motion.of(new LauncherSettingsStore(this).load());
     }
 
     @Override
@@ -320,7 +327,8 @@ public final class AllAppsActivity extends Activity {
         });
     }
 
-    private void applySelection(boolean animate) {
+    private void applySelection(boolean requestedAnimate) {
+        boolean animate = motion.focusAnimated(requestedAnimate);
         for (int i = 0; i < headerBar.getChildCount(); i++) {
             View icon = headerBar.getChildAt(i);
             boolean focused = focus.inHeader() && i == focus.headerIndex();

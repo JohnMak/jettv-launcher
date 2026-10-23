@@ -205,6 +205,7 @@ public final class MainActivity extends Activity {
     private FeedLoader feedLoader;
     private NetworkStatus network;
     private LauncherSettingsStore settingsStore;
+    private Motion motion = Motion.ANIMATED;
     /** VPN app of the top-bar button resolved from the settings; empty = button hidden. */
     private String vpnPackage = "";
     private String dateLang;
@@ -578,6 +579,8 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        motion = Motion.of(settingsStore.load());
+        backdrop.setMotion(motion);
         weather.start();
         refreshUsage();
         page.post(this::syncBrightness);
@@ -867,7 +870,8 @@ public final class MainActivity extends Activity {
     }
 
     /** Moves the glass to the current selection, scales tiles and shifts the page for the active zone. */
-    private void applySelection(boolean animate) {
+    private void applySelection(boolean requestedAnimate) {
+        boolean animate = motion.focusAnimated(requestedAnimate);
         boolean feed = inFeed();
         float shift = feed ? -FeedPageShift.shiftDp(focus.zone(), rowShown(FocusModel.Zone.WATCH_NEXT), previewScalePercent) * density : 0;
         if (pageShift != shift) {
@@ -876,12 +880,16 @@ public final class MainActivity extends Activity {
         }
         if (feedShown != feed) {
             feedShown = feed;
-            topBlock.animate().alpha(feed ? 0f : 1f).setDuration(300).start();
+            topBlock.animate().cancel();
+            if (motion.focusAnimated(true)) topBlock.animate().alpha(feed ? 0f : 1f).setDuration(300).start();
+            else topBlock.setAlpha(feed ? 0f : 1f);
         }
         boolean hint = mode == Mode.MOVE;
         if (hintShown != hint) {
             hintShown = hint;
-            moveHint.animate().alpha(hint ? 1f : 0f).setDuration(200).start();
+            moveHint.animate().cancel();
+            if (motion.focusAnimated(true)) moveHint.animate().alpha(hint ? 1f : 0f).setDuration(200).start();
+            else moveHint.setAlpha(hint ? 1f : 0f);
         }
         SelectionDelta.Selection next = currentSelection();
         SelectionDelta delta = SelectionDelta.between(appliedSelection, next);
@@ -892,8 +900,8 @@ public final class MainActivity extends Activity {
         mixedAdapter.setSelected(focus.zone() == FocusModel.Zone.MIXED && !focus.config() ? focus.index() : -1);
         if (delta.rowChanged || appliedConfig != focus.config()) {
             appliedConfig = focus.config();
-            watchInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.WATCH_NEXT, focus.zone()) && !focus.config());
-            mixedInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.MIXED, focus.zone()) && !focus.config());
+            watchInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.WATCH_NEXT, focus.zone()) && !focus.config(), motion.focusAnimated(true));
+            mixedInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.MIXED, focus.zone()) && !focus.config(), motion.focusAnimated(true));
         }
         applyConfigTile(watchConfig, FocusModel.Zone.WATCH_NEXT, watchAdapter, !watchPublishers.isEmpty(), animate);
         applyConfigTile(mixedConfig, FocusModel.Zone.MIXED, mixedAdapter, !mixedPublishers.isEmpty(), animate);

@@ -184,6 +184,13 @@ public final class SystemCleanupActivity extends Activity {
     private Map<String, Long> pss = new HashMap<>();
     private Map<String, Long> cpu = new HashMap<>();
     private boolean usageDenied;
+    private Motion motion = Motion.ANIMATED;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        motion = Motion.of(new LauncherSettingsStore(this).load());
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -652,7 +659,8 @@ public final class SystemCleanupActivity extends Activity {
         });
     }
 
-    private void applyFocus(boolean animate) {
+    private void applyFocus(boolean requestedAnimate) {
+        boolean animate = motion.focusAnimated(requestedAnimate);
         View row;
         View glassTarget;
         View header = null;

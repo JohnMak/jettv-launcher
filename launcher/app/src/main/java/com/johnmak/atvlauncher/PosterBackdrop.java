@@ -20,10 +20,16 @@ final class PosterBackdrop {
     private final ImageView view;
     private BitmapDrawable shown;
     private ValueAnimator crossfade;
+    private boolean fades = true;
 
     PosterBackdrop(ImageView view) {
         this.view = view;
         view.setAlpha(0f);
+    }
+
+    /** False = backdrop changes swap and hide instantly (animations off). */
+    void setFades(boolean fades) {
+        this.fades = fades;
     }
 
     /** Shows a prepared backdrop bitmap (see {@link BackdropBlur}). */
@@ -32,7 +38,7 @@ final class PosterBackdrop {
         next.setFilterBitmap(true);
         next.setDither(true);
         if (crossfade != null) crossfade.cancel();
-        if (shown == null || view.getAlpha() == 0f) {
+        if (!fades || shown == null || view.getAlpha() == 0f) {
             view.setImageDrawable(next);
         } else {
             shown.setAlpha(255);
@@ -61,6 +67,11 @@ final class PosterBackdrop {
     }
 
     private void fadeTo(float alpha) {
+        if (!fades) {
+            view.animate().cancel();
+            view.setAlpha(alpha);
+            return;
+        }
         view.animate().alpha(alpha).setDuration(FADE_MS).setInterpolator(ease).withLayer().start();
     }
 }

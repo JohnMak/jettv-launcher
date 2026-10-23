@@ -107,6 +107,7 @@ public final class LauncherSettingsActivity extends Activity {
     private float density;
 
     private LauncherSettingsStore store;
+    private Motion motion = Motion.ANIMATED;
     private WeatherPrefs weatherPrefs;
     private LauncherSettings settings;
     private List<VpnApps.App> vpnApps;
@@ -169,6 +170,7 @@ public final class LauncherSettingsActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        motion = Motion.of(store.load());
         refreshRights();
     }
 
@@ -671,7 +673,8 @@ public final class LauncherSettingsActivity extends Activity {
         });
     }
 
-    private void applyFocus(boolean animate) {
+    private void applyFocus(boolean requestedAnimate) {
+        boolean animate = motion.focusAnimated(requestedAnimate);
         for (int i = 0; i < rows.size(); i++) {
             Row r = rows.get(i);
             r.refresh(i == focus);

@@ -63,7 +63,9 @@ public final class FeedInfoField extends LinearLayout {
         description.setText(text);
     }
 
-    void setShown(boolean shown) {
-        animate().alpha(shown ? 1f : 0f).setDuration(FADE_MS).start();
+    void setShown(boolean shown, boolean animated) {
+        animate().cancel();
+        if (animated) animate().alpha(shown ? 1f : 0f).setDuration(FADE_MS).start();
+        else setAlpha(shown ? 1f : 0f);
     }
 }
