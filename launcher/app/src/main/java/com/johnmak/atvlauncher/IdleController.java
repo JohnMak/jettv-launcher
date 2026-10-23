@@ -61,12 +61,15 @@ final class IdleController {
         timeline = new IdleTimeline(settings);
         running = true;
         lastInput = SystemClock.uptimeMillis();
+        ScreensaverState.launcherStarted(lastInput);
         schedule();
     }
 
     /** Stops the timers and drops any dim immediately; call from onStop. */
     void stop() {
         running = false;
+        ScreensaverState.launcherStopped();
+        ScreensaverState.setInLauncher(false);
         main.removeCallbacks(tick);
         swallowUpOf = NO_KEY;
         stage = IdleTimeline.Stage.ACTIVE;
@@ -115,11 +118,13 @@ final class IdleController {
     private void touch() {
         if (!running) return;
         lastInput = SystemClock.uptimeMillis();
+        ScreensaverState.launcherInput(lastInput);
         schedule();
     }
 
     private void wake() {
         stage = IdleTimeline.Stage.ACTIVE;
+        ScreensaverState.setInLauncher(false);
         dim.animate().cancel();
         screensaver.animate().cancel();
         dim.animate().alpha(0f).setDuration(WAKE_MS).withEndAction(() -> hideIfActive(dim)).start();
@@ -154,6 +159,7 @@ final class IdleController {
                 break;
             case SCREENSAVER:
                 screensaver.animate().cancel();
+                ScreensaverState.setInLauncher(true);
                 onScreensaverStart.run();
                 screensaver.prepare(settings);
                 screensaver.setVisibility(View.VISIBLE);

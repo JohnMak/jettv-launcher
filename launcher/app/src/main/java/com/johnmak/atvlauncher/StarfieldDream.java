@@ -14,4 +14,16 @@ public final class StarfieldDream extends DreamService {
         screensaver.prepare(new LauncherSettingsStore(this).load());
         setContentView(screensaver);
     }
+
+    @Override
+    public void onDreamingStarted() {
+        super.onDreamingStarted();
+        ScreensaverState.setDream(true);
+    }
+
+    @Override
+    public void onDreamingStopped() {
+        ScreensaverState.setDream(false);
+        super.onDreamingStopped();
+    }
 }

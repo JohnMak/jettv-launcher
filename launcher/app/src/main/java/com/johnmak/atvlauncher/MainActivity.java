@@ -53,7 +53,6 @@ import java.util.concurrent.Executors;
 public final class MainActivity extends Activity {
     private static final String TAG = "AtvLauncher";
     private static final long FEED_DEBOUNCE_MS = 1000;
-    private static final long UPDATE_TICK_MS = 10L * 60 * 1000;
     /** Favorites layout constants (dp): tile width limits and the smallest gap before the row scrolls. */
     private static final int TILE_MIN_DP = 96;
     private static final int TILE_MAX_DP = 220;
@@ -176,7 +175,6 @@ public final class MainActivity extends Activity {
         vpnError = false;
         renderVpn();
     };
-    private final Runnable updateTick = this::onUpdateTick;
     private final Runnable refreshRunnable = this::refreshApps;
     private final Runnable feedRunnable = this::refreshFeed;
     private boolean selectionPending;
@@ -476,7 +474,7 @@ public final class MainActivity extends Activity {
         applyZone();
         applyFeedSettings();
         idle.start();
-        startUpdater();
+        UpdateController.instance(this); // first call starts the process-wide update tick
         updateVpnItemVisibility();
         if (backdropTrimmed) {
             backdropTrimmed = false;
@@ -484,20 +482,6 @@ public final class MainActivity extends Activity {
         }
         refreshApps();
         refreshFeed();
-    }
-
-    /** Announces a finished self-update once and runs the first policy evaluation; later ones follow on a timer. */
-    private void startUpdater() {
-        String updatedTo = UpdateController.instance(this).consumeUpdatedVersion();
-        if (updatedTo != null) Toast.makeText(this, getString(R.string.update_done, updatedTo), Toast.LENGTH_LONG).show();
-        main.removeCallbacks(updateTick);
-        onUpdateTick();
-    }
-
-    /** Checks are due on start and daily; a verified update installs after 10 idle minutes (cheap: no I/O unless due). */
-    private void onUpdateTick() {
-        UpdateController.instance(this).onTick(idle.isRunning(), idle.idleMillis());
-        main.postDelayed(updateTick, UPDATE_TICK_MS);
     }
 
     @Override
@@ -576,7 +560,6 @@ public final class MainActivity extends Activity {
         idle.stop();
         main.removeCallbacks(refreshRunnable);
         main.removeCallbacks(feedRunnable);
-        main.removeCallbacks(updateTick);
         endMenuAndMove();
         brightness.disconnect();
         super.onStop();

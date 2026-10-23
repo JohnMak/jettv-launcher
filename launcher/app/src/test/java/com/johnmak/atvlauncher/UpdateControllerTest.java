@@ -25,7 +25,7 @@ public class UpdateControllerTest {
     @Rule public TemporaryFolder tmp = new TemporaryFolder();
 
     private static final long T0 = 1_000_000_000L;
-    private static final long DAY = UpdatePolicy.CHECK_INTERVAL_MS;
+    private static final long INTERVAL = UpdatePolicy.CHECK_INTERVAL_MS;
     private static final long IDLE = UpdatePolicy.AUTO_INSTALL_IDLE_MS;
 
     private static final class Manual implements Executor {
@@ -99,7 +99,7 @@ public class UpdateControllerTest {
             }
         });
         AdbSession session = new AdbSession() {
-            @Override public FetchResult<String> exec(GmpfCommand command) { throw new AssertionError("updater never execs"); }
+            @Override public FetchResult<String> exec(ShellCommand command) { throw new AssertionError("updater never execs"); }
             @Override public FetchResult<String> install(VerifiedApk apk) {
                 order.add("install");
                 installed.add(apk);
@@ -127,7 +127,7 @@ public class UpdateControllerTest {
     }
 
     @Test public void startChecksDownloadsVerifiesAndHoldsTheUpdateUntilIdle() {
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         assertEquals(UpdateState.Kind.CHECKING, kind());
         settle();
         assertEquals(UpdateState.Kind.READY, kind());
@@ -140,13 +140,13 @@ public class UpdateControllerTest {
     }
 
     @Test public void readyUpdateInstallsOnlyWhenForegroundAndIdleTenMinutes() {
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
-        c.onTick(true, IDLE - 1);
-        c.onTick(false, IDLE * 3);
+        c.onTick(true, IDLE - 1, false);
+        c.onTick(false, IDLE * 3, false);
         settle();
         assertTrue(installed.isEmpty());
-        c.onTick(true, IDLE);
+        c.onTick(true, IDLE, false);
         assertEquals(UpdateState.Kind.INSTALLING, kind());
         settle();
         assertEquals(1, installed.size());
@@ -154,10 +154,10 @@ public class UpdateControllerTest {
     }
 
     @Test public void pendingIsWrittenBeforeTheInstallStarts() {
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
         now = T0 + 5;
-        c.onTick(true, IDLE);
+        c.onTick(true, IDLE, false);
         assertEquals("1.2.3", store.pending.version);
         assertEquals(T0 + 5, store.pending.atMs);
         assertEquals(java.util.Collections.singletonList("savePending"), order); // before the worker ran install
@@ -174,7 +174,7 @@ public class UpdateControllerTest {
     }
 
     @Test public void manualCheckDuringAnAutomaticPassUpgradesItWithoutASecondPass() {
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         c.checkNow();
         settle();
         assertEquals(1, feedCalls);
@@ -182,7 +182,7 @@ public class UpdateControllerTest {
     }
 
     @Test public void manualCheckOnReadyInstallsImmediately() {
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
         c.checkNow();
         assertEquals(UpdateState.Kind.INSTALLING, kind());
@@ -199,23 +199,23 @@ public class UpdateControllerTest {
         assertEquals(1, feedCalls);
     }
 
-    @Test public void tickWhileBusyOrWithin24hDoesNotCheckAgain() {
-        c.onTick(true, 0);
-        c.onTick(true, 0);
+    @Test public void tickWhileBusyOrWithinIntervalDoesNotCheckAgain() {
+        c.onTick(true, 0, false);
+        c.onTick(true, 0, false);
         settle();
         assertEquals(1, feedCalls);
         feedResult = FetchResult.ok(release("1.2.2"));
         c = newController("1.2.2");
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
         assertEquals(UpdateState.Kind.UP_TO_DATE, kind());
         int calls = feedCalls;
-        now += DAY - 1;
-        c.onTick(true, 0);
+        now += INTERVAL - 1;
+        c.onTick(true, 0, false);
         settle();
         assertEquals(calls, feedCalls);
         now += 1;
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
         assertEquals(calls + 1, feedCalls);
     }
@@ -237,12 +237,12 @@ public class UpdateControllerTest {
 
     @Test public void feedErrorIsTypedAndRetriedByTheNextStart() {
         feedResult = UpdateError.fail(UpdateError.NETWORK, "down");
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
         assertEquals(UpdateState.Kind.ERROR, kind());
         assertEquals(UpdateError.NETWORK, c.state().error);
         assertEquals(0, store.last); // not recorded: the next tick may retry
-        c.onTick(true, 0);
+        c.onTick(true, 0, false);
         settle();
         assertEquals(2, feedCalls);
     }
@@ -268,18 +268,28 @@ public class UpdateControllerTest {
         assertTrue(!logs.isEmpty());
     }
 
-    @Test public void freshStartAfterInstallAnnouncesTheNewVersionOnce() {
+    @Test public void screensaverOpensTheInstallWindowForAReadyUpdate() {
+        c.onTick(true, 0, false);
+        settle();
+        c.onTick(false, 0, false);
+        settle();
+        assertTrue(installed.isEmpty());
+        c.onTick(false, 0, true);
+        assertEquals(UpdateState.Kind.INSTALLING, kind());
+        settle();
+        assertEquals(1, installed.size());
+    }
+
+    @Test public void freshStartAfterInstallClearsPendingQuietly() {
         store.pending = new UpdateController.Pending("1.2.3", T0 - 1000);
         c = newController("1.2.3");
-        assertEquals("1.2.3", c.consumeUpdatedVersion());
-        assertNull(c.consumeUpdatedVersion());
         assertNull(store.pending);
+        assertTrue(logs.isEmpty());
     }
 
     @Test public void stalePendingOfAnotherVersionIsDroppedWithALog() {
         store.pending = new UpdateController.Pending("1.2.3", T0 - 10 * 60 * 1000 - 1);
         c = newController("1.2.2");
-        assertNull(c.consumeUpdatedVersion());
         assertNull(store.pending);
         assertEquals(1, logs.size());
     }
@@ -287,7 +297,6 @@ public class UpdateControllerTest {
     @Test public void freshPendingOfAnotherVersionIsKept() {
         store.pending = new UpdateController.Pending("1.2.3", T0 - 1000);
         c = newController("1.2.2");
-        assertNull(c.consumeUpdatedVersion());
         assertEquals("1.2.3", store.pending.version);
         assertTrue(logs.isEmpty());
     }

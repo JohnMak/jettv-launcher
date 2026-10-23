@@ -24,6 +24,7 @@ import java.util.function.LongSupplier;
  */
 final class UpdateController {
     private static final String TAG = "AtvUpdate";
+    private static final long TICK_MS = 10L * 60 * 1000;
     private static final long PENDING_STALE_MS = 10L * 60 * 1000;
 
     interface Listener {
@@ -91,8 +92,24 @@ final class UpdateController {
                     new ApkVerifier(new PackageInspector(app)),
                     LoopbackAdbSession.shared(app), new UpdatePrefs(app),
                     System::currentTimeMillis, worker, handler::post, msg -> Log.w(TAG, msg));
+            startTicking(instance, handler);
         }
         return instance;
+    }
+
+    /**
+     * Own main-looper tick, started once with the controller, so checks and downloads go on while other apps are in
+     * the foreground. The first tick is the process-start evaluation.
+     */
+    private static void startTicking(UpdateController controller, Handler handler) {
+        Runnable tick = new Runnable() {
+            @Override public void run() {
+                controller.onTick(ScreensaverState.launcherForeground(), ScreensaverState.launcherIdleMs(),
+                        ScreensaverState.showing());
+                handler.postDelayed(this, TICK_MS);
+            }
+        };
+        handler.post(tick);
     }
 
     private final SemVer current;
@@ -112,7 +129,6 @@ final class UpdateController {
     private VerifiedApk ready;
     private boolean installWhenReady;
     private boolean evaluated;
-    private String updatedTo;
 
     UpdateController(SemVer current, String currentVersionName, ReleaseFeed.Source feed, Downloader downloader,
                      ApkVerifier verifier, AdbSession session, Store store, LongSupplier clock,
@@ -131,12 +147,11 @@ final class UpdateController {
         worker.execute(downloader::clear);
     }
 
-    /** An install started by the previous process either left us at its version (announce it) or went stale. */
+    /** An install started by the previous process either left us at its version (silently done) or went stale (logged). */
     private void resolvePending(String currentVersionName) {
         Pending pending = store.pending();
         if (pending == null) return;
         if (pending.version.equals(currentVersionName)) {
-            updatedTo = pending.version;
             store.clearPending();
         } else if (clock.getAsLong() - pending.atMs > PENDING_STALE_MS) {
             log.accept("install of " + pending.version + " did not take effect; running " + currentVersionName);
@@ -151,13 +166,6 @@ final class UpdateController {
     void addListener(Listener l) { listeners.add(l); }
 
     void removeListener(Listener l) { listeners.remove(l); }
-
-    /** The version this process was just updated to, once; null if the last start was not an update. */
-    String consumeUpdatedVersion() {
-        String v = updatedTo;
-        updatedTo = null;
-        return v;
-    }
 
     /** User asked: check now and install as soon as the update is verified (or right away if it already is). */
     void checkNow() {
@@ -179,14 +187,14 @@ final class UpdateController {
     }
 
     /**
-     * Called by the launcher on start and periodically: starts a due check and installs a Ready update once the
-     * policy allows. {@code idleMs} is the time since the last remote input.
+     * Periodic evaluation: starts a due check and installs a Ready update once the policy allows. {@code idleMs} is
+     * the time since the last remote input in the launcher.
      */
-    void onTick(boolean launcherForeground, long idleMs) {
+    void onTick(boolean launcherForeground, long idleMs, boolean screensaverShowing) {
         UpdatePolicy.Trigger trigger = evaluated ? UpdatePolicy.Trigger.TICK : UpdatePolicy.Trigger.PROCESS_START;
         evaluated = true;
         if (UpdatePolicy.shouldCheck(state.kind, trigger, store.lastCheckAt(), clock.getAsLong())) startPipeline();
-        else if (UpdatePolicy.shouldAutoInstall(state.kind, launcherForeground, idleMs)) install();
+        else if (UpdatePolicy.shouldAutoInstall(state.kind, launcherForeground, idleMs, screensaverShowing)) install();
     }
 
     // ------------------------------------------------------------ pipeline

@@ -1,5 +1,6 @@
 package com.johnmak.atvlauncher;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -18,9 +19,9 @@ public class UpdatePolicyTest {
         assertTrue(check(UpdateState.Kind.ERROR, UpdatePolicy.Trigger.PROCESS_START, NOW));
     }
 
-    @Test public void tickChecksOnlyAfterTwentyFourHours() {
-        assertFalse(check(UpdateState.Kind.UP_TO_DATE, UpdatePolicy.Trigger.TICK, NOW - 24 * H + 1));
-        assertTrue(check(UpdateState.Kind.UP_TO_DATE, UpdatePolicy.Trigger.TICK, NOW - 24 * H));
+    @Test public void tickChecksOnlyAfterSixHours() {
+        assertFalse(check(UpdateState.Kind.UP_TO_DATE, UpdatePolicy.Trigger.TICK, NOW - 6 * H + 1));
+        assertTrue(check(UpdateState.Kind.UP_TO_DATE, UpdatePolicy.Trigger.TICK, NOW - 6 * H));
         assertTrue(check(UpdateState.Kind.IDLE, UpdatePolicy.Trigger.TICK, 0)); // never checked
         assertTrue(check(UpdateState.Kind.IDLE, UpdatePolicy.Trigger.TICK, NOW + H)); // clock went back
     }
@@ -32,12 +33,21 @@ public class UpdatePolicyTest {
         }
     }
 
-    @Test public void autoInstallNeedsReadyForegroundAndTenIdleMinutes() {
+    @Test public void intervalIsSixHours() {
+        assertEquals(6 * H, UpdatePolicy.CHECK_INTERVAL_MS);
+    }
+
+    @Test public void autoInstallNeedsReadyAndEitherIdleForegroundOrScreensaver() {
         long ten = UpdatePolicy.AUTO_INSTALL_IDLE_MS;
-        assertTrue(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, true, ten));
-        assertFalse(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, true, ten - 1));
-        assertFalse(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, false, ten * 5));
-        assertFalse(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.VERIFYING, true, ten * 5));
-        assertFalse(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.INSTALLING, true, ten * 5));
+        assertTrue(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, true, ten, false));
+        assertFalse(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, true, ten - 1, false));
+        assertFalse(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, false, ten * 5, false));
+        // a screensaver (in-launcher or system dream) opens the window regardless of foreground and idle time
+        assertTrue(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, false, 0, true));
+        assertTrue(UpdatePolicy.shouldAutoInstall(UpdateState.Kind.READY, true, 0, true));
+        for (UpdateState.Kind k : new UpdateState.Kind[]{UpdateState.Kind.VERIFYING, UpdateState.Kind.INSTALLING,
+                UpdateState.Kind.DOWNLOADING, UpdateState.Kind.IDLE}) {
+            assertFalse(k.name(), UpdatePolicy.shouldAutoInstall(k, true, ten * 5, true));
+        }
     }
 }
