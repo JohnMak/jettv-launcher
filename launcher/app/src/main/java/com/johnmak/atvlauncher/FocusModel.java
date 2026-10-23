@@ -7,6 +7,9 @@ package com.johnmak.atvlauncher;
  * column; empty rows are skipped; row ends clamp. Extra path: the weather item sits left of the top bar: LEFT
  * from the first top-bar item enters it, RIGHT leaves it to the first top-bar item, DOWN goes to favorites, UP
  * does nothing.
+ * <p>
+ * Feed rows have a hidden configure tile left of the first card: LEFT from the first card enters it, RIGHT returns,
+ * UP/DOWN leave. A row whose cards are all hidden but that is configurable stays navigable and is entered on its tile.
  */
 final class FocusModel {
     enum Zone { WEATHER, TOP, FAVORITES, WATCH_NEXT, MIXED }
@@ -19,10 +22,24 @@ final class FocusModel {
 
     private final int[] counts = new int[ZONES.length];
     private final int[] indices = new int[ZONES.length];
+    private final boolean[] configurable = new boolean[ZONES.length];
     private Zone zone = Zone.FAVORITES;
+    private boolean config;
 
     Zone zone() {
         return zone;
+    }
+
+    /** Whether focus is on the configure tile of the current feed row. */
+    boolean config() {
+        return config;
+    }
+
+    /** Which feed rows have a configure tile (they have publishing apps), whatever their card count. */
+    void setConfigurable(boolean watchNext, boolean mixed) {
+        configurable[Zone.WATCH_NEXT.ordinal()] = watchNext;
+        configurable[Zone.MIXED.ordinal()] = mixed;
+        normalize();
     }
 
     /** Index of the focused item inside the current zone. */
@@ -50,26 +67,50 @@ final class FocusModel {
         counts[Zone.FAVORITES.ordinal()] = favorites;
         counts[Zone.WATCH_NEXT.ordinal()] = watchNext;
         counts[Zone.MIXED.ordinal()] = mixed;
+        normalize();
+    }
+
+    private void normalize() {
         for (int i = 0; i < ZONES.length; i++) indices[i] = clamp(indices[i], counts[i]);
-        if (counts[zone.ordinal()] == 0) {
+        if (!navigable(zone)) {
             Zone up = above(zone);
             Zone down = below(zone);
             if (up != null) zone = up;
             else if (down != null) zone = down;
         }
+        config = settleConfig();
+    }
+
+    private boolean settleConfig() {
+        if (!isFeed(zone)) return false;
+        if (counts[zone.ordinal()] == 0) return configurable[zone.ordinal()];
+        return config && configurable[zone.ordinal()];
+    }
+
+    private boolean navigable(Zone z) {
+        return counts[z.ordinal()] > 0 || (isFeed(z) && configurable[z.ordinal()]);
+    }
+
+    private static boolean isFeed(Zone z) {
+        return z == Zone.WATCH_NEXT || z == Zone.MIXED;
     }
 
     /** Applies one D-pad press; returns whether the focus changed. */
     boolean move(Dir dir) {
         Zone beforeZone = zone;
         int beforeIndex = index();
+        boolean beforeConfig = config;
         switch (dir) {
             case LEFT:
-                if (zone == Zone.TOP && index() == 0 && counts[Zone.WEATHER.ordinal()] > 0) zone = Zone.WEATHER;
+                if (config) break;
+                if (isFeed(zone) && configurable[zone.ordinal()] && index() == 0) config = true;
+                else if (zone == Zone.TOP && index() == 0 && counts[Zone.WEATHER.ordinal()] > 0) zone = Zone.WEATHER;
                 else setIndex(index() - 1);
                 break;
             case RIGHT:
-                if (zone == Zone.WEATHER && counts[Zone.TOP.ordinal()] > 0) {
+                if (config) {
+                    if (counts[zone.ordinal()] > 0) config = false;
+                } else if (zone == Zone.WEATHER && counts[Zone.TOP.ordinal()] > 0) {
                     zone = Zone.TOP;
                     indices[Zone.TOP.ordinal()] = 0;
                 } else {
@@ -81,15 +122,24 @@ final class FocusModel {
                 if (target != null) {
                     zone = target;
                     if (target == Zone.TOP) indices[target.ordinal()] = counts[target.ordinal()] - 1;
+                    config = settleEntered();
                 }
                 break;
             }
             default: {
                 Zone target = below(zone);
-                if (target != null) zone = target;
+                if (target != null) {
+                    zone = target;
+                    config = settleEntered();
+                }
             }
         }
-        return zone != beforeZone || index() != beforeIndex;
+        return zone != beforeZone || index() != beforeIndex || config != beforeConfig;
+    }
+
+    /** Entering a row: on the tile only when the row has no cards. */
+    private boolean settleEntered() {
+        return isFeed(zone) && counts[zone.ordinal()] == 0;
     }
 
     private static int position(Zone z) {
@@ -102,7 +152,7 @@ final class FocusModel {
     private Zone above(Zone from) {
         if (from == Zone.WEATHER) return null;
         for (int i = position(from) - 1; i >= 0; i--) {
-            if (counts[COLUMN[i].ordinal()] > 0) return COLUMN[i];
+            if (navigable(COLUMN[i])) return COLUMN[i];
         }
         return null;
     }
@@ -110,7 +160,7 @@ final class FocusModel {
     /** Nearest non-empty zone below. */
     private Zone below(Zone from) {
         for (int i = position(from) + 1; i < COLUMN.length; i++) {
-            if (counts[COLUMN[i].ordinal()] > 0) return COLUMN[i];
+            if (navigable(COLUMN[i])) return COLUMN[i];
         }
         return null;
     }

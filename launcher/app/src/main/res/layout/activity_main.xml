@@ -117,9 +117,21 @@
                 style="@style/FeedHeading"
                 android:text="@string/heading_continue" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/watch_row"
-                style="@style/FeedRow" />
+            <FrameLayout
+                android:id="@+id/watch_box"
+                style="@style/FeedRow"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/watch_row"
+                    style="@style/FeedRow"
+                    android:layout_height="match_parent" />
+
+                <include
+                    android:id="@+id/watch_config"
+                    layout="@layout/view_feed_config" />
+            </FrameLayout>
 
             <include
                 android:id="@+id/watch_info"
@@ -131,9 +143,21 @@
                 style="@style/FeedHeading"
                 android:text="@string/heading_recommended" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/mixed_row"
-                style="@style/FeedRow" />
+            <FrameLayout
+                android:id="@+id/mixed_box"
+                style="@style/FeedRow"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/mixed_row"
+                    style="@style/FeedRow"
+                    android:layout_height="match_parent" />
+
+                <include
+                    android:id="@+id/mixed_config"
+                    layout="@layout/view_feed_config" />
+            </FrameLayout>
 
             <include
                 android:id="@+id/mixed_info"

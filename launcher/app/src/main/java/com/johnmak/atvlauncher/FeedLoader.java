@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import java.util.List;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,14 +22,20 @@ final class FeedLoader {
     static final class Feed {
         final List<FeedItem> watchNext;
         final List<FeedItem> mixed;
+        /** Apps that publish to each row, before exclusion. */
+        final Set<String> watchNextPublishers;
+        final Set<String> mixedPublishers;
         final String signature;
 
-        Feed(List<FeedItem> watchNext, List<FeedItem> mixed) {
+        Feed(List<FeedItem> watchNext, List<FeedItem> mixed, Set<String> watchNextPublishers, Set<String> mixedPublishers) {
             this.watchNext = watchNext;
             this.mixed = mixed;
+            this.watchNextPublishers = watchNextPublishers;
+            this.mixedPublishers = mixedPublishers;
             StringBuilder sb = new StringBuilder();
             for (FeedItem i : watchNext) sb.append('W').append(i.intentUri).append(i.title).append(i.posterUri).append(i.season).append(i.episode).append('|');
             for (FeedItem i : mixed) sb.append('M').append(i.intentUri).append(i.title).append(i.posterUri).append(i.season).append(i.episode).append('|');
+            sb.append("PW").append(new TreeSet<>(watchNextPublishers)).append("PM").append(new TreeSet<>(mixedPublishers));
             this.signature = sb.toString();
         }
     }
@@ -78,7 +85,7 @@ final class FeedLoader {
         FeedBuilder builder = new FeedBuilder(allowedPackages, excludedContinue, excludedRecommendations, launches);
         read(TvContract.WatchNextPrograms.CONTENT_URI, WATCH_NEXT_COLUMNS, false, builder);
         read(TvContract.PreviewPrograms.CONTENT_URI, PREVIEW_COLUMNS, true, builder);
-        return new Feed(builder.watchNext(), builder.mixed());
+        return new Feed(builder.watchNext(), builder.mixed(), builder.watchNextPublishers(), builder.mixedPublishers());
     }
 
     private static int type(Cursor c, int index) {

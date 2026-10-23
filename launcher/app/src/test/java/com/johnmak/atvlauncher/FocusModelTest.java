@@ -191,4 +191,86 @@ public class FocusModelTest {
         m.limitColumn(FocusModel.Zone.FAVORITES, 8);
         assertEquals(5, m.index());
     }
+
+    private static FocusModel feedConfig(int watch, int mixed, boolean watchCfg, boolean mixedCfg) {
+        FocusModel m = model(3, 5, watch, mixed);
+        m.setConfigurable(watchCfg, mixedCfg);
+        return m;
+    }
+
+    @Test
+    public void leftFromFirstFeedCardEntersConfigTileAndRightReturns() {
+        FocusModel m = feedConfig(4, 6, true, true);
+        m.move(FocusModel.Dir.DOWN);
+        assertEquals(FocusModel.Zone.WATCH_NEXT, m.zone());
+        assertFalse(m.config());
+        assertTrue(m.move(FocusModel.Dir.LEFT));
+        assertTrue(m.config());
+        assertFalse(m.move(FocusModel.Dir.LEFT)); // clamps at the tile
+        assertTrue(m.move(FocusModel.Dir.RIGHT));
+        assertFalse(m.config());
+        assertEquals(0, m.index());
+        m.move(FocusModel.Dir.RIGHT);
+        m.move(FocusModel.Dir.LEFT);
+        assertFalse(m.config()); // only the first card leads to the tile
+        assertEquals(0, m.index());
+    }
+
+    @Test
+    public void upAndDownLeaveTheConfigTile() {
+        FocusModel m = feedConfig(4, 6, true, true);
+        m.move(FocusModel.Dir.DOWN);
+        m.move(FocusModel.Dir.LEFT);
+        assertTrue(m.move(FocusModel.Dir.DOWN));
+        assertEquals(FocusModel.Zone.MIXED, m.zone());
+        assertFalse(m.config());
+        m.move(FocusModel.Dir.LEFT);
+        assertTrue(m.config());
+        assertTrue(m.move(FocusModel.Dir.UP));
+        assertEquals(FocusModel.Zone.WATCH_NEXT, m.zone());
+        assertFalse(m.config());
+    }
+
+    @Test
+    public void rowWithoutConfigurablePublishersHasNoTile() {
+        FocusModel m = feedConfig(4, 6, false, false);
+        m.move(FocusModel.Dir.DOWN);
+        assertFalse(m.move(FocusModel.Dir.LEFT));
+        assertFalse(m.config());
+    }
+
+    @Test
+    public void fullyExcludedRowIsNavigableAndLandsOnItsTile() {
+        FocusModel m = feedConfig(0, 6, true, true);
+        assertTrue(m.move(FocusModel.Dir.DOWN));
+        assertEquals(FocusModel.Zone.WATCH_NEXT, m.zone());
+        assertTrue(m.config());
+        assertFalse(m.move(FocusModel.Dir.RIGHT)); // no cards to return to
+        assertFalse(m.move(FocusModel.Dir.LEFT));
+        assertTrue(m.move(FocusModel.Dir.DOWN));
+        assertEquals(FocusModel.Zone.MIXED, m.zone());
+        assertFalse(m.config());
+        assertTrue(m.move(FocusModel.Dir.UP));
+        assertTrue(m.config());
+    }
+
+    @Test
+    public void emptyRowWithoutPublishersIsStillSkipped() {
+        FocusModel m = feedConfig(0, 6, false, true);
+        m.move(FocusModel.Dir.DOWN);
+        assertEquals(FocusModel.Zone.MIXED, m.zone());
+    }
+
+    @Test
+    public void countChangeEmptyingTheFocusedRowKeepsFocusOnItsTile() {
+        FocusModel m = feedConfig(4, 6, true, true);
+        m.move(FocusModel.Dir.DOWN);
+        m.setCounts(0, 3, 5, 0, 6); // every card excluded
+        assertEquals(FocusModel.Zone.WATCH_NEXT, m.zone());
+        assertTrue(m.config());
+        m.setCounts(0, 3, 5, 4, 6); // re-enabled: still on the tile
+        assertTrue(m.config());
+        m.setConfigurable(false, true);
+        assertFalse(m.config());
+    }
 }

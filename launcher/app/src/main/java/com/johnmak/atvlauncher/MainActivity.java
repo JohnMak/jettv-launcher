@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.HashSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
@@ -71,7 +72,50 @@ public final class MainActivity extends Activity {
     private static final int WEATHER_TOP_MARGIN_DP = 12;
     private static final int WEATHER_GLASS_RADIUS_DP = 14;
 
-    private enum Mode { NAVIGATE, MENU, MOVE }
+    /** Width of the hidden configure tile plus its gap to the first card (dp); view_feed_config.xml is 72dp wide. */
+    private static final int CONFIG_SHIFT_DP = 88;
+
+    private enum Mode { NAVIGATE, MENU, MOVE, CHECKLIST }
+
+    /** The hidden configure tile of one feed row: fades in at the row's left while the row slides right. */
+    private final class ConfigTile {
+        final View tile;
+        final DimImageView image;
+        final View box;
+        final RecyclerView row;
+        boolean shown;
+        boolean shifted;
+
+        ConfigTile(View tile, View box, RecyclerView row) {
+            this.tile = tile;
+            this.image = tile.findViewById(R.id.config_image);
+            this.box = box;
+            this.row = row;
+            Tiles.round(image, 12 * density);
+        }
+
+        void setCardHeight(int px) {
+            ViewGroup.LayoutParams lp = image.getLayoutParams();
+            lp.height = px;
+            image.setLayoutParams(lp);
+        }
+
+        void apply(boolean show, boolean shift, boolean animate) {
+            if (show != shown) {
+                shown = show;
+                tile.animate().cancel();
+                if (animate) tile.animate().alpha(show ? 1f : 0f).setDuration(250).start();
+                else tile.setAlpha(show ? 1f : 0f);
+            }
+            if (shift != shifted) {
+                shifted = shift;
+                float x = shift ? CONFIG_SHIFT_DP * density : 0f;
+                row.animate().cancel();
+                if (animate) row.animate().translationX(x).setDuration(300).setInterpolator(new DecelerateInterpolator()).start();
+                else row.setTranslationX(x);
+            }
+        }
+    }
 
     // Views
     private View root;
@@ -86,6 +130,10 @@ public final class MainActivity extends Activity {
     private RecyclerView favoritesRow;
     private RecyclerView watchRow;
     private RecyclerView mixedRow;
+    private View watchBox;
+    private View mixedBox;
+    private ConfigTile watchConfig;
+    private ConfigTile mixedConfig;
     private GlassView glass;
     private BackdropController backdrop;
     /** The backdrop was dropped by a memory trim and must be asked for again in onStart. */
@@ -126,6 +174,11 @@ public final class MainActivity extends Activity {
     private FeedAdapter mixedAdapter;
     private String lastSignature = "";
     private String lastFeedSignature = "";
+    /** Apps publishing to each feed row (before exclusion), sorted by label. */
+    private List<String> watchPublishers = new ArrayList<>();
+    private List<String> mixedPublishers = new ArrayList<>();
+    private FeedSource checklistSource;
+    private List<String> checklistPackages = new ArrayList<>();
     private float density;
 
     // Selection (virtual focus: real Android focus is never used, so D-pad is fully deterministic)
@@ -147,6 +200,7 @@ public final class MainActivity extends Activity {
     private RowScroller mixedScroller;
     private boolean feedShown;
     private boolean hintShown;
+    private boolean appliedConfig;
 
     // Services
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -234,6 +288,10 @@ public final class MainActivity extends Activity {
         favoritesRow = findViewById(R.id.favorites);
         watchRow = findViewById(R.id.watch_row);
         mixedRow = findViewById(R.id.mixed_row);
+        watchBox = findViewById(R.id.watch_box);
+        mixedBox = findViewById(R.id.mixed_box);
+        watchConfig = new ConfigTile(findViewById(R.id.watch_config), watchBox, watchRow);
+        mixedConfig = new ConfigTile(findViewById(R.id.mixed_config), mixedBox, mixedRow);
         glass = findViewById(R.id.glass);
         clock = findViewById(R.id.clock);
         FocusDim.applyAlpha(clock, FocusDim.Role.AMBIENT, false, false);
@@ -281,6 +339,7 @@ public final class MainActivity extends Activity {
             }
         });
         renderVpn();
+        RightsPrompt.maybeOpenSettings(this);
     }
 
     // ---------------------------------------------------------------- setup
@@ -521,11 +580,14 @@ public final class MainActivity extends Activity {
 
     private void setFeedRowHeight(int percent) {
         int px = Math.round(PreviewScale.rowHeightDp(percent) * density);
-        for (RecyclerView row : new RecyclerView[]{watchRow, mixedRow}) {
-            ViewGroup.LayoutParams lp = row.getLayoutParams();
+        for (View box : new View[]{watchBox, mixedBox}) {
+            ViewGroup.LayoutParams lp = box.getLayoutParams();
             lp.height = px;
-            row.setLayoutParams(lp);
+            box.setLayoutParams(lp);
         }
+        int cardPx = Math.round(PreviewScale.cardHeightDp(percent) * density);
+        watchConfig.setCardHeight(cardPx);
+        mixedConfig.setCardHeight(cardPx);
     }
 
     /** HOME or a fresh start: the row is back at its start and focus is no further than the apps button. */
@@ -687,6 +749,8 @@ public final class MainActivity extends Activity {
         lastFeedSignature = feed.signature;
         watchScroller.cancel();
         mixedScroller.cancel();
+        watchPublishers = byLabel(feed.watchNextPublishers);
+        mixedPublishers = byLabel(feed.mixedPublishers);
         watchAdapter.setItems(feed.watchNext);
         mixedAdapter.setItems(feed.mixed);
         kinopoisk.prefetch(feed.watchNext);
@@ -694,12 +758,28 @@ public final class MainActivity extends Activity {
         updateCounts();
     }
 
-    /** Pushes row sizes into the focus model and shows or hides empty feed rows. */
+    /** Installed apps of {@code packages}, sorted by label. */
+    private List<String> byLabel(Set<String> packages) {
+        List<String> out = new ArrayList<>();
+        for (String pkg : packages) if (apps.byPackage.containsKey(pkg)) out.add(pkg);
+        out.sort(Comparator.comparing((String p) -> apps.byPackage.get(p).label, String.CASE_INSENSITIVE_ORDER));
+        return out;
+    }
+
+    /** A feed row shows while it has cards or publishers (all of whose cards may be excluded: the tile re-enables them). */
+    private boolean rowShown(FocusModel.Zone zone) {
+        return zone == FocusModel.Zone.WATCH_NEXT
+                ? watchAdapter.getItemCount() > 0 || !watchPublishers.isEmpty()
+                : mixedAdapter.getItemCount() > 0 || !mixedPublishers.isEmpty();
+    }
+
+    /** Pushes row sizes into the focus model and shows or hides feed rows without cards and publishers. */
     private void updateCounts() {
+        focus.setConfigurable(!watchPublishers.isEmpty(), !mixedPublishers.isEmpty());
         focus.setCounts(1, visibleTopItems().size(), favAdapter.tileCount(),
                 watchAdapter.getItemCount(), mixedAdapter.getItemCount());
-        setRowVisible(watchHeading, watchRow, watchInfo, watchAdapter.getItemCount() > 0);
-        setRowVisible(mixedHeading, mixedRow, mixedInfo, mixedAdapter.getItemCount() > 0);
+        setRowVisible(watchHeading, watchBox, watchInfo, rowShown(FocusModel.Zone.WATCH_NEXT));
+        setRowVisible(mixedHeading, mixedBox, mixedInfo, rowShown(FocusModel.Zone.MIXED));
         appliedSelection = null; // data reload: every view gets its state again
         onFocusChanged(false);
     }
@@ -762,15 +842,18 @@ public final class MainActivity extends Activity {
                 backdrop.want(entry != null ? BackdropKeys.app(entry.packageName) : null);
                 break;
             case WATCH_NEXT:
+                if (focus.config()) return; // the tile keeps the current backdrop
                 backdrop.want(watchAdapter.item(focus.index()).posterUri);
                 break;
             default:
+                if (focus.config()) return;
                 backdrop.want(mixedAdapter.item(focus.index()).posterUri);
         }
     }
 
     /** Fills the focused row's info field with the focused card (source app, title, rating); the move hint is separate. */
     private void updateInfo() {
+        if (focus.config()) return;
         switch (focus.zone()) {
             case WATCH_NEXT:
                 fillInfo(watchInfo, watchAdapter.item(focus.index()));
@@ -796,7 +879,7 @@ public final class MainActivity extends Activity {
 
     /** Kinopoisk data arrived for {@code key}: refresh the info field when that card is the focused one. */
     private void onKinopoiskInfo(String key) {
-        if (isDestroyed()) return;
+        if (isDestroyed() || focus.config()) return;
         FeedItem focused;
         switch (focus.zone()) {
             case WATCH_NEXT:
@@ -829,7 +912,7 @@ public final class MainActivity extends Activity {
     /** Moves the glass to the current selection, scales tiles and shifts the page for the active zone. */
     private void applySelection(boolean animate) {
         boolean feed = inFeed();
-        float shift = feed ? -FeedPageShift.shiftDp(focus.zone(), watchAdapter.getItemCount() > 0, previewScalePercent) * density : 0;
+        float shift = feed ? -FeedPageShift.shiftDp(focus.zone(), rowShown(FocusModel.Zone.WATCH_NEXT), previewScalePercent) * density : 0;
         if (pageShift != shift) {
             pageShift = shift;
             page.animate().translationY(shift).setDuration(300).setInterpolator(new DecelerateInterpolator()).start();
@@ -848,12 +931,15 @@ public final class MainActivity extends Activity {
         boolean full = appliedSelection == null;
         appliedSelection = next;
         favAdapter.setSelected(focus.zone() == FocusModel.Zone.FAVORITES ? focus.index() : -1);
-        watchAdapter.setSelected(focus.zone() == FocusModel.Zone.WATCH_NEXT ? focus.index() : -1);
-        mixedAdapter.setSelected(focus.zone() == FocusModel.Zone.MIXED ? focus.index() : -1);
-        if (delta.rowChanged) {
-            watchInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.WATCH_NEXT, focus.zone()));
-            mixedInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.MIXED, focus.zone()));
+        watchAdapter.setSelected(focus.zone() == FocusModel.Zone.WATCH_NEXT && !focus.config() ? focus.index() : -1);
+        mixedAdapter.setSelected(focus.zone() == FocusModel.Zone.MIXED && !focus.config() ? focus.index() : -1);
+        if (delta.rowChanged || appliedConfig != focus.config()) {
+            appliedConfig = focus.config();
+            watchInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.WATCH_NEXT, focus.zone()) && !focus.config());
+            mixedInfo.setShown(FeedInfoLine.visible(FocusModel.Zone.MIXED, focus.zone()) && !focus.config());
         }
+        applyConfigTile(watchConfig, FocusModel.Zone.WATCH_NEXT, watchAdapter, !watchPublishers.isEmpty(), animate);
+        applyConfigTile(mixedConfig, FocusModel.Zone.MIXED, mixedAdapter, !mixedPublishers.isEmpty(), animate);
         if (full) applyAllViews(animate);
         else for (SelectionDelta.ViewRef ref : delta.changedViews) applyView(ref, next, animate);
 
@@ -876,14 +962,34 @@ public final class MainActivity extends Activity {
                 radius = Tiles.surround(glassTarget, density, 10);
                 break;
             case WATCH_NEXT:
+                if (focus.config()) {
+                    if (!Tiles.locate(watchConfig.image, page, glassTarget)) return;
+                    radius = Tiles.grow(glassTarget, density, 12);
+                    break;
+                }
                 if (!locateInRow(watchRow, watchScroller, watchAdapter, focus.index(), glassTarget)) return;
                 radius = Tiles.grow(glassTarget, density, 12);
                 break;
             default:
+                if (focus.config()) {
+                    if (!Tiles.locate(mixedConfig.image, page, glassTarget)) return;
+                    radius = Tiles.grow(glassTarget, density, 12);
+                    break;
+                }
                 if (!locateInRow(mixedRow, mixedScroller, mixedAdapter, focus.index(), glassTarget)) return;
                 radius = Tiles.grow(glassTarget, density, 12);
         }
         glass.moveTo(glassTarget, radius, animate);
+    }
+
+    /**
+     * The tile shows while it is focused, and always in a row without visible cards (that is the way back to the
+     * sources); the row slides right to make room only when it has cards.
+     */
+    private void applyConfigTile(ConfigTile cfg, FocusModel.Zone zone, FeedAdapter adapter, boolean configurable, boolean animate) {
+        boolean focused = focus.config() && focus.zone() == zone;
+        boolean empty = adapter.getItemCount() == 0;
+        cfg.apply(configurable && (focused || empty), focused && !empty, animate);
     }
 
     private SelectionDelta.Selection currentSelection() {
@@ -892,7 +998,7 @@ public final class MainActivity extends Activity {
         int[] size = new int[zones.length];
         for (FocusModel.Zone z : zones) {
             int row = SelectionDelta.Row.valueOf(z.name()).ordinal();
-            index[row] = focus.index(z);
+            index[row] = focus.config() && z == focus.zone() ? -1 : focus.index(z); // -1 = the configure tile
         }
         size[SelectionDelta.Row.WEATHER.ordinal()] = 1;
         size[SelectionDelta.Row.TOP.ordinal()] = visibleTopItems().size();
@@ -920,11 +1026,19 @@ public final class MainActivity extends Activity {
                 break;
             }
             case WATCH_NEXT: {
+                if (ref.index < 0) {
+                    Tiles.setSelected(watchConfig.image, null, focused, animate);
+                    break;
+                }
                 RecyclerView.ViewHolder vh = watchRow.findViewHolderForAdapterPosition(ref.index);
                 if (vh != null) Tiles.setCardSelected(vh.itemView, focused, animate);
                 break;
             }
             default: {
+                if (ref.index < 0) {
+                    Tiles.setSelected(mixedConfig.image, null, focused, animate);
+                    break;
+                }
                 RecyclerView.ViewHolder vh = mixedRow.findViewHolderForAdapterPosition(ref.index);
                 if (vh != null) Tiles.setCardSelected(vh.itemView, focused, animate);
             }
@@ -942,10 +1056,12 @@ public final class MainActivity extends Activity {
         applyAllInRow(favoritesRow, FocusModel.Zone.FAVORITES, animate);
         applyAllInRow(watchRow, FocusModel.Zone.WATCH_NEXT, animate);
         applyAllInRow(mixedRow, FocusModel.Zone.MIXED, animate);
+        Tiles.setSelected(watchConfig.image, null, focus.config() && focus.zone() == FocusModel.Zone.WATCH_NEXT, animate);
+        Tiles.setSelected(mixedConfig.image, null, focus.config() && focus.zone() == FocusModel.Zone.MIXED, animate);
     }
 
     private void applyAllInRow(RecyclerView row, FocusModel.Zone zone, boolean animate) {
-        int selected = focus.zone() == zone ? focus.index() : -1;
+        int selected = focus.zone() == zone && !focus.config() ? focus.index() : -1;
         for (int i = 0; i < row.getChildCount(); i++) {
             View child = row.getChildAt(i);
             boolean focused = row.getChildAdapterPosition(child) == selected;
@@ -1063,7 +1179,7 @@ public final class MainActivity extends Activity {
         if (dir == null) return super.dispatchKeyEvent(e);
         if (!down) return true;
         boolean vertical = dir == FocusModel.Dir.UP || dir == FocusModel.Dir.DOWN;
-        if (e.getRepeatCount() > 0 && vertical) return true; // one row per press
+        if (e.getRepeatCount() > 0 && vertical && mode != Mode.CHECKLIST) return true; // one row per press
         onDirection(dir);
         return true;
     }
@@ -1083,6 +1199,11 @@ public final class MainActivity extends Activity {
             case MENU:
                 if (dir == FocusModel.Dir.UP) menu.moveSelection(-1);
                 else if (dir == FocusModel.Dir.DOWN) menu.moveSelection(1);
+                break;
+            case CHECKLIST:
+                if (dir == FocusModel.Dir.UP) menu.moveSelection(-1);
+                else if (dir == FocusModel.Dir.DOWN) menu.moveSelection(1);
+                else if (dir == FocusModel.Dir.LEFT) endMenuAndMove();
                 break;
             case MOVE:
                 if (dir == FocusModel.Dir.LEFT) moveFavorite(-1);
@@ -1168,6 +1289,9 @@ public final class MainActivity extends Activity {
             case MENU:
                 activateMenuItem();
                 return;
+            case CHECKLIST:
+                toggleChecklistItem();
+                return;
             case MOVE:
                 endMenuAndMove();
                 return;
@@ -1194,11 +1318,36 @@ public final class MainActivity extends Activity {
                 else startActivity(new Intent(this, AllAppsActivity.class));
                 break;
             case WATCH_NEXT:
-                openProgram(watchAdapter.item(focus.index()));
+                if (focus.config()) openChecklist(FeedSource.CONTINUE, watchPublishers);
+                else openProgram(watchAdapter.item(focus.index()));
                 break;
             default:
-                openProgram(mixedAdapter.item(focus.index()));
+                if (focus.config()) openChecklist(FeedSource.RECOMMENDATIONS, mixedPublishers);
+                else openProgram(mixedAdapter.item(focus.index()));
         }
+    }
+
+    /** Popup of the apps publishing to a feed row, with a checkbox each; OK flips an app and the feed reloads at once. */
+    private void openChecklist(FeedSource source, List<String> publishers) {
+        Set<String> excluded = settingsStore.excluded(source);
+        List<GlassMenu.Check> lines = new ArrayList<>();
+        for (String pkg : publishers) {
+            AppEntry app = apps.byPackage.get(pkg);
+            lines.add(new GlassMenu.Check(app.icon, app.label, ExcludedApps.isIncluded(excluded, pkg)));
+        }
+        checklistSource = source;
+        checklistPackages = new ArrayList<>(publishers);
+        mode = Mode.CHECKLIST;
+        menu.showChecklist(getString(source.titleRes), lines);
+    }
+
+    private void toggleChecklistItem() {
+        int index = menu.selected();
+        String pkg = checklistPackages.get(index);
+        Set<String> next = ExcludedApps.toggled(settingsStore.excluded(checklistSource), pkg);
+        settingsStore.saveExcluded(checklistSource, next);
+        menu.setChecked(index, ExcludedApps.isIncluded(next, pkg));
+        refreshFeed();
     }
 
     private void onLongPress() {

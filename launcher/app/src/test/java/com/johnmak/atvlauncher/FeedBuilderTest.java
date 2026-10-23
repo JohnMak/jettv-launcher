@@ -274,6 +274,22 @@ public class FeedBuilderTest {
         assertEquals(2, ExcludedApps.includedCount(Arrays.asList("a", "b"), none));
     }
 
+    @Test
+    public void publishersAreCollectedBeforeExclusionAndFullyExcludedRowStaysConfigurable() {
+        FeedBuilder b = new FeedBuilder(pkgs("a", "b", "gone2"), pkgs("a", "b"), pkgs("a"), Collections.emptyMap());
+        b.addWatchNext(item("a", "wa", 0, 0, 1));
+        b.addWatchNext(item("b", "wb", 0, 0, 1));
+        b.addWatchNext(item("unknown", "wu", 0, 0, 1));
+        b.addPreview(item("a", "pa", 1, 0, 0));
+        b.addPreview(item("b", "pb", 1, 0, 0));
+        assertTrue(b.watchNext().isEmpty());
+        assertEquals(pkgs("a", "b"), b.watchNextPublishers());
+        assertEquals(Arrays.asList("pb"), titles(b.mixed()));
+        assertEquals(pkgs("a", "b"), b.mixedPublishers());
+        assertTrue(new FeedBuilder(pkgs("a"), Collections.emptySet(), Collections.emptySet(), Collections.emptyMap())
+                .watchNextPublishers().isEmpty());
+    }
+
     private static List<String> sorted(List<String> l) {
         List<String> out = new ArrayList<>(l);
         Collections.sort(out);

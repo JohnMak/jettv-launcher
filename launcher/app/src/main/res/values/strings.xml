@@ -84,10 +84,8 @@
     <string name="update_err_install">установка отклонена</string>
     <string name="update_err_internal">внутренняя ошибка</string>
     <string name="settings_about_name">JetTV Launcher</string>
-    <string name="picker_title_recommendations">Источники «Рекомендаций»</string>
-    <string name="picker_title_continue">Источники «Продолжить просмотр»</string>
-    <string name="picker_hint">OK — включить или выключить приложение, Назад — закрыть</string>
-    <string name="picker_loading">Загрузка…</string>
+    <string name="sources_title_recommendations">Источники «Рекомендаций»</string>
+    <string name="sources_title_continue">Источники «Продолжить просмотр»</string>
     <string name="settings_ui_scale">Масштаб интерфейса</string>
     <string name="settings_rights_warning">Внимание: нужно выдать права</string>
     <string name="settings_rights_running">Выдаю…</string>
@@ -99,4 +97,5 @@
     <string name="settings_right_usage">Статистика</string>
     <string name="settings_right_home">Лаунчер</string>
     <string name="settings_set_home">Сделать лаунчером по умолчанию</string>
+    <string name="feed_configure">Настроить</string>
 </resources>
