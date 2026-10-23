@@ -16,7 +16,7 @@ final class BrightnessController {
 
     private static final int UNKNOWN = -1;
 
-    private final GmpfShell shell;
+    private final AdbSession shell;
     private final Executor worker;
     private final Executor main;
     private final Listener listener;
@@ -38,7 +38,7 @@ final class BrightnessController {
     private BrightnessScale.Position pending;
     private boolean applying;
 
-    BrightnessController(GmpfShell shell, Executor worker, Executor main, Listener listener) {
+    BrightnessController(AdbSession shell, Executor worker, Executor main, Listener listener) {
         this.shell = shell;
         this.worker = worker;
         this.main = main;
@@ -87,9 +87,9 @@ final class BrightnessController {
         worker.execute(shell::disconnect);
     }
 
+    /** The activity is gone; the shared {@link AdbSession} outlives it and is not closed here. */
     void release() {
         released = true;
-        worker.execute(shell::close);
     }
 
     /** The single shell boundary: a throwing shell becomes a typed failure instead of escaping the worker. */

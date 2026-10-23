@@ -23,6 +23,7 @@
     <string name="move_hint">Переместить: ← →, OK — готово</string>
     <string name="open_failed">Не удалось открыть</string>
     <string name="weather_vpn_off">Выключи VPN, чтобы определить город</string>
+    <string name="update_done">Обновлено до %s</string>
     <string name="weather_failed">Не удалось обновить погоду</string>
     <string name="settings_title">Параметры</string>
     <string name="settings_screensaver">Заставка</string>

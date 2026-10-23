@@ -77,6 +77,16 @@ final class IdleController {
         }
     }
 
+    /** True between onStart and onStop: the home screen is up and {@link #idleMillis} is meaningful. */
+    boolean isRunning() {
+        return running;
+    }
+
+    /** Time since the last remote input (or since start). */
+    long idleMillis() {
+        return SystemClock.uptimeMillis() - lastInput;
+    }
+
     /**
      * Feed every key event first. Returns true when the event must not reach the UI: any key that wakes a dimmed
      * screen, and the key-up that belongs to it.

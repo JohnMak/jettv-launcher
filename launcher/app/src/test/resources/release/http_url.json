@@ -1,0 +1,20 @@
+{
+  "url": "https://api.github.com/repos/johnmak/jettv-launcher/releases/1",
+  "tag_name": "v1.2.3",
+  "name": "v1.2.3",
+  "draft": false,
+  "prerelease": false,
+  "body": "notes",
+  "assets": [
+    {
+      "name": "jettv-launcher-1.2.3.apk",
+      "size": 123,
+      "browser_download_url": "http://github.com/johnmak/jettv-launcher/releases/download/v1.2.3/jettv-launcher-1.2.3.apk"
+    },
+    {
+      "name": "jettv-launcher-1.2.3.apk.sha256",
+      "size": 123,
+      "browser_download_url": "http://github.com/johnmak/jettv-launcher/releases/download/v1.2.3/jettv-launcher-1.2.3.apk.sha256"
+    }
+  ]
+}

@@ -8,13 +8,15 @@ import java.io.IOException;
 import dadb.AdbKeyPair;
 import dadb.AdbShellResponse;
 import dadb.Dadb;
+import dadb.InstallResult;
 
 /**
- * {@link GmpfShell} over the device's own adbd on 127.0.0.1:5555 (dadb). The RSA key lives in the app's
+ * {@link AdbSession} over the device's own adbd on 127.0.0.1:5555 (dadb). The RSA key lives in the app's
  * private files; the first connection shows a one-time "Allow USB debugging?" dialog. One connection is
  * kept; a failure drops it so the next call reconnects. Blocking, worker thread only; calls are serialized.
+ * There is exactly one instance per process ({@link #shared}), used by brightness and by the updater.
  */
-final class LoopbackAdbShell implements GmpfShell {
+final class LoopbackAdbSession implements AdbSession {
     private static final String HOST = "127.0.0.1";
     private static final int PORT = 5555;
     private static final int CONNECT_TIMEOUT_MS = 3_000;
@@ -24,18 +26,23 @@ final class LoopbackAdbShell implements GmpfShell {
     private final File keyDir;
     private AdbKeyPair keys;
     private Dadb adb;
-    private boolean closed;
 
-    LoopbackAdbShell(Context context) {
+    private static LoopbackAdbSession shared;
+
+    /** The process-wide session; the single dadb connection is never duplicated. */
+    static synchronized LoopbackAdbSession shared(Context context) {
+        if (shared == null) shared = new LoopbackAdbSession(context.getApplicationContext());
+        return shared;
+    }
+
+    private LoopbackAdbSession(Context context) {
         this.keyDir = new File(context.getFilesDir(), "adb");
     }
 
     @Override
     public synchronized FetchResult<String> exec(GmpfCommand command) {
-        if (closed) return ShellError.fail(ShellError.UNREACHABLE, "shell is closed");
         try {
-            if (adb == null) adb = Dadb.create(HOST, PORT, keys(), CONNECT_TIMEOUT_MS, SOCKET_TIMEOUT_MS);
-            AdbShellResponse response = adb.shell(command.shellLine());
+            AdbShellResponse response = connection().shell(command.shellLine());
             String output = response.getAllOutput();
             ShellError failure = ShellErrorClassifier.classifyOutput(response.getExitCode(), output);
             if (failure == null) return FetchResult.ok(response.getOutput());
@@ -44,6 +51,25 @@ final class LoopbackAdbShell implements GmpfShell {
             dropConnection();
             return ShellError.fail(ShellErrorClassifier.classify(e), String.valueOf(e.getMessage()));
         }
+    }
+
+    @Override
+    public synchronized FetchResult<String> install(VerifiedApk apk) {
+        try {
+            InstallResult result = connection().install(apk.file(), "-r");
+            if (result instanceof InstallResult.Failure) {
+                return ShellError.fail(ShellError.COMMAND_FAILED, ((InstallResult.Failure) result).getReason());
+            }
+            return FetchResult.ok("installed");
+        } catch (Exception e) { // I/O boundary: nothing may escape as an untyped exception
+            dropConnection();
+            return ShellError.fail(ShellErrorClassifier.classify(e), String.valueOf(e.getMessage()));
+        }
+    }
+
+    private Dadb connection() throws IOException {
+        if (adb == null) adb = Dadb.create(HOST, PORT, keys(), CONNECT_TIMEOUT_MS, SOCKET_TIMEOUT_MS);
+        return adb;
     }
 
     private AdbKeyPair keys() throws IOException {
@@ -70,12 +96,6 @@ final class LoopbackAdbShell implements GmpfShell {
 
     @Override
     public synchronized void disconnect() {
-        dropConnection();
-    }
-
-    @Override
-    public synchronized void close() {
-        closed = true;
         dropConnection();
     }
 }

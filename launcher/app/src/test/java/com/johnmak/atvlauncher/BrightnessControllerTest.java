@@ -21,10 +21,9 @@ public class BrightnessControllerTest {
         void drain() { while (!tasks.isEmpty()) tasks.poll().run(); }
     }
 
-    private static final class FakeShell implements GmpfShell {
+    private static final class FakeShell implements AdbSession {
         final List<String> commands = new ArrayList<>();
         final Queue<FetchResult<String>> scripted = new ArrayDeque<>();
-        boolean closed;
         int disconnects;
         RuntimeException throwOnce;
         @Override public FetchResult<String> exec(GmpfCommand command) {
@@ -40,7 +39,7 @@ public class BrightnessControllerTest {
             return r;
         }
         @Override public void disconnect() { disconnects++; }
-        @Override public void close() { closed = true; }
+        @Override public FetchResult<String> install(VerifiedApk apk) { throw new AssertionError("brightness never installs"); }
         void ok(String s) { scripted.add(FetchResult.ok(s)); }
         void level(int n) { ok("return_data : {" + n + " }"); }
         void fail(ShellError kind) { scripted.add(ShellError.fail(kind, "x")); }
@@ -340,11 +339,13 @@ public class BrightnessControllerTest {
         assertCommands("gmpfUnit setBrightness 0 50", "gmpfUnit setContrast 0 50");
     }
 
-    @Test public void releaseClosesShellOnWorker() {
+    @Test public void releaseDoesNotTouchTheSharedSession() {
         c.release();
-        assertTrue(!shell.closed);
         settle();
-        assertTrue(shell.closed);
+        assertEquals(0, shell.disconnects);
+        c.refresh(); // released: nothing reaches the shell any more
+        settle();
+        assertTrue(shell.commands.isEmpty());
     }
 
     @Test public void runtimeExceptionInWriteDoesNotWedgeLaterWrites() {
@@ -379,7 +380,6 @@ public class BrightnessControllerTest {
         assertEquals(0, shell.disconnects);
         settle();
         assertEquals(1, shell.disconnects);
-        assertTrue(!shell.closed); // only release() is final
         device(5, 50, 50);
         c.refresh(); // lazy reconnect happens inside the next exec
         settle();
