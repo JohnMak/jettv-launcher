@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -37,7 +36,7 @@ import java.util.concurrent.Executors;
  */
 public final class SystemCleanupActivity extends Activity {
     private static final String TAG = "AtvCleanup";
-    private static final String KEY_AUTO = "auto";
+    private static final String KEY_AUTO = AutoRunGuard.KEY;
     private static final String KEY_RESTORE = "restore:";
 
     private enum Zone { AUTO, LIST, REMOVED }
@@ -53,6 +52,7 @@ public final class SystemCleanupActivity extends Activity {
         final TextView desc;
         final TextView stats;
         final TextView note;
+        boolean iconRequested;
         final ImageView trash;
         final ImageView rollback;
 
@@ -123,20 +123,32 @@ public final class SystemCleanupActivity extends Activity {
     private final class RemovedRow {
         final String pkg;
         final LinearLayout view;
+        final ImageView icon;
+        final TextView title;
+        final TextView desc;
         final TextView note;
+        boolean iconRequested;
 
-        RemovedRow(CleanupList.Removed r) {
-            pkg = r.pkg;
+        RemovedRow(String pkg) {
+            this.pkg = pkg;
             view = rowContainer();
-            view.addView(appIcon(pkg), iconParams());
+            icon = appIcon(pkg);
+            view.addView(icon, iconParams());
             LinearLayout col = new LinearLayout(SystemCleanupActivity.this);
             col.setOrientation(LinearLayout.VERTICAL);
-            col.addView(text((r.ours ? "★ " : "") + r.label, R.color.text_primary, R.font.outfit_regular, 20));
-            col.addView(twoLines(r.description == null ? "" : r.description));
+            title = text("", R.color.text_primary, R.font.outfit_regular, 20);
+            col.addView(title);
+            desc = twoLines("");
+            col.addView(desc);
             view.addView(col, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             note = text("", R.color.text_secondary, R.font.outfit_light, 16);
             view.addView(note);
             view.setAlpha(FocusDim.Role.TEXT.unfocused);
+        }
+
+        void bind(CleanupList.Removed r) {
+            title.setText((r.ours ? "★ " : "") + r.label);
+            desc.setText(r.description == null ? "" : r.description);
         }
     }
 
@@ -154,9 +166,10 @@ public final class SystemCleanupActivity extends Activity {
     private final Map<String, AppRow> appRows = new HashMap<>();
     private final List<AppRow> shownApps = new ArrayList<>();
     private final List<RemovedRow> shownRemoved = new ArrayList<>();
-    private final Set<String> iconRequested = new HashSet<>();
+    private final Map<String, RemovedRow> removedRows = new HashMap<>();
     private final Map<String, String> errors = new HashMap<>();
     private final CleanupConfirm confirm = new CleanupConfirm();
+    private final AutoRunGuard autoGuard = new AutoRunGuard(confirm);
     private final CenterKey centerKey = new CenterKey();
     private CleanupRowFocus focus;
     private Zone zone = Zone.AUTO;
@@ -168,9 +181,9 @@ public final class SystemCleanupActivity extends Activity {
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private volatile boolean destroyed;
-    private final ExecutorService worker = Executors.newSingleThreadExecutor();
-    private final ExecutorService statsWorker = Executors.newSingleThreadExecutor();
-    private final ExecutorService icons = Executors.newSingleThreadExecutor();
+    private final GuardedWorker worker = new GuardedWorker(Executors.newSingleThreadExecutor(), this::workerFailed);
+    private final GuardedWorker statsWorker = new GuardedWorker(Executors.newSingleThreadExecutor(), this::workerFailed);
+    private final GuardedWorker icons = new GuardedWorker(Executors.newSingleThreadExecutor(), this::workerFailed);
 
     private RequiredRights.Probe rights;
     private LoopbackAdbSession session;
@@ -213,7 +226,7 @@ public final class SystemCleanupActivity extends Activity {
             statusView.setText(R.string.cleanup_log_broken);
         }
         if (statusView.getText().length() == 0) statusView.setText(R.string.cleanup_loading);
-        worker.execute(() -> {
+        worker.submit(() -> {
             CleanupProfile p = CleanupSections.selectProfile(CleanupInventory.profiles(this), Build.MODEL, Build.PRODUCT);
             FetchResult<AppDescriptions> d = AppDescriptions.load(this);
             if (!d.isOk()) Log.w(TAG, "descriptions: " + d.error());
@@ -235,9 +248,9 @@ public final class SystemCleanupActivity extends Activity {
     protected void onDestroy() {
         destroyed = true;
         main.removeCallbacksAndMessages(null);
-        worker.shutdownNow();
-        statsWorker.shutdownNow();
-        icons.shutdownNow();
+        worker.close();
+        statsWorker.close();
+        icons.close();
         super.onDestroy();
     }
 
@@ -256,7 +269,7 @@ public final class SystemCleanupActivity extends Activity {
 
     /** Sizes first (fast), then memory and CPU (a slow meminfo call); each arrival re-sorts and re-renders. */
     private void loadStats(CleanupInventory.Snapshot s) {
-        statsWorker.execute(() -> {
+        statsWorker.submit(() -> {
             CleanupInventory.Sizes sz = CleanupInventory.sizes(this, s.apps);
             main.post(() -> {
                 if (isDestroyed()) return;
@@ -284,7 +297,16 @@ public final class SystemCleanupActivity extends Activity {
             Log.w(TAG, "stats command: " + raw.error());
             return new HashMap<>();
         }
-        FetchResult<Map<String, Long>> p = meminfo ? MeminfoParser.parse(raw.value()) : ProcessTimesParser.parse(raw.value());
+        if (meminfo) {
+            FetchResult<MeminfoParser.Parsed> m = MeminfoParser.parse(raw.value());
+            if (!m.isOk()) {
+                Log.w(TAG, "stats parse: " + m.error());
+                return new HashMap<>();
+            }
+            if (m.value().skipped > 0) Log.w(TAG, "meminfo: skipped " + m.value().skipped + " malformed lines");
+            return m.value().pss;
+        }
+        FetchResult<Map<String, Long>> p = ProcessTimesParser.parse(raw.value());
         if (!p.isOk()) {
             Log.w(TAG, "stats parse: " + p.error());
             return new HashMap<>();
@@ -299,6 +321,18 @@ public final class SystemCleanupActivity extends Activity {
         all.addAll(cpu.keySet());
         for (String pkg : all) out.put(pkg, new CleanupList.Stats(sizes.get(pkg), pss.get(pkg), cpu.get(pkg)));
         return out;
+    }
+
+    /** A background task threw: log it and return the screen to an idle, usable state. */
+    private void workerFailed(Throwable t) {
+        Log.e(TAG, "background task failed", t);
+        main.post(() -> {
+            if (isDestroyed()) return;
+            busy = false;
+            confirm.disarm();
+            statusView.setText(getString(R.string.cleanup_failed, "?"));
+            refreshNotes();
+        });
     }
 
     private synchronized CleanupLog currentLog() { return log; }
@@ -332,16 +366,16 @@ public final class SystemCleanupActivity extends Activity {
 
     private void runAuto() {
         if (busy || result == null || result.autoSteps.isEmpty()) return;
-        if (!confirm.press(KEY_AUTO)) {
+        List<CleanupPlanner.Step> steps = autoGuard.press(result.autoSteps);
+        if (steps == null) {
             refreshNotes();
             return;
         }
-        List<CleanupPlanner.Step> steps = result.autoSteps;
         busy = true;
         errors.remove(KEY_AUTO);
         progress = getString(R.string.cleanup_progress, 0, steps.size());
         refreshNotes();
-        worker.execute(() -> {
+        worker.submit(() -> {
             int done = 0;
             int failed = 0;
             String stop = null;
@@ -385,7 +419,7 @@ public final class SystemCleanupActivity extends Activity {
         errors.remove(key);
         statusView.setText(R.string.cleanup_working);
         refreshNotes();
-        worker.execute(() -> {
+        worker.submit(() -> {
             String err = execute(op, pkg);
             if (err != null) main.post(() -> errors.put(key, err));
             finishRun();
@@ -453,6 +487,7 @@ public final class SystemCleanupActivity extends Activity {
         if (zone == Zone.LIST && result.rows.isEmpty()) zone = Zone.AUTO;
         if (zone == Zone.REMOVED && result.removed.isEmpty()) zone = result.rows.isEmpty() ? Zone.AUTO : Zone.LIST;
         removedIndex = Math.min(removedIndex, Math.max(0, result.removed.size() - 1));
+        autoGuard.sync(result.autoSteps);
         int before = appRows.size();
         render();
         Log.i(TAG, "render rows=" + result.rows.size() + " created=" + (appRows.size() - before) + " model=" + (t1 - t0)
@@ -476,13 +511,16 @@ public final class SystemCleanupActivity extends Activity {
             list.addView(hint);
         }
         appsHeader = addHeader(R.string.cleanup_section_apps, true);
-        List<String> toLoad = new ArrayList<>();
+        List<ImageView> toLoad = new ArrayList<>();
         for (CleanupList.Row r : result.rows) {
             AppRow ar = appRows.get(r.pkg);
             if (ar == null) {
                 ar = new AppRow(r.pkg);
                 appRows.put(r.pkg, ar);
-                toLoad.add(r.pkg);
+            }
+            if (!ar.iconRequested) {
+                ar.iconRequested = true;
+                toLoad.add(ar.icon);
             }
             ar.bind(r);
             ar.view.setAlpha(FocusDim.Role.TEXT.unfocused);
@@ -493,10 +531,19 @@ public final class SystemCleanupActivity extends Activity {
         if (!result.removed.isEmpty()) {
             removedHeader = addHeader(R.string.cleanup_section_removed, true);
             for (CleanupList.Removed r : result.removed) {
-                RemovedRow rr = new RemovedRow(r);
+                RemovedRow rr = removedRows.get(r.pkg);
+                if (rr == null) {
+                    rr = new RemovedRow(r.pkg);
+                    removedRows.put(r.pkg, rr);
+                }
+                rr.bind(r);
+                if (!rr.iconRequested) {
+                    rr.iconRequested = true;
+                    toLoad.add(rr.icon);
+                }
+                rr.view.setAlpha(FocusDim.Role.TEXT.unfocused);
                 list.addView(rr.view, rowParams(LinearLayout.LayoutParams.WRAP_CONTENT));
                 shownRemoved.add(rr);
-                toLoad.add(r.pkg);
             }
         }
         refreshNotes();
@@ -548,15 +595,9 @@ public final class SystemCleanupActivity extends Activity {
         for (RemovedRow r : shownRemoved) r.note.setText(removedNote(r.pkg));
     }
 
-    private void loadIcons(List<String> pkgs) {
-        List<ImageView> targets = new ArrayList<>();
-        for (String pkg : pkgs) {
-            if (!iconRequested.add(pkg)) continue;
-            ImageView iv = findIcon(pkg);
-            if (iv != null) targets.add(iv);
-        }
+    private void loadIcons(List<ImageView> targets) {
         if (targets.isEmpty()) return;
-        icons.execute(() -> {
+        icons.submit(() -> {
             for (ImageView iv : targets) {
                 String pkg = (String) iv.getTag();
                 try {
@@ -567,13 +608,6 @@ public final class SystemCleanupActivity extends Activity {
                 }
             }
         });
-    }
-
-    private ImageView findIcon(String pkg) {
-        AppRow ar = appRows.get(pkg);
-        if (ar != null) return ar.icon;
-        for (RemovedRow rr : shownRemoved) if (rr.pkg.equals(pkg)) return (ImageView) rr.view.getChildAt(0);
-        return null;
     }
 
     // ---------------------------------------------------------------- view helpers

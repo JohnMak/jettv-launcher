@@ -24,9 +24,9 @@ public class MeminfoParserTest {
 
     @Test
     public void realTvDumpTakesThePssBlockNotTheRssBlock() throws IOException {
-        FetchResult<Map<String, Long>> r = MeminfoParser.parse(fixture("tv2_meminfo.txt"));
+        FetchResult<MeminfoParser.Parsed> r = MeminfoParser.parse(fixture("tv2_meminfo.txt"));
         assertTrue(r.isOk());
-        Map<String, Long> m = r.value();
+        Map<String, Long> m = r.value().pss;
         assertEquals(Long.valueOf(119995), m.get("com.johnmak.atvlauncher")); // RSS block says 228260
         assertEquals(Long.valueOf(1497), m.get("gpuservice"));
         assertEquals(Long.valueOf(46211 + 47433), m.get("com.android.vending")); // ":background" folded in
@@ -38,7 +38,7 @@ public class MeminfoParserTest {
         String dump = "version,1\ntime,1,2\noom,fore,10,N/A\n"
                 + "proc,fore,com.a,1,100,N/A,a\nproc,cached,com.a:svc,2,50,N/A,e\nproc,cached,com.b,3,7,N/A,e\n"
                 + "cat,Native,1,N/A\nram,1,2,3\n";
-        Map<String, Long> m = MeminfoParser.parse(dump).value();
+        Map<String, Long> m = MeminfoParser.parse(dump).value().pss;
         assertEquals(Long.valueOf(150), m.get("com.a"));
         assertEquals(Long.valueOf(7), m.get("com.b"));
         assertEquals(2, m.size());
@@ -49,9 +49,22 @@ public class MeminfoParserTest {
         assertFalse(MeminfoParser.parse(null).isOk());
         assertFalse(MeminfoParser.parse("").isOk());
         assertFalse(MeminfoParser.parse("version,1\ntime,1,2\n").isOk());
+        // only malformed lines: nothing valid at all
         assertFalse(MeminfoParser.parse("proc,fore,com.a,1\n").isOk());
         assertFalse(MeminfoParser.parse("proc,fore,com.a,1,notanumber,N/A,a\n").isOk());
         assertFalse(MeminfoParser.parse("proc,fore,com.a,1,-5,N/A,a\n").isOk());
         assertFalse(MeminfoParser.parse("proc,fore,,1,5,N/A,a\n").isOk());
+    }
+
+    @Test
+    public void malformedProcLinesAreSkippedAndCounted() {
+        String dump = "oom,fore,10,N/A\nproc,fore,com.a,1,100,N/A,a\nproc,fore,com.b,1\n"
+                + "proc,fore,com.c,1,x,N/A,a\nproc,fore,com.d,1,-5,N/A,a\nproc,fore,,1,5,N/A,a\nproc,cached,com.e,3,7,N/A,e\n";
+        FetchResult<MeminfoParser.Parsed> r = MeminfoParser.parse(dump);
+        assertTrue(r.isOk());
+        assertEquals(2, r.value().pss.size());
+        assertEquals(Long.valueOf(100), r.value().pss.get("com.a"));
+        assertEquals(Long.valueOf(7), r.value().pss.get("com.e"));
+        assertEquals(4, r.value().skipped);
     }
 }

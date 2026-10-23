@@ -121,6 +121,7 @@ final class SettingsImport {
         List<Entry> entries = new ArrayList<>();
         for (Iterator<String> files = prefs.keys(); files.hasNext(); ) {
             String file = files.next();
+            if (file.equals(LegacyPurge.PREFS_FILE)) continue; // removed Kinopoisk feature: old exports still carry it
             Map<String, Type> allowed = WHITELIST.get(file);
             if (allowed == null) return FetchResult.err("unknown prefs file: " + file);
             JSONObject keys = prefs.optJSONObject(file);

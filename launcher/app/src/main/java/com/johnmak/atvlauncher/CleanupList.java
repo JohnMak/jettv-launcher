@@ -151,7 +151,10 @@ final class CleanupList {
             ProtectedPackages.Level level = protectedSet.level(a.pkg);
             boolean locked = level == ProtectedPackages.Level.FULL || s.persistent || (a.homeHandler && !holdsHome);
             Set<Col> actions = EnumSet.noneOf(Col.class);
-            if (!locked) {
+            if (locked && s.disabledUser) {
+                locked = false; // already disabled: it can only be enabled again, never disabled or removed
+                actions.add(Col.TOGGLE);
+            } else if (!locked) {
                 actions.add(Col.TOGGLE);
                 if (level == ProtectedPackages.Level.NONE) actions.add(Col.TRASH);
                 if (s.updatedSystem) actions.add(Col.ROLLBACK);

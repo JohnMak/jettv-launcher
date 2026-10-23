@@ -68,6 +68,17 @@ public class SettingsImportTest {
     }
 
     @Test
+    public void obsoleteKinopoiskFileIsSkippedButOtherUnknownFilesReject() {
+        FetchResult<SettingsImport.ImportPlan> r = SettingsImport.parse(doc("{\"kinopoisk\":{\"token\":" + cell("string", "\"t\"") + "},"
+                + "\"favorites\":{\"packages\":" + cell("string", "\"a\"") + "}}"));
+        assertTrue(r.isOk() ? "" : r.error(), r.isOk());
+        assertEquals(1, r.value().entries.size());
+        assertEquals("favorites", r.value().entries.get(0).file);
+        assertTrue(SettingsImport.parse(doc("{\"kinopoisk\":{}}")).value().entries.isEmpty());
+        assertFalse(SettingsImport.parse(doc("{\"kinopoisk2\":{}}")).isOk());
+    }
+
+    @Test
     public void wrongTypeOrValueIsRejected() {
         assertFalse(SettingsImport.parse(doc("{\"launcher_settings\":{\"dim_delay_sec\":" + cell("string", "\"5\"") + "}}")).isOk());
         assertFalse(SettingsImport.parse(doc("{\"launcher_settings\":{\"dim_delay_sec\":" + cell("int", "\"5\"") + "}}")).isOk());
@@ -86,7 +97,7 @@ public class SettingsImportTest {
 
     @Test
     public void kinopoiskFileIsNoLongerWhitelisted() {
-        assertFalse(SettingsImport.parse(doc("{\"kinopoisk\":{\"token\":" + cell("string", "\"x\"") + "}}")).isOk());
+        assertFalse(SettingsImport.WHITELIST.containsKey("kinopoisk")); // not importable: its entry is skipped, never applied
     }
 
     @Test

@@ -13,10 +13,22 @@ final class MeminfoParser {
 
     private MeminfoParser() {}
 
-    static FetchResult<Map<String, Long>> parse(String raw) {
+    /** PSS per package plus the number of malformed {@code proc,} lines that were skipped. */
+    static final class Parsed {
+        final Map<String, Long> pss;
+        final int skipped;
+
+        Parsed(Map<String, Long> pss, int skipped) {
+            this.pss = pss;
+            this.skipped = skipped;
+        }
+    }
+
+    static FetchResult<Parsed> parse(String raw) {
         if (raw == null || raw.trim().isEmpty()) return FetchResult.err("meminfo output is empty");
         Map<String, Long> block = null;
         boolean afterCat = true;
+        int skipped = 0;
         for (String line : raw.split("\n")) {
             String l = line.trim();
             if (l.startsWith("oom,") && afterCat) {
@@ -27,11 +39,11 @@ final class MeminfoParser {
             } else if (l.startsWith("proc,")) {
                 if (block == null) block = new HashMap<>();
                 String problem = add(block, l);
-                if (problem != null) return FetchResult.err(problem);
+                if (problem != null) skipped++;
             }
         }
-        if (block == null || block.isEmpty()) return FetchResult.err("meminfo output has no proc lines");
-        return FetchResult.ok(block);
+        if (block == null || block.isEmpty()) return FetchResult.err("meminfo output has no valid proc lines (skipped " + skipped + ")");
+        return FetchResult.ok(new Parsed(block, skipped));
     }
 
     /** Adds the line's PSS to its package; returns an error message, or null on success. */

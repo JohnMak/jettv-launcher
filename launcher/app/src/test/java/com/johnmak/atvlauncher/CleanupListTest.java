@@ -64,6 +64,15 @@ public class CleanupListTest {
             assertTrue(p, row(r, p).locked);
             assertTrue(p, row(r, p).actions.isEmpty());
         }
+        // a disabled locked app can only be enabled again: toggle offered, never trash/rollback, op is ENABLE
+        CleanupList.Result off = build(Arrays.asList(
+                app("s.persist.off", "PersistOff", true, true, true, false, true, false),
+                app("com.google.android.gms", "GMS", true, true, true, false, false, false)), null, false, null);
+        for (String p : new String[] {"s.persist.off", "com.google.android.gms"}) {
+            assertEquals(p, "[TOGGLE]", row(off, p).actions.toString());
+            assertEquals(p, CleanupSections.Op.ENABLE, row(off, p).op(CleanupList.Col.TOGGLE));
+            assertFalse(p, row(off, p).enabled);
+        }
         // removed block: only system apps not installed for the user
         assertEquals(1, r.removed.size());
         assertEquals("s.gone", r.removed.get(0).pkg);
