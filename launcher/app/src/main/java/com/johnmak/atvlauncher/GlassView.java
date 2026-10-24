@@ -21,9 +21,11 @@ public final class GlassView extends View {
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF current = new RectF();
     private final RectF to = new RectF();
-    /** Accent halo rings, built once; {@code null} = disabled (the default for every screen except Home). */
+    /** Halo rings behind the highlight, built once; {@code null} = disabled (the default for every screen except Home). */
     private Paint[] glow;
     private float[] glowInsetPx;
+    private int[] glowAlpha;
+    private int glowColor;
     private final RectF glowRect = new RectF();
     private float radiusCurrent;
     private float radiusTo;
@@ -44,24 +46,41 @@ public final class GlassView extends View {
     }
 
     /**
-     * Turns on a subtle accent halo behind the highlight (Home only). Opt-in: callers that never invoke this keep the
-     * plain white glass. Paints are built once here; nothing is allocated per frame.
+     * Turns on a subtle halo behind the highlight (Home only). Opt-in: callers that never invoke this keep the plain
+     * white glass. The ring geometry (insets, widths, per-ring alpha) is built once here; the hue is set later per
+     * focused tile with {@link #setGlowColor}. Nothing is allocated per frame, and recolouring never allocates either.
      */
-    void enableAccentGlow(int color) {
+    void enableGlow() {
+        if (glow != null) return;
         float d = getResources().getDisplayMetrics().density;
         float[] insets = {2f * d, 6f * d, 11f * d};
         float[] widths = {3f * d, 4f * d, 5f * d};
-        int[] alphas = {90, 46, 22};
+        glowAlpha = new int[]{90, 46, 22};
         Paint[] rings = new Paint[insets.length];
         for (int i = 0; i < rings.length; i++) {
             Paint g = new Paint(Paint.ANTI_ALIAS_FLAG);
             g.setStyle(Paint.Style.STROKE);
             g.setStrokeWidth(widths[i]);
-            g.setColor((alphas[i] << 24) | (color & 0x00FFFFFF));
             rings[i] = g;
         }
         glowInsetPx = insets;
         glow = rings;
+        glowColor = 0;
+        setGlowColor(GlowColor.NEUTRAL);
+    }
+
+    /**
+     * Recolours the halo rings (keeping their per-ring alpha). Called on focus change with the focused tile's resolved
+     * glow colour; a no-op when the glow is off or the colour is unchanged. Zero allocation: only the cached ring
+     * paints are re-coloured, so this is safe to call from the focus path.
+     */
+    void setGlowColor(int color) {
+        if (glow == null || color == glowColor) return;
+        glowColor = color;
+        int rgb = color & 0x00FFFFFF;
+        for (int i = 0; i < glow.length; i++) {
+            glow[i].setColor((glowAlpha[i] << 24) | rgb);
+        }
         invalidate();
     }
 

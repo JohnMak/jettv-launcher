@@ -39,10 +39,12 @@ final class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Holde
     private final Set<String> dotted = new HashSet<>();
     private final float tileRadius;
     private final float density;
+    private final TileGlow glow;
     private int selected = -1;
 
-    FavoritesAdapter(float density) {
+    FavoritesAdapter(float density, TileGlow glow) {
         this.density = density;
+        this.glow = glow;
         this.tileRadius = 10 * density;
     }
 
@@ -114,6 +116,7 @@ final class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Holde
         AppEntry entry = entry(position);
         if (entry != null) {
             Tiles.bindImage(h.image, entry.tile, tileRadius);
+            glow.precompute(entry); // warm the glow-colour cache off the main thread, before this tile is focused
         } else {
             h.image.setImageResource(R.drawable.tile_apps);
             Tiles.round(h.image, tileRadius);

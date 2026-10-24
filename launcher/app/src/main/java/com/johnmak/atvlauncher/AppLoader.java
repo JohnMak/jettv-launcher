@@ -38,7 +38,9 @@ final class AppLoader {
             StringBuilder sb = new StringBuilder();
             for (AppEntry e : apps) {
                 byPackage.put(e.packageName, e);
-                sb.append(e.packageName).append(e.label).append('|');
+                // versionCode is part of the signature so a same-label app update still forces an adapter
+                // rebuild (otherwise the tile keeps the old AppEntry/icon/version and shows a stale glow).
+                sb.append(e.packageName).append(e.label).append('@').append(e.versionCode).append('|');
             }
             this.signature = sb.toString();
         }
@@ -84,8 +86,11 @@ final class AppLoader {
     private AppEntry entry(ResolveInfo ri, String category) {
         String pkg = ri.activityInfo.packageName;
         long updated = 0;
+        long version = 0;
         try {
-            updated = pm.getPackageInfo(pkg, 0).lastUpdateTime;
+            android.content.pm.PackageInfo info = pm.getPackageInfo(pkg, 0);
+            updated = info.lastUpdateTime;
+            version = info.getLongVersionCode();
         } catch (PackageManager.NameNotFoundException ignored) {
             // package vanished between query and lookup; next refresh drops it
         }
@@ -99,7 +104,7 @@ final class AppLoader {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         String label = String.valueOf(ri.loadLabel(pm));
         Bitmap tile = renderTile(ri, pkg);
-        AppEntry fresh = new AppEntry(pkg, label, launch, tile, renderIcon(ri));
+        AppEntry fresh = new AppEntry(pkg, label, launch, tile, renderIcon(ri), version);
         cache.put(key, fresh);
         return fresh;
     }

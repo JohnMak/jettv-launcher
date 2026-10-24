@@ -160,6 +160,8 @@ public final class MainActivity extends Activity {
     /** Packages opened since boot, newest first. */
     private List<String> opened = new ArrayList<>();
     private FavoritesAdapter favAdapter;
+    /** Resolves and caches each app's focused-tile glow colour from its icon (off the main thread). */
+    private TileGlow tileGlow;
     /** Packages that never appear in the row's continuation: the AllApps header apps (favorites are excluded per rebuild). */
     private Set<String> headerPackages;
     /** Launch counts the continuation was last sorted by. */
@@ -287,7 +289,7 @@ public final class MainActivity extends Activity {
         watchConfig = new ConfigTile(findViewById(R.id.watch_config), watchBox, watchRow);
         mixedConfig = new ConfigTile(findViewById(R.id.mixed_config), mixedBox, mixedRow);
         glass = findViewById(R.id.glass);
-        glass.enableAccentGlow(getColor(R.color.accent));
+        glass.enableGlow();
         clock = findViewById(R.id.clock);
         FocusDim.applyAlpha(clock, FocusDim.Role.AMBIENT, false, false);
         FocusDim.applyAlpha(date, FocusDim.Role.AMBIENT, false, false);
@@ -304,7 +306,8 @@ public final class MainActivity extends Activity {
         AppBackdropImage appImages = new AppBackdropImage(getPackageManager());
         backdrop = new BackdropController(findViewById(R.id.backdrop), main, worker,
                 key -> BackdropKeys.isApp(key) ? appImages.load(BackdropKeys.packageOf(key)) : posters.loadForBackdrop(key, BackdropBlur.W * 2, BackdropBlur.H * 2));
-        favAdapter = new FavoritesAdapter(density);
+        tileGlow = new TileGlow(worker, main, this::onGlowResolved);
+        favAdapter = new FavoritesAdapter(density, tileGlow);
         watchAdapter = new FeedAdapter(posters, posterWorker, main, density, this::updateBackdrop, this::appIcon,
                 previewScalePercent);
         mixedAdapter = new FeedAdapter(posters, posterWorker, main, density, this::updateBackdrop, this::appIcon,
@@ -944,7 +947,26 @@ public final class MainActivity extends Activity {
                 if (!locateInRow(mixedRow, mixedScroller, mixedAdapter, focus.index(), glassTarget)) return;
                 radius = Tiles.grow(glassTarget, density, 12);
         }
+        glass.setGlowColor(glowColorForFocus());
         glass.moveTo(glassTarget, radius, animate);
+    }
+
+    /**
+     * Glow colour of the current selection: a favourites app tile glows in the dark of its own icon colour (cached,
+     * {@link TileGlow}), everything else (apps button, top bar, weather, feed cards) uses the neutral grey.
+     */
+    private int glowColorForFocus() {
+        if (focus.zone() == FocusModel.Zone.FAVORITES) {
+            return tileGlow.colorFor(favAdapter.entry(focus.index()));
+        }
+        return GlowColor.NEUTRAL;
+    }
+
+    /** A tile's glow colour finished resolving off the main thread: repaint if that tile is the one focused now. */
+    private void onGlowResolved(String packageName) {
+        if (focus.zone() != FocusModel.Zone.FAVORITES) return;
+        AppEntry entry = favAdapter.entry(focus.index());
+        if (entry != null && entry.packageName.equals(packageName)) glass.setGlowColor(tileGlow.colorFor(entry));
     }
 
     /**
