@@ -25,21 +25,21 @@ public class GlowColorTest {
 
     @Test
     public void saturatedColourKeepsHueAndSaturationButIsDarkened() {
-        // Pure red: HSL lightness 0.5 -> 0.5 * 0.45 = 0.225, inside the [0.05, 0.35] band.
+        // Pure red: HSL lightness 0.5 -> 0.5 * 0.70 = 0.35, inside the [0.15, 0.65] band.
         int glow = GlowColor.glowFor(0xFF0000);
         float[] hsl = hslOf(glow);
         assertEquals(0f, hsl[0], 1f);        // hue preserved (red)
         assertEquals(1f, hsl[1], EPS);       // saturation preserved
-        assertEquals(0.225f, hsl[2], EPS);   // lightness multiplied by 0.45
+        assertEquals(0.35f, hsl[2], EPS);    // lightness multiplied by 0.70
     }
 
     @Test
     public void lightnessIsClampedToTheDarkBand() {
-        // Bright saturated green: 0.85 * 0.45 = 0.3825 -> clamped down to the 0.35 ceiling.
-        int bright = GlowColor.fromHsl(new float[]{120f, 1f, 0.85f});
+        // Near-white saturated green: 0.95 * 0.70 = 0.665 -> clamped down to the 0.65 ceiling.
+        int bright = GlowColor.fromHsl(new float[]{120f, 1f, 0.95f});
         assertEquals(GlowColor.LIGHT_MAX, hslOf(GlowColor.glowFor(bright))[2], EPS);
 
-        // Very dark saturated blue: 0.08 * 0.45 = 0.036 -> clamped up to the 0.05 floor.
+        // Very dark saturated blue: 0.08 * 0.70 = 0.056 -> clamped up to the 0.15 floor.
         int dark = GlowColor.fromHsl(new float[]{240f, 1f, 0.08f});
         assertEquals(GlowColor.LIGHT_MIN, hslOf(GlowColor.glowFor(dark))[2], EPS);
     }
@@ -62,7 +62,7 @@ public class GlowColorTest {
 
         assertEquals(GlowColor.NEUTRAL, GlowColor.glowFor(belowSat));
         float[] tinted = hslOf(GlowColor.glowFor(aboveSat));
-        assertEquals(0.225f, tinted[2], EPS);   // darkened, not the neutral grey
+        assertEquals(0.35f, tinted[2], EPS);    // darkened, not the neutral grey
         assertTrue(tinted[1] >= GlowColor.SAT_MIN);
     }
 

@@ -2,6 +2,9 @@
 
 Dates are tag dates. SemVer; versionCode = X*1_000_000 + Y*1_000 + Z. `v0.0.1` is a local baseline, not a release.
 
+## v0.4.2 (2026-10-24)
+- Brighter focused app-tile glow: the icon-colour halo is rescaled into a clearly bright band instead of a dark one.
+
 ## v0.3.3 (2026-10-24)
 - Updates install immediately after the device boots (boot window, retries while the network is not up).
 - Settings are split into tabs: Общие / Интерфейс / Заставка / Оптимизация.

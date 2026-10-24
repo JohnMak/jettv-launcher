@@ -1,10 +1,11 @@
 package com.johnmak.atvlauncher;
 
 /**
- * Pure colour maths for the focused-tile glow: turns an icon's dominant colour into a "dark glow of the icon's colour".
+ * Pure colour maths for the focused-tile glow: turns an icon's dominant colour into a bright glow of the icon's
+ * colour.
  *
- * <p>The glow is the dominant colour pushed down in HSL lightness so it reads as a dark halo rather than a bright
- * accent. Low-saturation (greyscale) icons have no colour to tint with, so they fall back to a fixed neutral grey.
+ * <p>The glow is the dominant colour rescaled in HSL lightness so it reads as a clearly bright halo. Low-saturation
+ * (greyscale) icons have no colour to tint with, so they fall back to a fixed neutral grey.
  *
  * <p>All maths here is plain Java (no {@code android.graphics}), so it is unit-tested on the JVM without a device.
  */
@@ -16,19 +17,19 @@ final class GlowColor {
     /** Below this HSL saturation an icon is treated as greyscale and gets {@link #NEUTRAL}. */
     static final float SAT_MIN = 0.15f;
 
-    // Darken ~4 tones = multiply HSL lightness, then clamp into a dark band so very light/very dark icons both land
-    // on a visible-but-dark halo.
-    static final float LIGHT_FACTOR = 0.45f;
-    static final float LIGHT_MIN = 0.05f;
-    static final float LIGHT_MAX = 0.35f;
+    // Multiply HSL lightness, then clamp into a bright band so very light/very dark icons both land on a clearly
+    // visible, bright-but-tinted halo.
+    static final float LIGHT_FACTOR = 0.70f;
+    static final float LIGHT_MIN = 0.15f;
+    static final float LIGHT_MAX = 0.65f;
 
     private GlowColor() {
     }
 
     /**
      * Glow colour for an icon's dominant RGB (alpha ignored). Greyscale dominant (saturation {@code < SAT_MIN}) ->
-     * {@link #NEUTRAL}; otherwise the same hue/saturation with lightness {@code clamp(l * LIGHT_FACTOR, MIN, MAX)}.
-     * The result is always opaque; the caller applies its own per-ring alpha.
+     * {@link #NEUTRAL}; otherwise the same hue/saturation with lightness {@code clamp(l * LIGHT_FACTOR, MIN, MAX)}
+     * pushed into the bright band. The result is always opaque; the caller applies its own per-ring alpha.
      */
     static int glowFor(int rgb) {
         float[] hsl = new float[3];
