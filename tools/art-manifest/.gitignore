@@ -1,0 +1,6 @@
+# Local per-file audit snapshots — regenerable by re-running generate.py.
+# The committed manifest already carries per-entry pinned + license evidence inline.
+evidence/
+art-manifest.json.tmp
+__pycache__/
+*.pyc

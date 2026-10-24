@@ -1,0 +1,158 @@
+{
+ "pageid": 127903072,
+ "title": "File:Ananyinsky burial ground, Shishkin (2022-12-06).jpg",
+ "lastrevid": 986168674,
+ "templates": [
+  {
+   "title": "Template:Cc-by-sa-4.0"
+  },
+  {
+   "title": "Template:Cc-by-sa-layout"
+  },
+  {
+   "title": "Template:Clear"
+  },
+  {
+   "title": "Template:CountryAdjective"
+  },
+  {
+   "title": "Template:CountryAdjective/en"
+  },
+  {
+   "title": "Template:Creator"
+  },
+  {
+   "title": "Template:En"
+  },
+  {
+   "title": "Template:Infobox template tag"
+  },
+  {
+   "title": "Template:Information"
+  },
+  {
+   "title": "Template:License template tag"
+  },
+  {
+   "title": "Template:Nationality"
+  },
+  {
+   "title": "Template:Own"
+  },
+  {
+   "title": "Template:Ru"
+  },
+  {
+   "title": "Template:Self"
+  },
+  {
+   "title": "Template:Str ≤ len"
+  },
+  {
+   "title": "Template:Works of authors who died less than 65 years ago"
+  }
+ ],
+ "imageinfo": {
+  "timestamp": "2023-01-19T08:07:22Z",
+  "size": 7653264,
+  "width": 5152,
+  "height": 3864,
+  "thumburl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Ananyinsky_burial_ground%2C_Shishkin_%282022-12-06%29.jpg/3840px-Ananyinsky_burial_ground%2C_Shishkin_%282022-12-06%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "thumbwidth": 3000,
+  "thumbheight": 2250,
+  "thumbmime": "image/jpeg",
+  "thumbattribs": {
+   "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Ananyinsky_burial_ground%2C_Shishkin_%282022-12-06%29.jpg/3840px-Ananyinsky_burial_ground%2C_Shishkin_%282022-12-06%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "decoding": "async",
+   "loading": "lazy",
+   "width": 3000,
+   "height": 2250
+  },
+  "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Ananyinsky_burial_ground%2C_Shishkin_%282022-12-06%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "descriptionurl": "https://commons.wikimedia.org/wiki/File:Ananyinsky_burial_ground,_Shishkin_(2022-12-06).jpg",
+  "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=127903072",
+  "sha1": "4d585c6d226fb392e7f05531a4256c84dae4bc5d",
+  "extmetadata": {
+   "DateTime": {
+    "value": "2023-01-19 08:07:22",
+    "source": "mediawiki-metadata",
+    "hidden": ""
+   },
+   "ObjectName": {
+    "value": "Ananyinsky burial ground, Shishkin (2022-12-06)",
+    "source": "mediawiki-metadata"
+   },
+   "CommonsMetadataExtension": {
+    "value": 1.2,
+    "source": "extension",
+    "hidden": ""
+   },
+   "Categories": {
+    "value": "Paintings by Ivan Shishkin|Self-published work|1850s paintings by Ivan Shishkin|Photographs by Engelberthumperdink|Taken with Sony DSC-W800|Likhachyovs — Kazan Governorate natives in the service of the Fatherland",
+    "source": "commons-categories",
+    "hidden": ""
+   },
+   "Assessments": {
+    "value": "",
+    "source": "commons-categories",
+    "hidden": ""
+   },
+   "ImageDescription": {
+    "value": "Иван Иванович Шишкин. «Ананьинский могильник», 1850-е гг., холст, масло. Выставка «Лихачёвы — уроженцы Казанской губернии на службе Отечеству», Государственный музей изобразительных искусств Республики Татарстан.",
+    "source": "commons-desc-page"
+   },
+   "DateTimeOriginal": {
+    "value": "2022-12-06 10:55:16",
+    "source": "commons-desc-page"
+   },
+   "Credit": {
+    "value": "<span class=\"int-own-work\" lang=\"en\">Own work</span>",
+    "source": "commons-desc-page"
+   },
+   "Artist": {
+    "value": "<bdi><a href=\"https://www.wikidata.org/wiki/Q105078393\" class=\"extiw\" title=\"d:Q105078393\"><span title=\"Russian Wikimedian, journalist and local historian from Kazan (Tatarstan)\">Vyacheslav Kirillin</span></a></bdi>",
+    "source": "commons-desc-page"
+   },
+   "LicenseShortName": {
+    "value": "CC BY-SA 4.0",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "UsageTerms": {
+    "value": "Creative Commons Attribution-Share Alike 4.0",
+    "source": "commons-desc-page"
+   },
+   "AttributionRequired": {
+    "value": "true",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "LicenseUrl": {
+    "value": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "commons-desc-page"
+   },
+   "Copyrighted": {
+    "value": "True",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "Restrictions": {
+    "value": "",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "License": {
+    "value": "cc-by-sa-4.0",
+    "source": "commons-templates",
+    "hidden": ""
+   }
+  },
+  "mime": "image/jpeg"
+ },
+ "source_categories": [
+  "Category:Paintings by Ivan Shishkin"
+ ],
+ "keys": [
+  "test"
+ ]
+}

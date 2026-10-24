@@ -1,0 +1,38 @@
+{
+  "_comment": "Hand-curated inputs for tools/art-manifest/generate.py (build-time only). Width bar 3000px per owner decision 2026-10-24 (A+B corrections). Icons excluded in P1 (separate legal basis, deferred to P3).",
+  "config": {
+    "width_min": 3000,
+    "thumb_width": 3000,
+    "traversal": { "max_depth": 1, "max_categories_per_seed": 80, "request_delay_s": 0.2 },
+    "user_agent": "jettv-launcher-art-manifest/1.0 (https://jmwork.pro; makeev.john@gmail.com) build-time manifest generator"
+  },
+  "seeds": [
+    { "key": "era:19c",                 "category": "Category:19th-century paintings from Russia" },
+    { "key": "era:20c",                 "category": "Category:20th-century paintings from Russia" },
+    { "key": "era:empire",              "category": "Category:Russian Empire in art" },
+    { "key": "movement:peredvizhniki",  "category": "Category:Peredvizhniki" },
+    { "key": "movement:avantgarde",     "category": "Category:Russian avant-garde" },
+    { "key": "movement:socrealism",     "category": "Category:Socialist realism" },
+    { "key": "artist:shishkin",         "category": "Category:Paintings by Ivan Shishkin" },
+    { "key": "artist:surikov",          "category": "Category:Paintings by Vasily Surikov" },
+    { "key": "artist:vasnetsov",        "category": "Category:Paintings by Viktor Vasnetsov" },
+    { "key": "artist:levitan",          "category": "Category:Paintings by Isaac Levitan" },
+    { "key": "artist:malevich",         "category": "Category:Paintings by Kazimir Malevich" },
+    { "key": "artist:nesterov",         "category": "Category:Paintings by Mikhail Nesterov" },
+    { "key": "artist:repin",            "category": "Category:Ilya Repin" }
+  ],
+  "exclude_category_substrings": ["icon", "icons"],
+  "_life_based_overrides_comment": "The ONLY admission route for a life-based-only file (source = PD-old-70 / PD-old-auto / PD-Russia / PD-Russia-expired with no self-contained PD-RusEmpire / PD-Russia-1996 / PD-old-100 template). Map pageid(string) -> {\"eligible\": true, \"death_year\": <int>, \"notes\": \"...\"} after a human verifies the death facts. EMPTY in P1: every life-based-only file is rejected unconditionally. P3 populates the curated Soviet/life-based garnish here. The gate NEVER parses the free-text Artist field to decide eligibility.",
+  "life_based_overrides": {},
+  "_artists_comment": "Reference-only in P1 (recorded legal research; NOT consumed by the P1 gate decision). P3 wires these per-artist death facts into per-pageid life_based_overrides entries.",
+  "artists": {
+    "Ivan Shishkin":    { "death_year": 1898, "eligible": true, "flags": [], "notes": "19th-c, died well before 1952 wartime window; URAA-clean" },
+    "Vasily Surikov":   { "death_year": 1916, "eligible": true, "flags": [], "notes": "19th/early-20th-c; URAA-clean" },
+    "Isaac Levitan":    { "death_year": 1900, "eligible": true, "flags": [], "notes": "19th-c; URAA-clean" },
+    "Viktor Vasnetsov": { "death_year": 1926, "eligible": true, "flags": [], "notes": "died 1926; life+70 expired 1997; US via accepted US template" },
+    "Ilya Repin":       { "death_year": 1930, "eligible": true, "flags": ["uraa-sensitive"], "notes": "died 1930 -> still copyrighted in Russia on URAA date 1996; eligibility therefore relies on an accepted US template (PD-RusEmpire / pre-1929 publication). No US template -> rejected by the dual gate." },
+    "Kazimir Malevich": { "death_year": 1935, "eligible": true, "flags": ["uraa-sensitive"], "notes": "died 1935; life+70 expired 2005; URAA-sensitive -> relies on accepted US template" },
+    "Mikhail Nesterov": { "death_year": 1942, "eligible": true, "flags": ["uraa-sensitive"], "notes": "died 1942 (before 1952 wartime window); URAA-sensitive -> relies on accepted US template" }
+  },
+  "overrides": {}
+}

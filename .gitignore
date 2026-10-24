@@ -17,6 +17,7 @@
 !/tools/debloat.sh
 !/tools/undebloat.sh
 !/tools/debloat/
+!/tools/art-manifest/
 
 # Beads runtime files (dolt data dirs are ignored by .beads/.gitignore)
 .beads/dolt-monitor.pid.lock

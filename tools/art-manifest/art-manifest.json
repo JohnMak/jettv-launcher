@@ -1,0 +1,1840 @@
+{
+ "schema": 2,
+ "generated_at": "2026-10-24T20:37:33Z",
+ "width_min": 3000,
+ "gate": {
+  "source_templates": [
+   "PD-RusEmpire",
+   "PD-Russia",
+   "PD-Russia-1996",
+   "PD-Russia-expired",
+   "PD-old-100",
+   "PD-old-70",
+   "PD-old-auto"
+  ],
+  "us_templates": [
+   "PD-1923",
+   "PD-1996",
+   "PD-US",
+   "PD-US-expired",
+   "PD-US-expired-text",
+   "PD-old-X-expired",
+   "PD-old-auto-expired"
+  ],
+  "self_contained_source_templates": [
+   "PD-RusEmpire",
+   "PD-Russia-1996",
+   "PD-old-100"
+  ],
+  "excluded_license_prefixes": [
+   "attribution-",
+   "cc-by",
+   "cc-nc",
+   "cc-nd",
+   "cc-sa",
+   "copyright-",
+   "copyrighted-free-use",
+   "fal-",
+   "free-art-license",
+   "freeart",
+   "gfdl",
+   "licensed-pd-art",
+   "noderiv",
+   "non-free",
+   "noncommercial",
+   "nonfree",
+   "ogl"
+  ],
+  "excluded_license_exact": [
+   "agpl",
+   "copyright",
+   "copyrighted",
+   "fal",
+   "gpl",
+   "lgpl",
+   "lppl",
+   "pd-self",
+   "self"
+  ],
+  "excluded_category_substrings": [
+   "icon",
+   "icons"
+  ],
+  "life_based_overrides": [],
+  "note": "icons excluded in P1 (separate legal basis, deferred to P3); life-based-only files rejected unless pageid-curated (empty in P1)"
+ },
+ "count": 50,
+ "status": "OK",
+ "entries": [
+  {
+   "id": 56421854,
+   "title": "Живописное обозрение 1890, № 01-26 (1 янв. - 24 июня); № 27-52 (1 июля - 23 дек.) Page 1184",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "artist:surikov"
+   ],
+   "width": 4072,
+   "height": 2880,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7a/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1890%2C_%E2%84%96_01-26_%281_%D1%8F%D0%BD%D0%B2._-_24_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%281_%D0%B8%D1%8E%D0%BB%D1%8F_-_23_%D0%B4%D0%B5%D0%BA.%29_Page_1184.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1890%2C_%E2%84%96_01-26_%281_%D1%8F%D0%BD%D0%B2._-_24_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%281_%D0%B8%D1%8E%D0%BB%D1%8F_-_23_%D0%B4%D0%B5%D0%BA.%29_Page_1184.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/7a/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1890%2C_%E2%84%96_01-26_%281_%D1%8F%D0%BD%D0%B2._-_24_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%281_%D0%B8%D1%8E%D0%BB%D1%8F_-_23_%D0%B4%D0%B5%D0%BA.%29_Page_1184.jpg",
+   "sha1": "9626562b7bcf984ab521d7b2f33ddb63a6853171",
+   "pinned": {
+    "page_lastrevid": 1283930620,
+    "image_timestamp": "2017-02-19T18:28:22Z",
+    "image_sha1": "9626562b7bcf984ab521d7b2f33ddb63a6853171"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56420704,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0386",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0386.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0386.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/5/54/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0386.jpg",
+   "sha1": "e5fb9869174559a4263781a1ad79f81197e5b0e2",
+   "pinned": {
+    "page_lastrevid": 1127989985,
+    "image_timestamp": "2017-02-19T17:43:45Z",
+    "image_sha1": "e5fb9869174559a4263781a1ad79f81197e5b0e2"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56420999,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0547",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0547.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0547.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/72/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0547.jpg",
+   "sha1": "7e8de865f647e288f309f6a32cb68e021c42f8b2",
+   "pinned": {
+    "page_lastrevid": 1149484754,
+    "image_timestamp": "2017-02-19T17:55:31Z",
+    "image_sha1": "7e8de865f647e288f309f6a32cb68e021c42f8b2"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56422631,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0922",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0922.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0922.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/f/fc/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0922.jpg",
+   "sha1": "db8e6a091ba7106c79741c1814f0e2839f9910fa",
+   "pinned": {
+    "page_lastrevid": 1286715896,
+    "image_timestamp": "2017-02-19T18:54:29Z",
+    "image_sha1": "db8e6a091ba7106c79741c1814f0e2839f9910fa"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56383048,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 1248",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1248.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1248.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/b/b6/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1248.jpg",
+   "sha1": "6ae98ef40d39e3ddeb9c55f93177ec09d83038d0",
+   "pinned": {
+    "page_lastrevid": 1283931218,
+    "image_timestamp": "2017-02-18T05:00:45Z",
+    "image_sha1": "6ae98ef40d39e3ddeb9c55f93177ec09d83038d0"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56365988,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 1251",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1251.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1251.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/2/2e/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1251.jpg",
+   "sha1": "2ff6cff167377d2e5a9e70e1f165e448afcfcdff",
+   "pinned": {
+    "page_lastrevid": 1283929922,
+    "image_timestamp": "2017-02-17T17:05:13Z",
+    "image_sha1": "2ff6cff167377d2e5a9e70e1f165e448afcfcdff"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56391910,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0996",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0996.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0996.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/5/5b/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0996.jpg",
+   "sha1": "53b157efbba5fea1fe79c7daba40d6811a149a44",
+   "pinned": {
+    "page_lastrevid": 1246288293,
+    "image_timestamp": "2017-02-18T13:16:09Z",
+    "image_sha1": "53b157efbba5fea1fe79c7daba40d6811a149a44"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 199396251,
+   "title": "Вид на Лисью гору",
+   "artist": "Худояров (?)",
+   "year": "1850",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3381,
+   "height": 2553,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/%D0%A2%D0%9C-20764_Vid_na_Lisiu_goru.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/f/f4/%D0%A2%D0%9C-20764_Vid_na_Lisiu_goru.jpg",
+   "sha1": "2c721365fd49ea1e8b5cacdf3c0e2c4a2fc3ff49",
+   "pinned": {
+    "page_lastrevid": 1278582189,
+    "image_timestamp": "2026-09-13T06:52:39Z",
+    "image_sha1": "2c721365fd49ea1e8b5cacdf3c0e2c4a2fc3ff49"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56421896,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0016",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/2/26/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0016.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/2/26/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0016.jpg",
+   "sha1": "15d06b6b711071d6c62c83ad6c05c308fb8ee4fa",
+   "pinned": {
+    "page_lastrevid": 1112323994,
+    "image_timestamp": "2017-02-19T18:30:15Z",
+    "image_sha1": "15d06b6b711071d6c62c83ad6c05c308fb8ee4fa"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56381802,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0303",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0303.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/3/3c/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0303.jpg",
+   "sha1": "9bff8fd8a2b4a651bf3f15df38525a73f262976b",
+   "pinned": {
+    "page_lastrevid": 1286715122,
+    "image_timestamp": "2017-02-18T03:45:10Z",
+    "image_sha1": "9bff8fd8a2b4a651bf3f15df38525a73f262976b"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56420588,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0311",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/4/47/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0311.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/4/47/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0311.jpg",
+   "sha1": "9aabfb8e853b158fe124612c518be4ae0c1c4166",
+   "pinned": {
+    "page_lastrevid": 1123733465,
+    "image_timestamp": "2017-02-19T17:38:03Z",
+    "image_sha1": "9aabfb8e853b158fe124612c518be4ae0c1c4166"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56382137,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0463",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0463.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/2/24/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0463.jpg",
+   "sha1": "568d35d823a3544adb0c604720e34fd9eb379f6d",
+   "pinned": {
+    "page_lastrevid": 1254928317,
+    "image_timestamp": "2017-02-18T04:01:01Z",
+    "image_sha1": "568d35d823a3544adb0c604720e34fd9eb379f6d"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56382175,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0499",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/9/94/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0499.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/9/94/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0499.jpg",
+   "sha1": "db10c976f32c8ae51a2f2967a4af222a6f996cf5",
+   "pinned": {
+    "page_lastrevid": 1254928362,
+    "image_timestamp": "2017-02-18T04:04:18Z",
+    "image_sha1": "db10c976f32c8ae51a2f2967a4af222a6f996cf5"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56421054,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0574",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0574.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/7d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0574.jpg",
+   "sha1": "3a8f682986fa07c57e5df3101292263d76b0bdd3",
+   "pinned": {
+    "page_lastrevid": 1150110223,
+    "image_timestamp": "2017-02-19T17:57:23Z",
+    "image_sha1": "3a8f682986fa07c57e5df3101292263d76b0bdd3"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56388383,
+   "title": "Живописное обозрение 1886, № 01-26 (5 янв. - 23 июня); № 27-52 (6 июля - 28 дек.) Page 334",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c"
+   ],
+   "width": 3000,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_334.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/b/b5/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_334.jpg",
+   "sha1": "e41ffdfc878d5d1a9e9ccefad813a5b8e5532a25",
+   "pinned": {
+    "page_lastrevid": 1227288676,
+    "image_timestamp": "2017-02-18T10:35:04Z",
+    "image_sha1": "e41ffdfc878d5d1a9e9ccefad813a5b8e5532a25"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56420771,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0432",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c",
+    "era:empire"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0432.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/f/f6/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0432.jpg",
+   "sha1": "9bb3a29cadfd89da95d6bf26b4260835b02da10b",
+   "pinned": {
+    "page_lastrevid": 1140854486,
+    "image_timestamp": "2017-02-19T17:46:54Z",
+    "image_sha1": "9bb3a29cadfd89da95d6bf26b4260835b02da10b"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56421822,
+   "title": "Живописное обозрение 1890, № 01-26 (1 янв. - 24 июня); № 27-52 (1 июля - 23 дек.) Page 0973",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:19c",
+    "movement:peredvizhniki"
+   ],
+   "width": 4072,
+   "height": 2880,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1890%2C_%E2%84%96_01-26_%281_%D1%8F%D0%BD%D0%B2._-_24_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%281_%D0%B8%D1%8E%D0%BB%D1%8F_-_23_%D0%B4%D0%B5%D0%BA.%29_Page_0973.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1890%2C_%E2%84%96_01-26_%281_%D1%8F%D0%BD%D0%B2._-_24_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%281_%D0%B8%D1%8E%D0%BB%D1%8F_-_23_%D0%B4%D0%B5%D0%BA.%29_Page_0973.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/7d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1890%2C_%E2%84%96_01-26_%281_%D1%8F%D0%BD%D0%B2._-_24_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%281_%D0%B8%D1%8E%D0%BB%D1%8F_-_23_%D0%B4%D0%B5%D0%BA.%29_Page_0973.jpg",
+   "sha1": "cc767a36e7ace83c852f50c424e7821703414cdd",
+   "pinned": {
+    "page_lastrevid": 1274745204,
+    "image_timestamp": "2017-02-19T18:27:10Z",
+    "image_sha1": "cc767a36e7ace83c852f50c424e7821703414cdd"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 143756705,
+   "title": "Конец охоты Ворошилова",
+   "artist": "Sergey Seminovich Voroshiloff",
+   "year": "1900",
+   "categories": [
+    "era:20c"
+   ],
+   "width": 4134,
+   "height": 2680,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/%D0%9A%D0%BE%D0%BD%D0%B5%D1%86_%D0%BE%D1%85%D0%BE%D1%82%D1%8B_%D0%92%D0%BE%D1%80%D0%BE%D1%88%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0.jpg/3840px-%D0%9A%D0%BE%D0%BD%D0%B5%D1%86_%D0%BE%D1%85%D0%BE%D1%82%D1%8B_%D0%92%D0%BE%D1%80%D0%BE%D1%88%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/d/da/%D0%9A%D0%BE%D0%BD%D0%B5%D1%86_%D0%BE%D1%85%D0%BE%D1%82%D1%8B_%D0%92%D0%BE%D1%80%D0%BE%D1%88%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0.jpg",
+   "sha1": "4be486b8ceac934b82885ac7f6f32ef62e072994",
+   "pinned": {
+    "page_lastrevid": 1217560275,
+    "image_timestamp": "2024-01-09T23:14:59Z",
+    "image_sha1": "4be486b8ceac934b82885ac7f6f32ef62e072994"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 65685196,
+   "title": "Summer Evening. Melancholy",
+   "artist": "Boris Anisfeld",
+   "year": "1910",
+   "categories": [
+    "era:20c"
+   ],
+   "width": 3000,
+   "height": 2280,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Summer_Evening._Melancholy_by_Boris_Anisfeld_%281910-11%29.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Summer_Evening._Melancholy_by_Boris_Anisfeld_%281910-11%29.jpg",
+   "sha1": "f2018dbe83a9aa1c5a30ee981920812eeac03f14",
+   "pinned": {
+    "page_lastrevid": 1135860831,
+    "image_timestamp": "2018-01-20T19:26:08Z",
+    "image_sha1": "f2018dbe83a9aa1c5a30ee981920812eeac03f14"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 17971944,
+   "title": "К войне России с Японией (плакат)",
+   "artist": "Unknown author Unknown author",
+   "year": "1904",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 4964,
+   "height": 6945,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/%D0%9A_%D0%B2%D0%BE%D0%B9%D0%BD%D0%B5_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8_%D1%81_%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D0%B5%D0%B9_%28%D0%BF%D0%BB%D0%B0%D0%BA%D0%B0%D1%82%29.jpg/3840px-%D0%9A_%D0%B2%D0%BE%D0%B9%D0%BD%D0%B5_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8_%D1%81_%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D0%B5%D0%B9_%28%D0%BF%D0%BB%D0%B0%D0%BA%D0%B0%D1%82%29.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/a3/%D0%9A_%D0%B2%D0%BE%D0%B9%D0%BD%D0%B5_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8_%D1%81_%D0%AF%D0%BF%D0%BE%D0%BD%D0%B8%D0%B5%D0%B9_%28%D0%BF%D0%BB%D0%B0%D0%BA%D0%B0%D1%82%29.jpg",
+   "sha1": "5f9d0337725fdfe80638b5b687ad403407b20226",
+   "pinned": {
+    "page_lastrevid": 1277606396,
+    "image_timestamp": "2012-01-08T14:27:26Z",
+    "image_sha1": "5f9d0337725fdfe80638b5b687ad403407b20226"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-old-70"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56419114,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 805",
+   "artist": "Pyotr Gruzinsky",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 4300,
+   "height": 3000,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_805.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_805.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/f/fc/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_805.jpg",
+   "sha1": "0abe9969d26c69f4dc9b9affc5f1a6160e5515d3",
+   "pinned": {
+    "page_lastrevid": 1208436194,
+    "image_timestamp": "2017-02-19T16:35:33Z",
+    "image_sha1": "0abe9969d26c69f4dc9b9affc5f1a6160e5515d3"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56419159,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 829",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 4300,
+   "height": 3000,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_829.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_829.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/a2/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_829.jpg",
+   "sha1": "223042bba82386f80a1100e80e90934dd4d359c8",
+   "pinned": {
+    "page_lastrevid": 1175972611,
+    "image_timestamp": "2017-02-19T16:36:46Z",
+    "image_sha1": "223042bba82386f80a1100e80e90934dd4d359c8"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56421603,
+   "title": "Живописное обозрение 1886, № 01-26 (5 янв. - 23 июня); № 27-52 (6 июля - 28 дек.) Page 874",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 4150,
+   "height": 3000,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_874.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_874.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/4/40/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_874.jpg",
+   "sha1": "24bef6fa7611dff9fa43fea93ff97cf6a6533f54",
+   "pinned": {
+    "page_lastrevid": 1044400570,
+    "image_timestamp": "2017-02-19T18:20:06Z",
+    "image_sha1": "24bef6fa7611dff9fa43fea93ff97cf6a6533f54"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56382368,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0578",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/7/70/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0578.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/70/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0578.jpg",
+   "sha1": "4cf9f8ef07f3241045372dfe4f9264e94d972998",
+   "pinned": {
+    "page_lastrevid": 1269585856,
+    "image_timestamp": "2017-02-18T04:13:09Z",
+    "image_sha1": "4cf9f8ef07f3241045372dfe4f9264e94d972998"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56418866,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 519",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_519.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/1/1d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_519.jpg",
+   "sha1": "87e5f9340fe1e7c58842971846a46cab3feee303",
+   "pinned": {
+    "page_lastrevid": 1057399114,
+    "image_timestamp": "2017-02-19T16:23:56Z",
+    "image_sha1": "87e5f9340fe1e7c58842971846a46cab3feee303"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56388020,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 579",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_579.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/d/d0/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_579.jpg",
+   "sha1": "a76d4766723ced14d8ebd9c139253bb2d1f75ea8",
+   "pinned": {
+    "page_lastrevid": 1290882934,
+    "image_timestamp": "2017-02-18T10:17:56Z",
+    "image_sha1": "a76d4766723ced14d8ebd9c139253bb2d1f75ea8"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56378527,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 262",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/4/44/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_262.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/4/44/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_262.jpg",
+   "sha1": "91c76156b99f3c94d3c54341fb7192e2f5249311",
+   "pinned": {
+    "page_lastrevid": 1136525523,
+    "image_timestamp": "2017-02-18T00:37:20Z",
+    "image_sha1": "91c76156b99f3c94d3c54341fb7192e2f5249311"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56418721,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 325",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_325.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/e/e8/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_325.jpg",
+   "sha1": "977ef8375e7610400dd3ba87abf84e734c2a71b0",
+   "pinned": {
+    "page_lastrevid": 1113168377,
+    "image_timestamp": "2017-02-19T16:17:41Z",
+    "image_sha1": "977ef8375e7610400dd3ba87abf84e734c2a71b0"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56387811,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 522",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_522.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/a4/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_522.jpg",
+   "sha1": "415a3c00f90e273dd1ca3af7676f4b9bf7b7e3be",
+   "pinned": {
+    "page_lastrevid": 1057400953,
+    "image_timestamp": "2017-02-18T10:11:46Z",
+    "image_sha1": "415a3c00f90e273dd1ca3af7676f4b9bf7b7e3be"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56418782,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 408",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/e/e3/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_408.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/e/e3/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_408.jpg",
+   "sha1": "b822662e338eb0aa4ca7e7526e4276896dd6d042",
+   "pinned": {
+    "page_lastrevid": 1275742697,
+    "image_timestamp": "2017-02-19T16:19:56Z",
+    "image_sha1": "b822662e338eb0aa4ca7e7526e4276896dd6d042"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56379527,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 884",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "era:empire"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/f/f2/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_884.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/f/f2/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_884.jpg",
+   "sha1": "ef39b7272469b4fddbfc331b96bea32e25f02f43",
+   "pinned": {
+    "page_lastrevid": 1271729497,
+    "image_timestamp": "2017-02-18T01:32:15Z",
+    "image_sha1": "ef39b7272469b4fddbfc331b96bea32e25f02f43"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 145201352,
+   "title": "Newspaper article about Tramway V exhibition",
+   "artist": "Unknown author Unknown author (author of the text), Ivan Klyun, Kazimir Malevich, Xenia Boguslavskaya, Ivan Puni (artworks)",
+   "year": "1915",
+   "categories": [
+    "movement:avantgarde"
+   ],
+   "width": 4864,
+   "height": 4496,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Newspaper_article_about_Tramway_V_exhibition.jpg/3840px-Newspaper_article_about_Tramway_V_exhibition.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/4/48/Newspaper_article_about_Tramway_V_exhibition.jpg",
+   "sha1": "74efedb69bb168c8badd9678160258f866b47aba",
+   "pinned": {
+    "page_lastrevid": 966842526,
+    "image_timestamp": "2024-02-10T21:40:49Z",
+    "image_sha1": "74efedb69bb168c8badd9678160258f866b47aba"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 145222274,
+   "title": "Manifesto by Malevich, Kliun and Menkov, 1915",
+   "artist": "Kazimir Malevich, Ivan Kliun, Mikhail Menkov (text)",
+   "year": "1915",
+   "categories": [
+    "movement:avantgarde"
+   ],
+   "width": 4007,
+   "height": 5943,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Manifesto_by_Malevich%2C_Kliun_and_Menkov%2C_1915.jpg/3840px-Manifesto_by_Malevich%2C_Kliun_and_Menkov%2C_1915.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/3/36/Manifesto_by_Malevich%2C_Kliun_and_Menkov%2C_1915.jpg",
+   "sha1": "fce1460ea16261880925cecc6d5d8f88e919fc94",
+   "pinned": {
+    "page_lastrevid": 966842460,
+    "image_timestamp": "2024-02-11T11:36:42Z",
+    "image_sha1": "fce1460ea16261880925cecc6d5d8f88e919fc94"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 145221847,
+   "title": "Manifesto by I. Puni and X. Bugoslavskaya, 1915",
+   "artist": "Unknown author Unknown author",
+   "year": "1915",
+   "categories": [
+    "movement:avantgarde"
+   ],
+   "width": 3925,
+   "height": 5985,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Manifesto_by_I._Puni_and_X._Bugoslavskaya%2C_1915.jpg/3840px-Manifesto_by_I._Puni_and_X._Bugoslavskaya%2C_1915.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Manifesto_by_I._Puni_and_X._Bugoslavskaya%2C_1915.jpg",
+   "sha1": "c43e29e0dbe9b88d9733903b4696bfbf5f63eee7",
+   "pinned": {
+    "page_lastrevid": 1268647881,
+    "image_timestamp": "2024-02-11T11:19:00Z",
+    "image_sha1": "c43e29e0dbe9b88d9733903b4696bfbf5f63eee7"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 154018212,
+   "title": "0.10 exhibition, Malevich paintings",
+   "artist": "Unknown author Unknown author",
+   "year": "1915",
+   "categories": [
+    "movement:avantgarde"
+   ],
+   "width": 3543,
+   "height": 2433,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/1/1a/0.10_exhibition%2C_Malevich_paintings.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/1/1a/0.10_exhibition%2C_Malevich_paintings.jpg",
+   "sha1": "3649a88914c0b0a590fd74755fd35820c6323c30",
+   "pinned": {
+    "page_lastrevid": 1110012306,
+    "image_timestamp": "2024-10-17T16:32:59Z",
+    "image_sha1": "3649a88914c0b0a590fd74755fd35820c6323c30"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 145222807,
+   "title": "Boris Lopatin, Futurism – Suprematism, Petrogradskiy listok, December 1915",
+   "artist": "Boris Lopatin (life dates unknown) (text)",
+   "year": "1915",
+   "categories": [
+    "movement:avantgarde"
+   ],
+   "width": 3195,
+   "height": 5654,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Boris_Lopatin%2C_Futurism_%E2%80%93_Suprematism%2C_Petrogradskiy_listok%2C_December_1915.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/1/11/Boris_Lopatin%2C_Futurism_%E2%80%93_Suprematism%2C_Petrogradskiy_listok%2C_December_1915.jpg",
+   "sha1": "cc84875192af4ba211681adcec63ede0d21764d1",
+   "pinned": {
+    "page_lastrevid": 1091989127,
+    "image_timestamp": "2024-02-11T11:54:25Z",
+    "image_sha1": "cc84875192af4ba211681adcec63ede0d21764d1"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56420597,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0315",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 4150,
+   "height": 3100,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/67/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0315.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0315.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/6/67/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0315.jpg",
+   "sha1": "26ef52be31487df58073aaacdad739aa30bee4da",
+   "pinned": {
+    "page_lastrevid": 1123748396,
+    "image_timestamp": "2017-02-19T17:38:13Z",
+    "image_sha1": "26ef52be31487df58073aaacdad739aa30bee4da"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56379830,
+   "title": "Живописное обозрение 1886, № 01-26 (5 янв. - 23 июня); № 27-52 (6 июля - 28 дек.) Page 089",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 4150,
+   "height": 3000,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_089.jpg/3840px-%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_089.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/ab/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1886%2C_%E2%84%96_01-26_%285_%D1%8F%D0%BD%D0%B2._-_23_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%286_%D0%B8%D1%8E%D0%BB%D1%8F_-_28_%D0%B4%D0%B5%D0%BA.%29_Page_089.jpg",
+   "sha1": "8b6621e1bd9584a0f6efe4ce2d17ff4795df1865",
+   "pinned": {
+    "page_lastrevid": 1034828482,
+    "image_timestamp": "2017-02-18T01:49:03Z",
+    "image_sha1": "8b6621e1bd9584a0f6efe4ce2d17ff4795df1865"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 34219161,
+   "title": "Васнецов А.М. Художество. Опыт анализа понятий, определяющих искусство живописи. (1908).djvu",
+   "artist": "( ? )",
+   "year": "2014",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3517,
+   "height": 2492,
+   "mime": "image/vnd.djvu",
+   "thumb_mime": "image/jpeg",
+   "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/%D0%92%D0%B0%D1%81%D0%BD%D0%B5%D1%86%D0%BE%D0%B2_%D0%90.%D0%9C._%D0%A5%D1%83%D0%B4%D0%BE%D0%B6%D0%B5%D1%81%D1%82%D0%B2%D0%BE._%D0%9E%D0%BF%D1%8B%D1%82_%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0_%D0%BF%D0%BE%D0%BD%D1%8F%D1%82%D0%B8%D0%B9%2C_%D0%BE%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D1%85_%D0%B8%D1%81%D0%BA%D1%83%D1%81%D1%81%D1%82%D0%B2%D0%BE_%D0%B6%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%B8._%281908%29.djvu/page1-1920px-%D0%92%D0%B0%D1%81%D0%BD%D0%B5%D1%86%D0%BE%D0%B2_%D0%90.%D0%9C._%D0%A5%D1%83%D0%B4%D0%BE%D0%B6%D0%B5%D1%81%D1%82%D0%B2%D0%BE._%D0%9E%D0%BF%D1%8B%D1%82_%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0_%D0%BF%D0%BE%D0%BD%D1%8F%D1%82%D0%B8%D0%B9%2C_%D0%BE%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D1%85_%D0%B8%D1%81%D0%BA%D1%83%D1%81%D1%81%D1%82%D0%B2%D0%BE_%D0%B6%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%B8._%281908%29.djvu.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/d/d0/%D0%92%D0%B0%D1%81%D0%BD%D0%B5%D1%86%D0%BE%D0%B2_%D0%90.%D0%9C._%D0%A5%D1%83%D0%B4%D0%BE%D0%B6%D0%B5%D1%81%D1%82%D0%B2%D0%BE._%D0%9E%D0%BF%D1%8B%D1%82_%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0_%D0%BF%D0%BE%D0%BD%D1%8F%D1%82%D0%B8%D0%B9%2C_%D0%BE%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D1%85_%D0%B8%D1%81%D0%BA%D1%83%D1%81%D1%81%D1%82%D0%B2%D0%BE_%D0%B6%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%B8._%281908%29.djvu",
+   "sha1": "457ab6056241e271b17f6c1a3e767a2391f93069",
+   "pinned": {
+    "page_lastrevid": 1046218179,
+    "image_timestamp": "2014-07-27T00:15:01Z",
+    "image_sha1": "457ab6056241e271b17f6c1a3e767a2391f93069"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 14032078,
+   "title": "Savrasov-1890-s",
+   "artist": "Unknown author Unknown author",
+   "year": "1897",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3224,
+   "height": 4388,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Savrasov-1890-s.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Savrasov-1890-s.jpg",
+   "sha1": "2023cbced131b1510c69e8b36df345b740e41da6",
+   "pinned": {
+    "page_lastrevid": 1195713187,
+    "image_timestamp": "2011-02-27T13:49:42Z",
+    "image_sha1": "2023cbced131b1510c69e8b36df345b740e41da6"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56382750,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0812",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/e/e0/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0812.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/e/e0/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_0812.jpg",
+   "sha1": "950d2742db7a0b730cc75b693645e4a563154c7b",
+   "pinned": {
+    "page_lastrevid": 1290879794,
+    "image_timestamp": "2017-02-18T04:39:22Z",
+    "image_sha1": "950d2742db7a0b730cc75b693645e4a563154c7b"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56422795,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 1045",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3100,
+   "height": 4150,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1045.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/e/e7/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1891%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_1045.jpg",
+   "sha1": "449cef25d0a9c6c2a4307a9f0b0088fae842825c",
+   "pinned": {
+    "page_lastrevid": 1286714208,
+    "image_timestamp": "2017-02-19T19:01:11Z",
+    "image_sha1": "449cef25d0a9c6c2a4307a9f0b0088fae842825c"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56418580,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 165",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_165.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/b/ba/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_165.jpg",
+   "sha1": "4948ffeb6aec5df3add1e61a0aea534ed4f65189",
+   "pinned": {
+    "page_lastrevid": 1286730495,
+    "image_timestamp": "2017-02-19T16:13:52Z",
+    "image_sha1": "4948ffeb6aec5df3add1e61a0aea534ed4f65189"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56418631,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 203",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/a/af/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_203.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/a/af/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_203.jpg",
+   "sha1": "8277ac56cee55ae0085e56cff0718c0e8196483d",
+   "pinned": {
+    "page_lastrevid": 1286730445,
+    "image_timestamp": "2017-02-19T16:14:47Z",
+    "image_sha1": "8277ac56cee55ae0085e56cff0718c0e8196483d"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56378418,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 222",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_222.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/f/fc/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_222.jpg",
+   "sha1": "76284cd1c39a71367995eb963cc0b30f9e30d9c2",
+   "pinned": {
+    "page_lastrevid": 1286714359,
+    "image_timestamp": "2017-02-18T00:31:11Z",
+    "image_sha1": "76284cd1c39a71367995eb963cc0b30f9e30d9c2"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56378569,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 281",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_281.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/7/7d/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_281.jpg",
+   "sha1": "687166a75de100ffff06b63431cd8ec5669ed06b",
+   "pinned": {
+    "page_lastrevid": 1286711509,
+    "image_timestamp": "2017-02-18T00:39:28Z",
+    "image_sha1": "687166a75de100ffff06b63431cd8ec5669ed06b"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56378587,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 290",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_290.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/b/b3/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_290.jpg",
+   "sha1": "4e843056453e6cd2cfacf6893cb07f520268ce5c",
+   "pinned": {
+    "page_lastrevid": 1286730663,
+    "image_timestamp": "2017-02-18T00:40:40Z",
+    "image_sha1": "4e843056453e6cd2cfacf6893cb07f520268ce5c"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56418716,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 318",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_318.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/d/d0/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_318.jpg",
+   "sha1": "f5d2bb6edba5f48a505f37f3c32a8cfd88867625",
+   "pinned": {
+    "page_lastrevid": 1286717734,
+    "image_timestamp": "2017-02-19T16:17:29Z",
+    "image_sha1": "f5d2bb6edba5f48a505f37f3c32a8cfd88867625"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56378938,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 431",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/3/34/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_431.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/3/34/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_431.jpg",
+   "sha1": "51ec1613eb6c8f6930aa74aefd707c4266c1eac3",
+   "pinned": {
+    "page_lastrevid": 1055787532,
+    "image_timestamp": "2017-02-18T00:58:12Z",
+    "image_sha1": "51ec1613eb6c8f6930aa74aefd707c4266c1eac3"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  },
+  {
+   "id": 56379214,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 730",
+   "artist": "Журнал «Живописное обозрѣнiе странъ свѣта» (1872—1900,1902—1905) / Живописное обозрение стран света [Zhivopisnoye obozreniye stran sveta (Foreign Lands' Pictorial Review)]; Российская национальная библиотека (РНБ); kmv20120",
+   "year": "1872",
+   "categories": [
+    "movement:peredvizhniki"
+   ],
+   "width": 3000,
+   "height": 4300,
+   "mime": "image/jpeg",
+   "thumb_mime": "image/jpeg",
+   "url": "https://upload.wikimedia.org/wikipedia/commons/e/e1/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_730.jpg",
+   "url_original": "https://upload.wikimedia.org/wikipedia/commons/e/e1/%D0%96%D0%B8%D0%B2%D0%BE%D0%BF%D0%B8%D1%81%D0%BD%D0%BE%D0%B5_%D0%BE%D0%B1%D0%BE%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D0%B5_1885%2C_%E2%84%96_01-26_%286_%D1%8F%D0%BD%D0%B2._-_30_%D0%B8%D1%8E%D0%BD%D1%8F%29%3B_%E2%84%96_27-52_%287_%D0%B8%D1%8E%D0%BB%D1%8F_-_29_%D0%B4%D0%B5%D0%BA.%29_Page_730.jpg",
+   "sha1": "dbee5d1ddb453fd9ab879fe5966059bcdac3b483",
+   "pinned": {
+    "page_lastrevid": 1061307533,
+    "image_timestamp": "2017-02-18T01:14:35Z",
+    "image_sha1": "dbee5d1ddb453fd9ab879fe5966059bcdac3b483"
+   },
+   "license": {
+    "source_country_template": "PD-RusEmpire",
+    "us_template": "PD-US-expired-text",
+    "source_templates_all": [
+     "PD-RusEmpire",
+     "PD-Russia"
+    ],
+    "us_templates_all": [
+     "PD-US-expired-text",
+     "PD-old-X-expired",
+     "PD-old-auto-expired"
+    ],
+    "term_rule": "published in the Russian Empire before 1917-11-07",
+    "notes": "self-contained PD basis (PD-RusEmpire); author-independent, no death facts required"
+   }
+  }
+ ]
+}

@@ -1,0 +1,182 @@
+{
+ "pageid": 141697235,
+ "title": "File:A path in a wood 1999 CSK 08599 0284 000(123220).jpg",
+ "lastrevid": 1003521934,
+ "templates": [
+  {
+   "title": "Template:Artwork"
+  },
+  {
+   "title": "Template:Cc-pd-mark-footer"
+  },
+  {
+   "title": "Template:Clear"
+  },
+  {
+   "title": "Template:CountryAdjective"
+  },
+  {
+   "title": "Template:CountryAdjective/en"
+  },
+  {
+   "title": "Template:Creator"
+  },
+  {
+   "title": "Template:IfNum"
+  },
+  {
+   "title": "Template:Infobox template tag"
+  },
+  {
+   "title": "Template:LangSwitch"
+  },
+  {
+   "title": "Template:Language"
+  },
+  {
+   "title": "Template:License template tag"
+  },
+  {
+   "title": "Template:Nationality"
+  },
+  {
+   "title": "Template:PD-Art"
+  },
+  {
+   "title": "Template:PD-Art/en"
+  },
+  {
+   "title": "Template:PD-Art/layout"
+  },
+  {
+   "title": "Template:PD-Layout"
+  },
+  {
+   "title": "Template:PD-US-expired-text"
+  },
+  {
+   "title": "Template:PD-art-category"
+  },
+  {
+   "title": "Template:PD-art-category/core"
+  },
+  {
+   "title": "Template:PD-old-X-expired"
+  },
+  {
+   "title": "Template:PD-old-auto-expired"
+  },
+  {
+   "title": "Template:PD-old-text"
+  },
+  {
+   "title": "Template:SDC-PD-old"
+  },
+  {
+   "title": "Template:SDC statement exist"
+  },
+  {
+   "title": "Template:Str ≤ len"
+  },
+  {
+   "title": "Template:Transclude"
+  },
+  {
+   "title": "Template:Works of authors who died more than 100 years ago"
+  },
+  {
+   "title": "Template:Years since"
+  }
+ ],
+ "imageinfo": {
+  "timestamp": "2023-12-03T23:34:07Z",
+  "size": 115683,
+  "width": 400,
+  "height": 502,
+  "thumburl": "https://upload.wikimedia.org/wikipedia/commons/a/a4/A_path_in_a_wood_1999_CSK_08599_0284_000%28123220%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "thumbwidth": 3000,
+  "thumbheight": 3765,
+  "thumbmime": "image/jpeg",
+  "thumbattribs": {
+   "src": "https://upload.wikimedia.org/wikipedia/commons/a/a4/A_path_in_a_wood_1999_CSK_08599_0284_000%28123220%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+   "decoding": "async",
+   "loading": "lazy",
+   "width": 3000,
+   "height": 3765
+  },
+  "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/A_path_in_a_wood_1999_CSK_08599_0284_000%28123220%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+  "descriptionurl": "https://commons.wikimedia.org/wiki/File:A_path_in_a_wood_1999_CSK_08599_0284_000(123220).jpg",
+  "descriptionshorturl": "https://commons.wikimedia.org/w/index.php?curid=141697235",
+  "sha1": "15ba2cb7c4ba6f62f4b77e6e2239090cb80aff3c",
+  "extmetadata": {
+   "DateTime": {
+    "value": "2023-12-03 23:34:07",
+    "source": "mediawiki-metadata",
+    "hidden": ""
+   },
+   "ObjectName": {
+    "value": "<div class=\"fn\">\nA path in a wood</div>",
+    "source": "commons-desc-page"
+   },
+   "CommonsMetadataExtension": {
+    "value": 1.2,
+    "source": "extension",
+    "hidden": ""
+   },
+   "Categories": {
+    "value": "Paintings by Ivan Shishkin|Artworks without Wikidata item|PD-old-100-expired|PD-Art (PD-old-auto-expired)|CC-PD-Mark",
+    "source": "commons-categories",
+    "hidden": ""
+   },
+   "Assessments": {
+    "value": "",
+    "source": "commons-categories",
+    "hidden": ""
+   },
+   "Artist": {
+    "value": "<bdi><a href=\"https://en.wikipedia.org/wiki/en:Ivan_Shishkin\" class=\"extiw\" title=\"w:en:Ivan Shishkin\"><span title=\"Russian landscape painter (1832-1898)\">Ivan Shishkin</span></a></bdi>",
+    "source": "commons-desc-page"
+   },
+   "Credit": {
+    "value": "<a rel=\"nofollow\" class=\"external free\" href=\"https://www.christies.com/lot/lot-1651704\">https://www.christies.com/lot/lot-1651704</a>",
+    "source": "commons-desc-page"
+   },
+   "LicenseShortName": {
+    "value": "Public domain",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "UsageTerms": {
+    "value": "Public domain",
+    "source": "commons-desc-page"
+   },
+   "AttributionRequired": {
+    "value": "false",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "Copyrighted": {
+    "value": "False",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "Restrictions": {
+    "value": "",
+    "source": "commons-desc-page",
+    "hidden": ""
+   },
+   "License": {
+    "value": "pd",
+    "source": "commons-templates",
+    "hidden": ""
+   }
+  },
+  "mime": "image/jpeg"
+ },
+ "source_categories": [
+  "Category:Paintings by Ivan Shishkin"
+ ],
+ "keys": [
+  "test"
+ ]
+}
