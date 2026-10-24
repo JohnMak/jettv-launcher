@@ -4,6 +4,8 @@ import android.view.animation.AnimationUtils;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.function.BooleanSupplier;
+
 /**
  * One continuous, retargetable horizontal scroll of a RecyclerView: a new key press only moves the target, the motion
  * never restarts (unlike smoothScrollBy). Frames come from postOnAnimation; the maths is {@link RowScrollModel}.
@@ -13,6 +15,7 @@ final class RowScroller {
 
     private final RecyclerView row;
     private final Runnable onSettled;
+    private final BooleanSupplier animated;
     private final RowScrollModel model = new RowScrollModel();
     /** Pixels of model.pos() already handed to the row. */
     private int applied;
@@ -21,8 +24,9 @@ final class RowScroller {
     private final Runnable frame = this::onFrame;
 
     /** @param onSettled runs on the main thread when the row has reached its target */
-    RowScroller(RecyclerView row, Runnable onSettled) {
+    RowScroller(RecyclerView row, BooleanSupplier animated, Runnable onSettled) {
         this.row = row;
+        this.animated = animated;
         this.onSettled = onSettled;
     }
 
@@ -33,6 +37,12 @@ final class RowScroller {
 
     void retargetBy(double dx) {
         if (dx == 0) return;
+        if (!animated.getAsBoolean()) {
+            // Instant: jump now, nothing stays pending, so glass maths (target minus pending) sees the final place.
+            cancel();
+            row.scrollBy((int) Math.round(dx), 0);
+            return;
+        }
         model.retargetBy(dx);
         if (!running) {
             running = true;

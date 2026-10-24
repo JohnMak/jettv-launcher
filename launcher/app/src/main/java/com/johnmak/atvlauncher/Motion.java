@@ -2,7 +2,7 @@ package com.johnmak.atvlauncher;
 
 /**
  * Animation policy from {@link LauncherSettings#animationsOff}: selection changes (cursor, grow, dim) become instant,
- * scrolling and the backdrop crossfade always animate. Screens build it in onResume, so a changed setting applies on return.
+ * horizontal ribbon scrolling jumps, the vertical page shift and the backdrop crossfade always animate. Screens build it in onResume, so a changed setting applies on return.
  */
 final class Motion {
     static final Motion ANIMATED = new Motion(false);
@@ -23,8 +23,13 @@ final class Motion {
         return requested && !animationsOff;
     }
 
-    /** Row and page scrolling always animates. */
-    boolean scrollAnimated() {
+    /** Horizontal ribbon scrolling animates only while the selection animation is on; otherwise rows jump. */
+    boolean rowScrollAnimated() {
+        return !animationsOff;
+    }
+
+    /** The vertical page shift always animates. */
+    boolean pageScrollAnimated() {
         return true;
     }
 }

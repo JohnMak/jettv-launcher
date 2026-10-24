@@ -10,13 +10,15 @@ public class MotionTest {
         Motion m = Motion.of(LauncherSettings.DEFAULTS.withAnimationsOff(false));
         assertTrue(m.focusAnimated(true));
         assertFalse(m.focusAnimated(false));
-        assertTrue(m.scrollAnimated());
+        assertTrue(m.rowScrollAnimated());
+        assertTrue(m.pageScrollAnimated());
     }
 
-    @Test public void animationsOffMakesSelectionInstantButKeepsScrolling() {
+    @Test public void animationsOffMakesSelectionAndRowScrollInstantButKeepsPageScroll() {
         Motion m = Motion.of(LauncherSettings.DEFAULTS.withAnimationsOff(true));
         assertFalse(m.focusAnimated(true));
         assertFalse(m.focusAnimated(false));
-        assertTrue(m.scrollAnimated());
+        assertFalse(m.rowScrollAnimated());
+        assertTrue(m.pageScrollAnimated());
     }
 }

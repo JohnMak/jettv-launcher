@@ -31,10 +31,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
+import com.johnmak.atvlauncher.SettingsTabsNav.Key;
+import com.johnmak.atvlauncher.SettingsTabsNav.State;
+import com.johnmak.atvlauncher.SettingsTabsNav.Zone;
+
 /**
- * Launcher settings in titled sections (appearance, content, network, about). A D-pad list with the glass highlight
- * behind the focused row; section headers are not rows, so focus skips them. LEFT/RIGHT cycle a value, OK toggles or
- * activates. Manual city entry is a second page (text field + results). Changes are saved at
+ * Launcher settings in tabs (general, interface, screensaver, optimization) under the missing-rights warning rows.
+ * A D-pad list with the glass highlight behind the focused row or tab (navigation: {@link SettingsTabsNav}).
+ * LEFT/RIGHT cycle a value, OK toggles or activates. Manual city entry is a second page (text field + results). Changes are saved at
  * once; the home screen reads them in onStart.
  */
 public final class LauncherSettingsActivity extends Activity {
@@ -44,6 +48,8 @@ public final class LauncherSettingsActivity extends Activity {
     /** Boolean extra: open with the missing-rights warning row focused (first start). */
     static final String EXTRA_FOCUS_RIGHTS = "com.johnmak.atvlauncher.FOCUS_RIGHTS";
 
+    private static final String STATE_ZONE = "focus_zone";
+    private static final String STATE_TAB = "focus_tab";
     private static final String STATE_ROW = "focus_row";
 
     static void open(Context context, boolean focusCity) {
@@ -54,8 +60,6 @@ public final class LauncherSettingsActivity extends Activity {
     private final class Row {
         final LinearLayout view;
         final TextView label;
-        /** Header of the section this row opens (shown above it); null for the other rows. */
-        View header;
         final TextView value;
         final Supplier<String> valueText;
         final Runnable ok;
@@ -101,6 +105,9 @@ public final class LauncherSettingsActivity extends Activity {
     private View root;
     private ScrollView scroll;
     private LinearLayout list;
+    private LinearLayout topList;
+    private LinearLayout tabStrip;
+    private final List<TextView> tabViews = new ArrayList<>();
     private GlassView glass;
     private TextView statusView;
     private TextView videoNote;
@@ -112,14 +119,15 @@ public final class LauncherSettingsActivity extends Activity {
     private LauncherSettings settings;
     private List<VpnApps.App> vpnApps;
 
+    /** Missing-rights warning rows above the tabs. */
+    private final List<Row> topRows = new ArrayList<>();
+    /** Rows of the selected tab (or of the search page). */
     private final List<Row> rows = new ArrayList<>();
     private final CenterKey centerKey = new CenterKey();
     private Page page = Page.MAIN;
-    private int focus;
+    private State nav = SettingsTabsNav.tabs(0);
     private int cityRow;
     private int manualRow;
-    /** Section header added by {@link #addSection}, attached to the next row. */
-    private View pendingHeader;
     private boolean layoutPending;
     private int updateRow = -1;
     private int rightsRow = -1;
@@ -149,6 +157,8 @@ public final class LauncherSettingsActivity extends Activity {
         root = findViewById(R.id.root);
         scroll = findViewById(R.id.scroll);
         list = findViewById(R.id.list);
+        topList = findViewById(R.id.top_rows);
+        tabStrip = findViewById(R.id.tabs);
         glass = findViewById(R.id.glass);
         statusView = findViewById(R.id.status);
         store = new LauncherSettingsStore(this);
@@ -162,8 +172,17 @@ public final class LauncherSettingsActivity extends Activity {
             onImeVisible(insets.isVisible(WindowInsets.Type.ime()));
             return insets;
         });
-        if (savedInstanceState != null) showMain(savedInstanceState.getInt(STATE_ROW));
-        else showMain(getIntent().getBooleanExtra(EXTRA_FOCUS_CITY, false) ? -1 : 0);
+        buildTabs();
+        if (savedInstanceState != null) {
+            Zone zone = Zone.values()[savedInstanceState.getInt(STATE_ZONE)];
+            showMain(new State(zone, savedInstanceState.getInt(STATE_TAB), savedInstanceState.getInt(STATE_ROW)));
+        } else if (getIntent().getBooleanExtra(EXTRA_FOCUS_CITY, false)) {
+            showMain(new State(Zone.LIST, 0, -1));
+        } else if (getIntent().getBooleanExtra(EXTRA_FOCUS_RIGHTS, false)) {
+            showMain(new State(Zone.TOP_ROWS, 0, 0));
+        } else {
+            showMain(SettingsTabsNav.tabs(0));
+        }
     }
 
     /** Rights may have been granted or revoked elsewhere (system settings, adb): recompute the top rows. */
@@ -174,11 +193,13 @@ public final class LauncherSettingsActivity extends Activity {
         refreshRights();
     }
 
-    /** Keeps the focused row over the recreate() that applies a new UI scale. */
+    /** Keeps the focus (zone, tab, row) over the recreate() that applies a new UI scale. */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(STATE_ROW, focus);
+        outState.putInt(STATE_ZONE, nav.zone.ordinal());
+        outState.putInt(STATE_TAB, nav.tab);
+        outState.putInt(STATE_ROW, nav.row);
     }
 
     /** Back from the app picker: the «N из M» values changed. */
@@ -202,7 +223,7 @@ public final class LauncherSettingsActivity extends Activity {
     /** Only the update row's value changes while a check runs; the list is not rebuilt. */
     private void refreshUpdateRow() {
         if (page != Page.MAIN || updateRow < 0 || updateRow >= rows.size()) return;
-        rows.get(updateRow).refresh(updateRow == focus);
+        rows.get(updateRow).refresh(nav.zone == Zone.LIST && updateRow == nav.row);
     }
 
     @Override
@@ -219,34 +240,101 @@ public final class LauncherSettingsActivity extends Activity {
 
     // ---------------------------------------------------------------- pages
 
-    /** {@code focusRow} -1 = the «Город» row. */
-    private void showMain(int focusRow) {
+    private static final int TAB_GENERAL = 0;
+    private static final int TAB_INTERFACE = 1;
+    private static final int TAB_SCREENSAVER = 2;
+    private static final int TAB_OPTIMIZATION = 3;
+
+    /** The tab strip is built once; the selected tab is only recoloured. */
+    private void buildTabs() {
+        int[] titles = {R.string.settings_tab_general, R.string.settings_tab_interface,
+                R.string.settings_tab_screensaver, R.string.settings_tab_optimization};
+        for (int title : titles) {
+            TextView t = text(getString(title), R.color.text_primary, R.font.outfit_regular);
+            t.setPadding(dp(16), dp(8), dp(16), dp(8));
+            tabStrip.addView(t, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            tabViews.add(t);
+        }
+    }
+
+    /**
+     * Rebuilds the warning rows and the selected tab's list and focuses {@code focusState}; a LIST row of -1 means the
+     * «Город» row.
+     */
+    private void showMain(State focusState) {
         page = Page.MAIN;
         clearRows();
         rightsRow = -1;
         homeRow = -1;
+        tabStrip.setVisibility(View.VISIBLE);
+        topList.setVisibility(View.VISIBLE);
 
         List<RequiredRights.Right> missing = RequiredRights.missing(rightsProbe);
         if (!RequiredRights.withoutHome(missing).isEmpty()) {
-            rightsRow = rows.size();
-            addRow(R.string.settings_rights_warning, () -> rightsText(RequiredRights.missing(rightsProbe)),
-                    this::grantRights, null, null);
-            rows.get(rightsRow).warn();
+            rightsRow = topRows.size();
+            addTopRow(R.string.settings_rights_warning, () -> rightsText(RequiredRights.missing(rightsProbe)),
+                    this::grantRights).warn();
         }
         if (missing.contains(RequiredRights.Right.HOME)) {
-            homeRow = rows.size();
-            addRow(R.string.settings_set_home, this::homeText, this::setHome, null, null);
+            homeRow = topRows.size();
+            addTopRow(R.string.settings_set_home, this::homeText, this::setHome);
         }
 
-        addSection(R.string.settings_section_appearance);
+        int tab = focusState.tab;
+        switch (tab) {
+            case TAB_GENERAL:
+                buildGeneral();
+                break;
+            case TAB_INTERFACE:
+                buildInterface();
+                break;
+            case TAB_SCREENSAVER:
+                buildScreensaver();
+                break;
+            default:
+                buildOptimization();
+                break;
+        }
+        int row = focusState.zone == Zone.LIST && focusState.row < 0 ? cityRow : focusState.row;
+        nav = SettingsTabsNav.clamp(new State(focusState.zone, tab, row), topRows.size(), rows.size());
+        scroll.scrollTo(0, 0);
+        status("");
+        applyFocusAfterLayout(false);
+    }
+
+    private Row addTopRow(int label, Supplier<String> valueText, Runnable ok) {
+        Row row = new Row(getString(label), text("", R.color.text_secondary, R.font.outfit_light), valueText, ok, null, null);
+        addRowView(row, topList, topRows);
+        return row;
+    }
+
+    private void buildGeneral() {
+        cityRow = rows.size();
+        addRow(R.string.settings_city, this::cityText, null, null, null);
+        addRow(R.string.settings_detect, null, this::detectCity, null, null);
+        manualRow = rows.size();
+        addRow(R.string.settings_manual, null, this::showSearch, null, null);
+        addRow(R.string.settings_vpn_button, this::vpnButtonText, this::toggleVpnButton,
+                this::toggleVpnButton, this::toggleVpnButton);
+        addRow(R.string.settings_vpn_app, this::vpnAppText, null,
+                () -> changeVpnApp(-1), () -> changeVpnApp(1));
+        addRow(R.string.settings_about_name, () -> BuildConfig.VERSION_NAME, null, null, null);
+        updateRow = rows.size();
+        addRow(R.string.settings_check_update, this::updateText,
+                () -> UpdateController.instance(this).checkNow(), null, null);
+    }
+
+    private void buildInterface() {
         addRow(R.string.settings_ui_scale, () -> getString(R.string.settings_percent, settings.uiScalePercent), null,
                 () -> changeUiScale(settings.prevUiScale()), () -> changeUiScale(settings.nextUiScale()));
         addRow(R.string.settings_preview_scale, () -> getString(R.string.settings_percent, settings.previewScalePercent), null,
                 () -> change(settings.prevPreviewScale()), () -> change(settings.nextPreviewScale()));
         addRow(R.string.settings_animations_off, () -> onOff(!settings.animationsOff), this::toggleAnimations,
                 this::toggleAnimations, this::toggleAnimations);
-        addRow(R.string.settings_dim_delay, () -> delayText(settings.dimDelaySec, R.string.settings_seconds), null,
-                () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
+    }
+
+    private void buildScreensaver() {
         addRow(R.string.settings_screensaver_delay,
                 () -> delayText(settings.screensaverDelayMin, R.string.settings_minutes), null,
                 () -> changeScreensaverDelay(settings.prevScreensaverDelay()),
@@ -255,44 +343,26 @@ public final class LauncherSettingsActivity extends Activity {
                 () -> changeType(settings.prevScreensaverType()), () -> changeType(settings.nextScreensaverType()));
         videoNote = addNote(getString(R.string.settings_screensaver_hint));
         updateVideoNote();
+        addRow(R.string.settings_dim_delay, () -> delayText(settings.dimDelaySec, R.string.settings_seconds), null,
+                () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
+    }
 
-        addSection(R.string.settings_section_content);
-        cityRow = rows.size();
-        addRow(R.string.settings_city, this::cityText, null, null, null);
-        addRow(R.string.settings_detect, null, this::detectCity, null, null);
-        manualRow = rows.size();
-        addRow(R.string.settings_manual, null, this::showSearch, null, null);
-
-        addSection(R.string.settings_section_network);
-        addRow(R.string.settings_vpn_button, this::vpnButtonText, this::toggleVpnButton,
-                this::toggleVpnButton, this::toggleVpnButton);
-        addRow(R.string.settings_vpn_app, this::vpnAppText, null,
-                () -> changeVpnApp(-1), () -> changeVpnApp(1));
-
-        addSection(R.string.settings_section_system);
+    private void buildOptimization() {
         addRow(R.string.settings_cleanup, null,
                 () -> startActivity(new Intent(this, SystemCleanupActivity.class)), null, null);
-
-        addSection(R.string.settings_section_about);
-        updateRow = rows.size();
-        addRow(R.string.settings_check_update, this::updateText,
-                () -> UpdateController.instance(this).checkNow(), null, null);
-        addRow(R.string.settings_about_name, () -> BuildConfig.VERSION_NAME, null, null, null);
-
-        focus = focusRow < 0 ? cityRow : focusRow;
-        status("");
-        applyFocusAfterLayout(false);
     }
 
     private void showSearch() {
         page = Page.SEARCH;
         clearRows();
+        tabStrip.setVisibility(View.GONE);
+        topList.setVisibility(View.GONE);
         input = createInput(R.string.settings_search_hint,
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS, EditorInfo.IME_ACTION_SEARCH, this::search);
         addRow(R.string.settings_city, input, null, this::startEditing, null, null);
         addRow(R.string.settings_search_go, null, () -> search(), null, null);
         resultsStart = rows.size();
-        focus = 0;
+        nav = new State(Zone.LIST, nav.tab, 0);
         status("");
         applyFocusAfterLayout(false);
     }
@@ -318,7 +388,9 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void clearRows() {
-        pendingHeader = null;
+        videoNote = null;
+        topRows.clear();
+        topList.removeAllViews();
         rows.clear();
         list.removeAllViews();
     }
@@ -331,24 +403,16 @@ public final class LauncherSettingsActivity extends Activity {
         addRowView(new Row(getString(label), value, valueText, ok, left, right));
     }
 
-    /** A non-focusable title above the next row; focus never lands on it. */
-    private void addSection(int title) {
-        TextView header = text(getString(title), R.color.text_secondary, R.font.outfit_regular);
-        header.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        header.setPadding(dp(16), dp(rows.isEmpty() ? 0 : 14), dp(16), dp(6));
-        list.addView(header, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        pendingHeader = header;
+    private void addRowView(Row row) {
+        addRowView(row, list, rows);
     }
 
-    private void addRowView(Row row) {
-        row.header = pendingHeader;
-        pendingHeader = null;
+    private void addRowView(Row row, LinearLayout parent, List<Row> into) {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(44));
         lp.bottomMargin = dp(4);
-        list.addView(row.view, lp);
-        rows.add(row);
+        parent.addView(row.view, lp);
+        into.add(row);
         row.refresh(false);
     }
 
@@ -457,9 +521,7 @@ public final class LauncherSettingsActivity extends Activity {
             refreshValues();
             return;
         }
-        int before = (rightsRow >= 0 ? 1 : 0) + (homeRow >= 0 ? 1 : 0);
-        int after = (needRights ? 1 : 0) + (needHome ? 1 : 0);
-        showMain(Math.max(0, focus - before + after));
+        showMain(nav);
     }
 
     private String cityText() {
@@ -612,13 +674,13 @@ public final class LauncherSettingsActivity extends Activity {
             addRowView(row);
         }
         status(places.isEmpty() ? getString(R.string.settings_nothing_found) : "");
-        if (!places.isEmpty()) focus = resultsStart;
+        if (!places.isEmpty()) nav = new State(Zone.LIST, nav.tab, resultsStart);
         applyFocusAfterLayout(true);
     }
 
     private void pick(GeocodingModel.Place place) {
         weatherPrefs.saveLocation(place.toLocation());
-        showMain(-1);
+        showMain(new State(Zone.LIST, nav.tab, -1));
     }
 
     // ---------------------------------------------------------------- text entry
@@ -652,7 +714,8 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void refreshValues() {
-        for (int i = 0; i < rows.size(); i++) rows.get(i).refresh(i == focus);
+        for (int i = 0; i < topRows.size(); i++) topRows.get(i).refresh(nav.zone == Zone.TOP_ROWS && i == nav.row);
+        for (int i = 0; i < rows.size(); i++) rows.get(i).refresh(nav.zone == Zone.LIST && i == nav.row);
     }
 
     private void applyFocusAfterLayout(boolean animate) {
@@ -671,25 +734,43 @@ public final class LauncherSettingsActivity extends Activity {
 
     private void applyFocus(boolean requestedAnimate) {
         boolean animate = motion.focusAnimated(requestedAnimate);
+        for (int i = 0; i < topRows.size(); i++) {
+            Row r = topRows.get(i);
+            boolean on = nav.zone == Zone.TOP_ROWS && i == nav.row;
+            r.refresh(on);
+            FocusDim.applyAlpha(r.view, FocusDim.Role.TEXT, on, animate);
+        }
         for (int i = 0; i < rows.size(); i++) {
             Row r = rows.get(i);
-            r.refresh(i == focus);
-            FocusDim.applyAlpha(r.view, FocusDim.Role.TEXT, i == focus, animate);
+            boolean on = nav.zone == Zone.LIST && i == nav.row;
+            r.refresh(on);
+            FocusDim.applyAlpha(r.view, FocusDim.Role.TEXT, on, animate);
         }
-        View v = rows.get(focus).view;
-        View header = rows.get(focus).header;
-        int margin = dp(8);
-        // a section's first row scrolls its header into view too
-        int top = header != null ? header.getTop() : v.getTop();
-        if (top - margin < scroll.getScrollY()) {
-            scroll.scrollTo(0, Math.max(0, top - margin));
-        } else if (v.getBottom() + margin > scroll.getScrollY() + scroll.getHeight()) {
-            scroll.scrollTo(0, v.getBottom() + margin - scroll.getHeight());
+        if (page == Page.MAIN) {
+            for (int i = 0; i < tabViews.size(); i++) {
+                tabViews.get(i).setTextColor(getColor(i == nav.tab ? R.color.text_primary : R.color.text_secondary));
+            }
         }
         RectF target = new RectF();
+        float radius = 12 * density;
+        View v;
+        if (nav.zone == Zone.TABS) {
+            v = tabViews.get(nav.tab);
+        } else if (nav.zone == Zone.TOP_ROWS) {
+            v = topRows.get(nav.row).view;
+        } else {
+            v = rows.get(nav.row).view;
+            int margin = dp(8);
+            if (v.getTop() - margin < scroll.getScrollY()) {
+                scroll.scrollTo(0, Math.max(0, v.getTop() - margin));
+            } else if (v.getBottom() + margin > scroll.getScrollY() + scroll.getHeight()) {
+                scroll.scrollTo(0, v.getBottom() + margin - scroll.getHeight());
+            }
+        }
         if (!Tiles.locate(v, root, target)) return;
-        target.offset(0, -scroll.getScrollY());
-        glass.moveTo(target, 12 * density, animate);
+        if (nav.zone == Zone.LIST) target.offset(0, -scroll.getScrollY());
+        if (nav.zone == Zone.TABS) radius = Tiles.topGlass(target, density);
+        glass.moveTo(target, radius, animate);
     }
 
     @Override
@@ -704,48 +785,61 @@ public final class LauncherSettingsActivity extends Activity {
         if (k == KeyEvent.KEYCODE_DPAD_CENTER || k == KeyEvent.KEYCODE_ENTER
                 || k == KeyEvent.KEYCODE_NUMPAD_ENTER || k == KeyEvent.KEYCODE_BUTTON_A) {
             if (centerKey.onKey(down, e.getRepeatCount()) == CenterKey.Press.SHORT) {
-                Runnable ok = rows.get(focus).ok;
-                if (ok != null) ok.run();
+                Row row = focusedRow();
+                if (row != null && row.ok != null) row.ok.run();
             }
             return true;
         }
         if (!down) return super.dispatchKeyEvent(e);
         switch (k) {
             case KeyEvent.KEYCODE_DPAD_UP:
-                if (e.getRepeatCount() == 0) moveFocus(-1);
+                if (e.getRepeatCount() == 0) move(Key.UP);
                 return true;
             case KeyEvent.KEYCODE_DPAD_DOWN:
-                if (e.getRepeatCount() == 0) moveFocus(1);
+                if (e.getRepeatCount() == 0) move(Key.DOWN);
                 return true;
             case KeyEvent.KEYCODE_DPAD_LEFT:
-                runIfSet(rows.get(focus).left);
+                if (nav.zone == Zone.TABS && page == Page.MAIN) move(Key.LEFT);
+                else if (focusedRow() != null) runIfSet(focusedRow().left);
                 return true;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
-                runIfSet(rows.get(focus).right);
+                if (nav.zone == Zone.TABS && page == Page.MAIN) move(Key.RIGHT);
+                else if (focusedRow() != null) runIfSet(focusedRow().right);
                 return true;
             default:
                 return super.dispatchKeyEvent(e);
         }
     }
 
+    private Row focusedRow() {
+        if (nav.zone == Zone.TOP_ROWS) return nav.row < topRows.size() ? topRows.get(nav.row) : null;
+        if (nav.zone == Zone.LIST) return nav.row < rows.size() ? rows.get(nav.row) : null;
+        return null;
+    }
+
     private static void runIfSet(Runnable r) {
         if (r != null) r.run();
     }
 
-    private void moveFocus(int delta) {
-        int next = Math.max(0, Math.min(rows.size() - 1, focus + delta));
-        if (next == focus) return;
-        focus = next;
-        applyFocus(true);
+    private void move(Key key) {
+        State next = SettingsTabsNav.next(nav, key, topRows.size(), rows.size());
+        if (next.equals(nav)) return;
+        boolean tabChanged = next.tab != nav.tab;
+        nav = next;
+        if (tabChanged) showMain(nav);
+        else applyFocus(true);
     }
 
     private void onBack() {
         if (editing) {
             stopEditing();
         } else if (page == Page.SEARCH) {
-            showMain(manualRow);
-        } else {
+            showMain(new State(Zone.LIST, nav.tab, manualRow));
+        } else if (SettingsTabsNav.backCloses(nav)) {
             finish();
+        } else {
+            nav = SettingsTabsNav.back(nav);
+            applyFocus(true);
         }
     }
 }

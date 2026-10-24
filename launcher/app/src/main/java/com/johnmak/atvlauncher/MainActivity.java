@@ -475,7 +475,7 @@ public final class MainActivity extends Activity {
         row.setHasFixedSize(true);
         row.setItemAnimator(null);
         row.setAdapter(adapter);
-        RowScroller scroller = new RowScroller(row, () -> {
+        RowScroller scroller = new RowScroller(row, () -> motion.rowScrollAnimated(), () -> {
             if (focus.zone() == zone) applySelection(false);
         });
         switch (zone) {

@@ -55,11 +55,11 @@
     <string name="settings_minutes">%d мин</string>
     <string name="settings_seconds">%d с</string>
     <string name="settings_percent">%d%%</string>
-    <string name="settings_section_appearance">Внешний вид</string>
-    <string name="settings_section_content">Контент</string>
-    <string name="settings_section_network">Сеть</string>
-    <string name="settings_section_about">О лаунчере</string>
     <string name="settings_preview_scale">Масштаб карточек превью</string>
+    <string name="settings_tab_general">Общие</string>
+    <string name="settings_tab_interface">Интерфейс</string>
+    <string name="settings_tab_screensaver">Заставка</string>
+    <string name="settings_tab_optimization">Оптимизация</string>
     <string name="settings_check_update">Проверить обновления</string>
     <string name="update_checking">Проверка…</string>
     <string name="update_up_to_date">Актуальная версия</string>
@@ -93,7 +93,6 @@
     <string name="settings_right_home">Лаунчер</string>
     <string name="settings_set_home">Сделать лаунчером по умолчанию</string>
     <string name="feed_configure">Настроить</string>
-    <string name="settings_section_system">Система</string>
     <string name="settings_cleanup">Очистка системы</string>
     <string name="cleanup_title">Очистка системы</string>
     <string name="cleanup_loading">Читаю список приложений…</string>
