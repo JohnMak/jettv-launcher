@@ -41,6 +41,15 @@ public class ReleaseFeedTest {
         assertNull(UpdateError.of(r));
     }
 
+    @Test public void ignoresExtraNonMatchingAssetsAndKeepsVersionedUrls() throws IOException {
+        FetchResult<Release> r = parse("extra_assets.json");
+        assertTrue(r.isOk() ? "" : r.error(), r.isOk());
+        assertEquals("1.2.3", r.value().version.toString());
+        assertEquals("https://github.com/johnmak/jettv-launcher/releases/download/v1.2.3/jettv-launcher-1.2.3.apk", r.value().apkUrl);
+        assertEquals(r.value().apkUrl + ".sha256", r.value().sha256Url);
+        assertNull(UpdateError.of(r));
+    }
+
     @Test public void rejectsPrereleaseAndDraft() throws IOException {
         assertFeedInvalid(parse("prerelease.json"));
         assertFeedInvalid(parse("draft.json"));

@@ -94,6 +94,9 @@ jobs:
           cp "$OUT/$APK" "dist/jettv-launcher-$VERSION.apk"
           (cd dist && sha256sum "jettv-launcher-$VERSION.apk" > "jettv-launcher-$VERSION.apk.sha256")
           cat "dist/jettv-launcher-$VERSION.apk.sha256"
+          cp "dist/jettv-launcher-$VERSION.apk" "dist/jettv-launcher-latest.apk"
+          (cd dist && sha256sum "jettv-launcher-latest.apk" > "jettv-launcher-latest.apk.sha256")
+          cat "dist/jettv-launcher-latest.apk.sha256"
 
       - name: Publish GitHub release
         if: steps.tag.outputs.skip == 'false'
@@ -104,6 +107,8 @@ jobs:
           gh release create "$TAG" \
             "dist/jettv-launcher-$VERSION.apk" \
             "dist/jettv-launcher-$VERSION.apk.sha256" \
+            "dist/jettv-launcher-latest.apk" \
+            "dist/jettv-launcher-latest.apk.sha256" \
             --title "JetTV Launcher $VERSION" \
             --generate-notes \
             --verify-tag
