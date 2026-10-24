@@ -47,4 +47,15 @@ public class ProcessTimesParserTest {
         assertFalse(ProcessTimesParser.parse(HEADER + "    1   0:10.95\n").isOk());
         assertFalse(ProcessTimesParser.parse(HEADER + "    1   0:75.95 init\n").isOk());
     }
+
+    @Test
+    public void projectorAndroid11Output() throws IOException {
+        FetchResult<Map<String, Long>> r = ProcessTimesParser.parse(MeminfoParserTest.fixture("projector_ps.txt"));
+        assertTrue(r.isOk());
+        Map<String, Long> m = r.value();
+        assertFalse(m.isEmpty());
+        assertEquals(Long.valueOf(2_440 + 1_560), m.get("init")); // two init processes folded
+        assertEquals(Long.valueOf(2_390), m.get("com.android.systemui"));
+        assertEquals(Long.valueOf(20), m.get("[kthreadd]"));
+    }
 }

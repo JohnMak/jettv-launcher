@@ -67,4 +67,16 @@ public class MeminfoParserTest {
         assertEquals(Long.valueOf(7), r.value().pss.get("com.e"));
         assertEquals(4, r.value().skipped);
     }
+
+    @Test
+    public void projectorAndroid11DumpParses() throws IOException {
+        FetchResult<MeminfoParser.Parsed> r = MeminfoParser.parse(fixture("projector_meminfo.txt"));
+        assertTrue(r.isOk());
+        Map<String, Long> m = r.value().pss;
+        assertFalse(m.isEmpty());
+        assertEquals(Long.valueOf(22260), m.get("com.android.systemui")); // PSS block, RSS block says 86672
+        assertEquals(Long.valueOf(910), m.get("android.hardware.keymaster@4.0-service.tee"));
+        for (long v : m.values()) assertTrue(v > 0);
+        assertEquals(0, r.value().skipped);
+    }
 }
