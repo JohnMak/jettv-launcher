@@ -12,9 +12,10 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">30dp</item>
         <item name="android:layout_marginStart">56dp</item>
-        <item name="android:fontFamily">@font/outfit_regular</item>
+        <item name="android:fontFamily">@font/outfit_extrabold</item>
         <item name="android:includeFontPadding">false</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">18sp</item>
     </style>
 

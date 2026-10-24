@@ -21,6 +21,7 @@ import android.view.WindowInsets;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -310,6 +311,7 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void buildGeneral() {
+        addLogo();
         cityRow = rows.size();
         addRow(R.string.settings_city, this::cityText, null, null, null);
         addRow(R.string.settings_detect, null, this::detectCity, null, null);
@@ -414,6 +416,23 @@ public final class LauncherSettingsActivity extends Activity {
         parent.addView(row.view, lp);
         into.add(row);
         row.refresh(false);
+    }
+
+    /** Non-focusable JetTV logo header at the top of the General tab's list; not a {@link Row}, so D-pad math is unaffected. */
+    private void addLogo() {
+        ImageView logo = new ImageView(this);
+        logo.setId(R.id.settings_logo);
+        logo.setImageResource(R.drawable.ic_jettv_logo);
+        logo.setAdjustViewBounds(true);
+        logo.setScaleType(ImageView.ScaleType.FIT_START);
+        logo.setFocusable(false);
+        logo.setClickable(false);
+        logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, dp(56));
+        lp.topMargin = dp(4);
+        lp.bottomMargin = dp(16);
+        list.addView(logo, lp);
     }
 
     private TextView addNote(String s) {

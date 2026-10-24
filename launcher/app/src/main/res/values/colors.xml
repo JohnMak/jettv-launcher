@@ -8,4 +8,5 @@
     <color name="card_placeholder">#1C1C1E</color>
     <color name="accent_glow">#FFFFFFFF</color>
     <color name="warning_yellow">#FFD54A</color>
+    <color name="accent">#FFD54A</color>
 </resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JetTV mark: yellow jet/play glyph on a dark rounded glass tile. Mirrors materials/landing/index.html. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <path
+        android:fillColor="#1C1C1E"
+        android:strokeColor="#40FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M44,8 H116 A36,36 0 0 1 152,44 V116 A36,36 0 0 1 116,152 H44 A36,36 0 0 1 8,116 V44 A36,36 0 0 1 44,8 Z" />
+    <path
+        android:fillColor="#FFD54A"
+        android:pathData="M62,44 L118,80 L62,116 Z" />
+    <path
+        android:fillColor="#FFD54A"
+        android:fillAlpha="0.55"
+        android:pathData="M42,68 h26 v24 h-26 a4,4 0 0 1 -4,-4 v-16 a4,4 0 0 1 4,-4 Z" />
+</vector>

@@ -21,6 +21,10 @@ public final class GlassView extends View {
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF current = new RectF();
     private final RectF to = new RectF();
+    /** Accent halo rings, built once; {@code null} = disabled (the default for every screen except Home). */
+    private Paint[] glow;
+    private float[] glowInsetPx;
+    private final RectF glowRect = new RectF();
     private float radiusCurrent;
     private float radiusTo;
     private boolean placed;
@@ -37,6 +41,28 @@ public final class GlassView extends View {
         stroke.setColor(context.getColor(R.color.glass_stroke));
         setFocusable(false);
         setClickable(false);
+    }
+
+    /**
+     * Turns on a subtle accent halo behind the highlight (Home only). Opt-in: callers that never invoke this keep the
+     * plain white glass. Paints are built once here; nothing is allocated per frame.
+     */
+    void enableAccentGlow(int color) {
+        float d = getResources().getDisplayMetrics().density;
+        float[] insets = {2f * d, 6f * d, 11f * d};
+        float[] widths = {3f * d, 4f * d, 5f * d};
+        int[] alphas = {90, 46, 22};
+        Paint[] rings = new Paint[insets.length];
+        for (int i = 0; i < rings.length; i++) {
+            Paint g = new Paint(Paint.ANTI_ALIAS_FLAG);
+            g.setStyle(Paint.Style.STROKE);
+            g.setStrokeWidth(widths[i]);
+            g.setColor((alphas[i] << 24) | (color & 0x00FFFFFF));
+            rings[i] = g;
+        }
+        glowInsetPx = insets;
+        glow = rings;
+        invalidate();
     }
 
     void moveTo(RectF target, float radius, boolean animate) {
@@ -90,6 +116,14 @@ public final class GlassView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         if (!placed) return;
+        if (glow != null) {
+            for (int i = glow.length - 1; i >= 0; i--) {
+                glowRect.set(current);
+                glowRect.inset(-glowInsetPx[i], -glowInsetPx[i]);
+                float r = radiusCurrent + glowInsetPx[i];
+                canvas.drawRoundRect(glowRect, r, r, glow[i]);
+            }
+        }
         canvas.drawRoundRect(current, radiusCurrent, radiusCurrent, fill);
         canvas.drawRoundRect(current, radiusCurrent, radiusCurrent, stroke);
     }

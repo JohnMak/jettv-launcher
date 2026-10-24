@@ -287,6 +287,7 @@ public final class MainActivity extends Activity {
         watchConfig = new ConfigTile(findViewById(R.id.watch_config), watchBox, watchRow);
         mixedConfig = new ConfigTile(findViewById(R.id.mixed_config), mixedBox, mixedRow);
         glass = findViewById(R.id.glass);
+        glass.enableAccentGlow(getColor(R.color.accent));
         clock = findViewById(R.id.clock);
         FocusDim.applyAlpha(clock, FocusDim.Role.AMBIENT, false, false);
         FocusDim.applyAlpha(date, FocusDim.Role.AMBIENT, false, false);
