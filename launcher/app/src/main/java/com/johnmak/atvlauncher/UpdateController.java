@@ -3,6 +3,7 @@ package com.johnmak.atvlauncher;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.File;
@@ -24,7 +25,6 @@ import java.util.function.LongSupplier;
  */
 final class UpdateController {
     private static final String TAG = "AtvUpdate";
-    private static final long TICK_MS = 10L * 60 * 1000;
     private static final long PENDING_STALE_MS = 10L * 60 * 1000;
     /** A version whose install failed this many times is not downloaded or installed again. */
     static final int MAX_INSTALL_FAILURES = 2;
@@ -94,12 +94,15 @@ final class UpdateController {
             if (!current.isOk()) throw new IllegalStateException("build version: " + current.error());
             Handler handler = new Handler(Looper.getMainLooper());
             ExecutorService worker = Executors.newSingleThreadExecutor();
+            long elapsed = SystemClock.elapsedRealtime();
+            long bootUntil = UpdatePolicy.isBootStart(elapsed)
+                    ? System.currentTimeMillis() + UpdatePolicy.BOOT_WINDOW_MS - elapsed : 0;
             instance = new UpdateController(current.value(), BuildConfig.VERSION_NAME,
                     ReleaseFeed.github(userAgent),
                     new ApkDownloader(new File(app.getCacheDir(), "update"), userAgent),
                     new ApkVerifier(new PackageInspector(app)),
                     LoopbackAdbSession.shared(app), new UpdatePrefs(app),
-                    System::currentTimeMillis, worker, handler::post, msg -> Log.w(TAG, msg));
+                    System::currentTimeMillis, bootUntil, worker, handler::post, msg -> Log.w(TAG, msg));
             startTicking(instance, handler);
         }
         return instance;
@@ -112,9 +115,9 @@ final class UpdateController {
     private static void startTicking(UpdateController controller, Handler handler) {
         Runnable tick = new Runnable() {
             @Override public void run() {
-                controller.onTick(ScreensaverState.launcherForeground(), ScreensaverState.launcherIdleMs(),
-                        ScreensaverState.showing());
-                handler.postDelayed(this, TICK_MS);
+                long next = controller.onTick(ScreensaverState.launcherForeground(),
+                        ScreensaverState.launcherIdleMs(), ScreensaverState.showing());
+                handler.postDelayed(this, next);
             }
         };
         handler.post(tick);
@@ -127,6 +130,8 @@ final class UpdateController {
     private final AdbSession session;
     private final Store store;
     private final LongSupplier clock;
+    /** End of the boot window in {@code clock} time; 0 when this process did not start at device boot. */
+    private final long bootUntilMs;
     private final Executor worker;
     private final Executor main;
     private final Consumer<String> log;
@@ -137,11 +142,12 @@ final class UpdateController {
     private VerifiedApk ready;
     private boolean installWhenReady;
     private boolean evaluated;
+    private boolean bootAnswered;
     private boolean startedByUpdate;
 
     UpdateController(SemVer current, String currentVersionName, ReleaseFeed.Source feed, Downloader downloader,
                      ApkVerifier verifier, AdbSession session, Store store, LongSupplier clock,
-                     Executor worker, Executor main, Consumer<String> log) {
+                     long bootUntilMs, Executor worker, Executor main, Consumer<String> log) {
         this.current = current;
         this.feed = feed;
         this.downloader = downloader;
@@ -149,6 +155,7 @@ final class UpdateController {
         this.session = session;
         this.store = store;
         this.clock = clock;
+        this.bootUntilMs = bootUntilMs;
         this.worker = worker;
         this.main = main;
         this.log = log;
@@ -203,11 +210,23 @@ final class UpdateController {
      * Periodic evaluation: starts a due check and installs a Ready update once the policy allows. {@code idleMs} is
      * the time since the last remote input in the launcher.
      */
-    void onTick(boolean launcherForeground, long idleMs, boolean screensaverShowing) {
-        UpdatePolicy.Trigger trigger = evaluated ? UpdatePolicy.Trigger.TICK : UpdatePolicy.Trigger.PROCESS_START;
+    long onTick(boolean launcherForeground, long idleMs, boolean screensaverShowing) {
+        long now = clock.getAsLong();
+        boolean boot = bootInProgress(now);
+        UpdatePolicy.Trigger trigger = boot ? UpdatePolicy.Trigger.BOOT
+                : evaluated ? UpdatePolicy.Trigger.TICK : UpdatePolicy.Trigger.PROCESS_START;
         evaluated = true;
-        if (UpdatePolicy.shouldCheck(state.kind, trigger, store.lastCheckAt(), clock.getAsLong())) startPipeline();
-        else if (UpdatePolicy.shouldAutoInstall(state.kind, launcherForeground, idleMs, screensaverShowing)) install();
+        if (UpdatePolicy.shouldCheck(state.kind, trigger, store.lastCheckAt(), now)) {
+            if (boot) installWhenReady = true; // boot: install right after verification, like a manual check
+            startPipeline();
+        } else if (UpdatePolicy.shouldAutoInstall(state.kind, launcherForeground, idleMs, screensaverShowing)) {
+            install();
+        }
+        return UpdatePolicy.nextTickDelayMs(bootInProgress(now));
+    }
+
+    private boolean bootInProgress(long now) {
+        return !bootAnswered && UpdatePolicy.bootActive(now, bootUntilMs);
     }
 
     // ------------------------------------------------------------ pipeline
@@ -322,6 +341,7 @@ final class UpdateController {
 
     private void setState(UpdateState next) {
         state = next;
+        if (UpdatePolicy.bootAnswered(next.kind, next.error)) bootAnswered = true;
         if (next.kind == UpdateState.Kind.UP_TO_DATE || next.kind == UpdateState.Kind.ERROR
                 || next.kind == UpdateState.Kind.IDLE) {
             installWhenReady = false;

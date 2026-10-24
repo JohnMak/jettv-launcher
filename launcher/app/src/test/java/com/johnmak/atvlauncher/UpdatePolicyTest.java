@@ -50,4 +50,30 @@ public class UpdatePolicyTest {
             assertFalse(k.name(), UpdatePolicy.shouldAutoInstall(k, true, ten * 5, true));
         }
     }
+
+    @Test public void bootWindowDecisions() {
+        long w = UpdatePolicy.BOOT_WINDOW_MS;
+        assertTrue(UpdatePolicy.isBootStart(0));
+        assertTrue(UpdatePolicy.isBootStart(w - 1));
+        assertFalse(UpdatePolicy.isBootStart(w));
+        assertTrue(UpdatePolicy.bootActive(NOW, NOW + 1));
+        assertFalse(UpdatePolicy.bootActive(NOW, NOW));
+        assertFalse(UpdatePolicy.bootActive(NOW, 0));
+        assertTrue(check(UpdateState.Kind.UP_TO_DATE, UpdatePolicy.Trigger.BOOT, NOW));
+        assertTrue(check(UpdateState.Kind.ERROR, UpdatePolicy.Trigger.BOOT, NOW));
+        assertFalse(check(UpdateState.Kind.READY, UpdatePolicy.Trigger.BOOT, 0));
+    }
+
+    @Test public void bootRetriesOnlyNetworkFailures() {
+        assertFalse(UpdatePolicy.bootAnswered(UpdateState.Kind.ERROR, UpdateError.NETWORK));
+        assertFalse(UpdatePolicy.bootAnswered(UpdateState.Kind.CHECKING, null));
+        assertTrue(UpdatePolicy.bootAnswered(UpdateState.Kind.ERROR, UpdateError.FEED_INVALID));
+        assertTrue(UpdatePolicy.bootAnswered(UpdateState.Kind.UP_TO_DATE, null));
+        assertTrue(UpdatePolicy.bootAnswered(UpdateState.Kind.INSTALLING, null));
+    }
+
+    @Test public void retryIntervalIs30sDuringBootElseTenMinutes() {
+        assertEquals(30_000L, UpdatePolicy.nextTickDelayMs(true));
+        assertEquals(10 * 60_000L, UpdatePolicy.nextTickDelayMs(false));
+    }
 }

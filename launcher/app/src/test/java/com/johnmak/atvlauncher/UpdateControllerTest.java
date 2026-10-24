@@ -58,6 +58,7 @@ public class UpdateControllerTest {
     private final List<UpdateState> states = new ArrayList<>();
     private FakeStore store;
     private long now = T0;
+    private long bootUntil;
     private int feedCalls;
     private int clears;
     private int downloads;
@@ -116,7 +117,7 @@ public class UpdateControllerTest {
         };
         UpdateController ctl = new UpdateController(SemVer.ofVersionName(versionName).value(), versionName,
                 () -> { feedCalls++; return feedResult; }, downloader, verifier, session, store, () -> now,
-                worker, main, logs::add);
+                bootUntil, worker, main, logs::add);
         ctl.addListener(states::add);
         return ctl;
     }
@@ -359,5 +360,59 @@ public class UpdateControllerTest {
         c.checkNow();
         settle();
         assertEquals(1, installed.size());
+    }
+
+    @Test public void bootStartInstallsRightAfterVerificationWithoutIdle() {
+        bootUntil = T0 + UpdatePolicy.BOOT_WINDOW_MS;
+        c = newController("1.2.2");
+        c.onTick(false, 0, false);
+        settle();
+        assertEquals(1, installed.size()); // installed without any idle time
+    }
+
+    @Test public void nonBootStartHoldsTheUpdateUntilIdle() {
+        long next = c.onTick(false, 0, false);
+        settle();
+        assertEquals(UpdateState.Kind.READY, kind());
+        assertTrue(installed.isEmpty());
+        assertEquals(UpdatePolicy.TICK_MS, next);
+    }
+
+    @Test public void bootCheckRetriesOnNetworkFailureUntilTheWindowEnds() {
+        bootUntil = T0 + UpdatePolicy.BOOT_WINDOW_MS;
+        c = newController("1.2.2");
+        feedResult = UpdateError.fail(UpdateError.NETWORK, "offline");
+        assertEquals(UpdatePolicy.BOOT_RETRY_MS, c.onTick(false, 0, false));
+        settle();
+        assertEquals(UpdateState.Kind.ERROR, kind());
+        feedResult = FetchResult.ok(release("1.2.3"));
+        now += UpdatePolicy.BOOT_RETRY_MS;
+        assertEquals(UpdatePolicy.BOOT_RETRY_MS, c.onTick(false, 0, false));
+        settle();
+        assertEquals(2, feedCalls);
+        assertEquals(1, installed.size());
+    }
+
+    @Test public void bootRetryStopsWhenTheWindowEndsAndNormalScheduleResumes() {
+        bootUntil = T0 + UpdatePolicy.BOOT_WINDOW_MS;
+        c = newController("1.2.2");
+        feedResult = UpdateError.fail(UpdateError.NETWORK, "offline");
+        c.onTick(false, 0, false);
+        settle();
+        now = bootUntil;
+        assertEquals(UpdatePolicy.TICK_MS, c.onTick(false, 0, false));
+        settle();
+        assertEquals(2, feedCalls); // no good answer yet, so the regular schedule checks again; no auto-install now
+        assertTrue(installed.isEmpty());
+    }
+
+    @Test public void bootEndsWithAnyNonNetworkAnswer() {
+        bootUntil = T0 + UpdatePolicy.BOOT_WINDOW_MS;
+        c = newController("1.2.3"); // already current
+        assertEquals(UpdatePolicy.BOOT_RETRY_MS, c.onTick(false, 0, false));
+        settle();
+        assertEquals(UpdateState.Kind.UP_TO_DATE, kind());
+        assertEquals(UpdatePolicy.TICK_MS, c.onTick(false, 0, false));
+        assertEquals(1, feedCalls);
     }
 }
