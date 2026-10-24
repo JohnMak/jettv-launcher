@@ -103,6 +103,13 @@ Settings > About.
   weather, geocoding and update requests described above; requests carry a
   `JetTV-Launcher/<version> (+repo URL)` User-Agent and no personal data.
 
+## Documentation
+
+- `docs/CONTINUE.md`: how to continue the work from a fresh clone (start here for development).
+- `docs/architecture.md`: modules and key classes. `docs/decisions.md`: decisions and why. `docs/devices.md`: devices and quirks.
+- `docs/ROADMAP.md`: open work. `docs/CHANGELOG.md`: versions. `docs/dev.md` and `docs/prod.md`: development and release/operations.
+- `CLAUDE.md`: instructions for AI coding agents working in this repo.
+
 ## Credits
 
 Weather data: MET Norway (CC BY 4.0). Screensaver video credit:
