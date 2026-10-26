@@ -20,10 +20,16 @@ final class LauncherSettingsStore {
     static final String KEY_UI_SCALE_PERCENT = "ui_scale_percent";
     static final String KEY_PREVIEW_SCALE_PERCENT = "preview_scale_percent";
     static final String KEY_ANIMATIONS_OFF = "animations_off";
+    static final String KEY_ART_PRESET = "art_preset";
     private final SharedPreferences prefs;
 
     LauncherSettingsStore(Context context) {
-        prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        this(context.getSharedPreferences(FILE, Context.MODE_PRIVATE));
+    }
+
+    /** Injects the backing prefs directly; the sole seam used by tests to exercise the load/save boundary. */
+    LauncherSettingsStore(SharedPreferences prefs) {
+        this.prefs = prefs;
     }
 
     /**
@@ -42,7 +48,8 @@ final class LauncherSettingsStore {
                 prefs.getString(KEY_VPN_PACKAGE, d.vpnPackage),
                 prefs.getInt(KEY_UI_SCALE_PERCENT, d.uiScalePercent),
                 prefs.getInt(KEY_PREVIEW_SCALE_PERCENT, d.previewScalePercent),
-                prefs.getBoolean(KEY_ANIMATIONS_OFF, d.animationsOff));
+                prefs.getBoolean(KEY_ANIMATIONS_OFF, d.animationsOff),
+                prefs.getString(KEY_ART_PRESET, d.artPreset.key));
         if (prefs.contains(LEGACY_SCREENSAVER_ENABLED) || prefs.contains(LEGACY_DIM_ENABLED)) save(s);
         return s;
     }
@@ -60,6 +67,7 @@ final class LauncherSettingsStore {
                 .putInt(KEY_UI_SCALE_PERCENT, s.uiScalePercent)
                 .putInt(KEY_PREVIEW_SCALE_PERCENT, s.previewScalePercent)
                 .putBoolean(KEY_ANIMATIONS_OFF, s.animationsOff)
+                .putString(KEY_ART_PRESET, s.artPreset.key)
                 .apply();
     }
 

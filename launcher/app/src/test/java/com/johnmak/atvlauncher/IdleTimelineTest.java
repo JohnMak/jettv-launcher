@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class IdleTimelineTest {
     private static IdleTimeline of(int minutes, int seconds) {
-        return new IdleTimeline(new LauncherSettings(minutes, LauncherSettings.ScreensaverType.STARFIELD, seconds, true, "", 100, 100, false));
+        return new IdleTimeline(new LauncherSettings(minutes, LauncherSettings.ScreensaverType.STARFIELD, seconds, true, "", 100, 100, false, ArtPreset.ALL));
     }
 
     @Test

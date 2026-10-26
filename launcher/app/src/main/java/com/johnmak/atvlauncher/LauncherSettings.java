@@ -2,8 +2,9 @@ package com.johnmak.atvlauncher;
 
 /** Immutable launcher settings (screensaver, dimming, VPN button, UI scale, preview scale, animations) with cycling helpers for the option lists. */
 final class LauncherSettings {
-    /** What the screensaver shows. NASA_VIDEO is streamed; the starfield shows until the first frame and whenever the stream fails (see {@link ScreensaverKind}). */
-    enum ScreensaverType { STARFIELD, NASA_VIDEO }
+    /** What the screensaver shows. NASA_VIDEO is streamed; ART is a paintings slideshow; the starfield shows
+     * until the first frame/image and whenever the stream/pool fails (see {@link ScreensaverKind}). */
+    enum ScreensaverType { STARFIELD, NASA_VIDEO, ART }
 
     /** Delay 0 = the stage is off (first option of each list). */
     static final int[] SCREENSAVER_DELAYS_MIN = {0, 1, 2, 3, 5, 10};
@@ -11,7 +12,7 @@ final class LauncherSettings {
 
     static final LauncherSettings DEFAULTS =
             new LauncherSettings(2, ScreensaverType.STARFIELD, 30, true, "", UiScale.DEFAULT_PERCENT,
-                    PreviewScale.DEFAULT_PERCENT, false);
+                    PreviewScale.DEFAULT_PERCENT, false, ArtPreset.ALL);
 
     final int screensaverDelayMin;
     final ScreensaverType screensaverType;
@@ -25,10 +26,14 @@ final class LauncherSettings {
     final int previewScalePercent;
     /** Animations switched off (storage only here; behaviour is wired elsewhere). */
     final boolean animationsOff;
+    /** The stored ART preset preference (D1); meaningful only when {@link #screensaverType} is {@link ScreensaverType#ART},
+     * but always held so it survives type cycling. Availability reconciliation happens at render/display time via
+     * {@link ArtPreset#effective} (D11), never here. */
+    final ArtPreset artPreset;
 
     LauncherSettings(int screensaverDelayMin, ScreensaverType screensaverType, int dimDelaySec,
             boolean vpnButtonVisible, String vpnPackage, int uiScalePercent, int previewScalePercent,
-            boolean animationsOff) {
+            boolean animationsOff, ArtPreset artPreset) {
         if (indexOf(SCREENSAVER_DELAYS_MIN, screensaverDelayMin) < 0) {
             throw new IllegalArgumentException("screensaver delay: " + screensaverDelayMin);
         }
@@ -39,6 +44,7 @@ final class LauncherSettings {
         if (!PreviewScale.isValid(previewScalePercent)) {
             throw new IllegalArgumentException("preview scale: " + previewScalePercent);
         }
+        if (artPreset == null) throw new IllegalArgumentException("art preset");
         this.screensaverDelayMin = screensaverDelayMin;
         this.screensaverType = screensaverType;
         this.dimDelaySec = dimDelaySec;
@@ -47,6 +53,7 @@ final class LauncherSettings {
         this.uiScalePercent = uiScalePercent;
         this.previewScalePercent = previewScalePercent;
         this.animationsOff = animationsOff;
+        this.artPreset = artPreset;
     }
 
     /**
@@ -56,7 +63,7 @@ final class LauncherSettings {
      */
     static LauncherSettings fromStored(boolean legacyScreensaverEnabled, int screensaverDelayMin, String screensaverType,
             boolean legacyDimEnabled, int dimDelaySec, boolean vpnButtonVisible, String vpnPackage, int uiScalePercent,
-            int previewScalePercent, boolean animationsOff) {
+            int previewScalePercent, boolean animationsOff, String artPresetKey) {
         int saver = indexOf(SCREENSAVER_DELAYS_MIN, screensaverDelayMin) < 0 ? DEFAULTS.screensaverDelayMin : screensaverDelayMin;
         int dim = indexOf(DIM_DELAYS_SEC, dimDelaySec) < 0 ? DEFAULTS.dimDelaySec : dimDelaySec;
         return new LauncherSettings(
@@ -67,7 +74,8 @@ final class LauncherSettings {
                 vpnPackage == null ? DEFAULTS.vpnPackage : vpnPackage,
                 UiScale.fromStored(uiScalePercent),
                 PreviewScale.fromStored(previewScalePercent),
-                animationsOff);
+                animationsOff,
+                ArtPreset.fromKey(artPresetKey));
     }
 
     private static ScreensaverType typeOf(String name) {
@@ -85,17 +93,17 @@ final class LauncherSettings {
 
     LauncherSettings withAnimationsOff(boolean v) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage,
-                uiScalePercent, previewScalePercent, v);
+                uiScalePercent, previewScalePercent, v, artPreset);
     }
 
     LauncherSettings withVpnButtonVisible(boolean v) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, v, vpnPackage, uiScalePercent, previewScalePercent,
-                animationsOff);
+                animationsOff, artPreset);
     }
 
     LauncherSettings withVpnPackage(String pkg) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, pkg, uiScalePercent, previewScalePercent,
-                animationsOff);
+                animationsOff, artPreset);
     }
 
     /** One 5% step up; stays at 130%. */
@@ -110,7 +118,7 @@ final class LauncherSettings {
 
     private LauncherSettings withUiScale(int percent) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, percent, previewScalePercent,
-                animationsOff);
+                animationsOff, artPreset);
     }
 
     /** One 10% step up; stays at 150%. */
@@ -125,7 +133,7 @@ final class LauncherSettings {
 
     private LauncherSettings withPreviewScale(int percent) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, percent,
-                animationsOff);
+                animationsOff, artPreset);
     }
 
     /** Two types: next and previous are the same switch. */
@@ -157,17 +165,24 @@ final class LauncherSettings {
 
     private LauncherSettings withScreensaverType(ScreensaverType t) {
         return new LauncherSettings(screensaverDelayMin, t, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
-                animationsOff);
+                animationsOff, artPreset);
     }
 
     private LauncherSettings withScreensaverDelay(int min) {
         return new LauncherSettings(min, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
-                animationsOff);
+                animationsOff, artPreset);
     }
 
     private LauncherSettings withDimDelay(int sec) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, sec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
-                animationsOff);
+                animationsOff, artPreset);
+    }
+
+    /** Persists a newly chosen preset (the only path that persists one — Step 7 cycling calls this; D11's
+     * resolver, not this setter, handles availability reconciliation at render/display time). */
+    LauncherSettings withArtPreset(ArtPreset p) {
+        return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
+                animationsOff, p);
     }
 
     private static int cycle(int[] options, int current, int step) {
