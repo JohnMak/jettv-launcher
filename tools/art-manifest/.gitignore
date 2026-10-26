@@ -4,3 +4,8 @@ evidence/
 art-manifest.json.tmp
 __pycache__/
 *.pyc
+
+# Step 2 contact-sheet review inputs — regenerable via `contact_sheet.py --fetch`;
+# the committed vetted.json carries the approval-binding sha256 over these bytes.
+sources/
+vetted.json.tmp

@@ -1,0 +1,392 @@
+{
+ "schema": 1,
+ "source_manifest_generated_at": "2026-10-24T20:37:33Z",
+ "min_preset_works": 4,
+ "approved": true,
+ "approved_snapshot_sha256": "700a085c5c224fdbf481a4c894841b3e29a3f0663e51a8382176dfea31eb947e",
+ "snapshot_supersession": {
+  "superseded_sha256": "6f464f8e26fba46136f5d4aaa915858fca09c303619910502fafc60d8a33b852",
+  "reason": "categories folded into integrity binding per COMMIT_REVIEW finding 2",
+  "content_unchanged_assertion": "The 19-entry kept set and every owner-visible field (title, artist, year, categories/tags) are byte-identical to the owner-approved contact sheet. Only the integrity binding was strengthened: preset categories were folded into the approval hash and the per-id source sha1 digests are now committed (source_sha1). No painting was added, removed, or edited."
+ },
+ "kept_count": 19,
+ "dropped_count": 31,
+ "preset_recount": {
+  "ALL": {
+   "label": "Всё",
+   "count": 19,
+   "min": 1,
+   "status": "OFFERED"
+  },
+  "PEREDVIZHNIKI": {
+   "label": "Передвижники",
+   "count": 4,
+   "min": 4,
+   "status": "OFFERED"
+  },
+  "ERA_19C": {
+   "label": "XIX век",
+   "count": 10,
+   "min": 4,
+   "status": "OFFERED"
+  },
+  "AVANTGARDE": {
+   "label": "Авангард",
+   "count": 0,
+   "min": 4,
+   "status": "HIDDEN"
+  }
+ },
+ "source_sha1": {
+  "56365988": "f066bbb6065b6eb5b8290e519cc86e4892f1c17c",
+  "56379830": "cdebbadbb7f3e87839f64958a919b6c8012deeff",
+  "56381802": "9bff8fd8a2b4a651bf3f15df38525a73f262976b",
+  "56383048": "ed40c4d55d1b644c9c707e68c89545f1939e521b",
+  "56391910": "d190d49114b760abc350febf85faa09504f80f03",
+  "56418866": "87e5f9340fe1e7c58842971846a46cab3feee303",
+  "56419114": "313fe849a5ab4fd193a8a3802dcee22f493a2515",
+  "56419159": "253951514b44e6d90631a42ab3a9706d7b2e669b",
+  "56420597": "1bfaba7698b703b59659701d5c85c7b6b629d1a7",
+  "56420704": "157913db5c687d8b1abbe5ffc20f7e0de4028316",
+  "56420999": "9a576c95ef1e7a8343e9813f952f95e8af1c3402",
+  "56421603": "323fdc36645693f38f0e8aeb015485c66a3cc64b",
+  "56421822": "2b8220c508592c3682c9ea982d33412cef34147e",
+  "56421896": "15d06b6b711071d6c62c83ad6c05c308fb8ee4fa",
+  "56422631": "edb1ac4ae0afde77509b7ac2f84b31e9039b7849",
+  "56422795": "449cef25d0a9c6c2a4307a9f0b0088fae842825c",
+  "65685196": "f2018dbe83a9aa1c5a30ee981920812eeac03f14",
+  "143756705": "13cabb34e12086d1298b868237bc47c6f96d4107",
+  "199396251": "2c721365fd49ea1e8b5cacdf3c0e2c4a2fc3ff49"
+ },
+ "kept": [
+  {
+   "id": 56420704,
+   "title": "Свадьба в Малороссии",
+   "artist": "Н. К. Пимоненко",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56420999,
+   "title": "На сенокосе",
+   "artist": "В. Голынский",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56422631,
+   "title": "Модный романс",
+   "artist": "И. Панкевич",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56383048,
+   "title": "Разлучница",
+   "artist": "К. Трутовский",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56365988,
+   "title": "Возвращение из школы",
+   "artist": "Г. Ф. Рыбаков",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56391910,
+   "title": "Первый снег",
+   "artist": "Барщов",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 199396251,
+   "title": "Вид на Лисью гору",
+   "artist": "Худояров (?)",
+   "year": "1850",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56421896,
+   "title": "Гаданье на воске",
+   "artist": "В. Пимоненко",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56381802,
+   "title": "Охота на волка",
+   "artist": "Н. С. Самокиш",
+   "year": "1891",
+   "categories": [
+    "era:19c"
+   ]
+  },
+  {
+   "id": 56421822,
+   "title": "Венчание в тюрьме",
+   "artist": "Н. С. Матвеев",
+   "year": "1890",
+   "categories": [
+    "era:19c",
+    "movement:peredvizhniki"
+   ]
+  },
+  {
+   "id": 143756705,
+   "title": "Конец охоты",
+   "artist": "С. С. Ворошилов",
+   "year": "1900",
+   "categories": [
+    "era:20c"
+   ]
+  },
+  {
+   "id": 65685196,
+   "title": "Summer Evening. Melancholy",
+   "artist": "Борис Анисфельд",
+   "year": "1910",
+   "categories": [
+    "era:20c"
+   ]
+  },
+  {
+   "id": 56419114,
+   "title": "Казаки на рекогносцировке",
+   "artist": "П. Грузинский",
+   "year": "1885",
+   "categories": [
+    "era:empire"
+   ]
+  },
+  {
+   "id": 56419159,
+   "title": "Парад Лейб-гвардии Московского полка",
+   "artist": "А. Сафонов",
+   "year": "1885",
+   "categories": [
+    "era:empire"
+   ]
+  },
+  {
+   "id": 56421603,
+   "title": "Тройка во время метели на Кавказе",
+   "artist": "П. Грузинский",
+   "year": "1886",
+   "categories": [
+    "era:empire"
+   ]
+  },
+  {
+   "id": 56418866,
+   "title": "Времена года: Лето",
+   "artist": "Н. Лоренц",
+   "year": "1885",
+   "categories": [
+    "era:empire"
+   ]
+  },
+  {
+   "id": 56420597,
+   "title": "Весеннее половодье",
+   "artist": "проф. Ю. Ю. Клевер",
+   "year": "1891",
+   "categories": [
+    "movement:peredvizhniki"
+   ]
+  },
+  {
+   "id": 56379830,
+   "title": "Виды г. Вятки и ближайших окрестностей",
+   "artist": "Н. Хохряков",
+   "year": "1886",
+   "categories": [
+    "movement:peredvizhniki"
+   ]
+  },
+  {
+   "id": 56422795,
+   "title": "Против воли постриженная",
+   "artist": "Н. Матвеев",
+   "year": "1891",
+   "categories": [
+    "movement:peredvizhniki"
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "id": 56421854,
+   "title": "Живописное обозрение 1890, № 01-26 (1 янв. - 24 июня); № 27-52 (1 июля - 23 дек.) Page 1184",
+   "reason": "unsuitable:text-heavy-catalog-page"
+  },
+  {
+   "id": 56420588,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0311",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56382137,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0463",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56382175,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0499",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56421054,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0574",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56388383,
+   "title": "Живописное обозрение 1886, № 01-26 (5 янв. - 23 июня); № 27-52 (6 июля - 28 дек.) Page 334",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56420771,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0432",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 17971944,
+   "title": "К войне России с Японией (плакат)",
+   "reason": "unsuitable:poster-with-dense-text"
+  },
+  {
+   "id": 56382368,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0578",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56388020,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 579",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56378527,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 262",
+   "reason": "unsuitable:writer-portrait-not-artwork"
+  },
+  {
+   "id": 56418721,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 325",
+   "reason": "unsuitable:unrelated-multi-topic-composite"
+  },
+  {
+   "id": 56387811,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 522",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56418782,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 408",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56379527,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 884",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 145201352,
+   "title": "Newspaper article about Tramway V exhibition",
+   "reason": "non-painting:newspaper-article"
+  },
+  {
+   "id": 145222274,
+   "title": "Manifesto by Malevich, Kliun and Menkov, 1915",
+   "reason": "non-painting:manifesto"
+  },
+  {
+   "id": 145221847,
+   "title": "Manifesto by I. Puni and X. Bugoslavskaya, 1915",
+   "reason": "non-painting:manifesto"
+  },
+  {
+   "id": 154018212,
+   "title": "0.10 exhibition, Malevich paintings",
+   "reason": "non-painting:exhibition-photo"
+  },
+  {
+   "id": 145222807,
+   "title": "Boris Lopatin, Futurism – Suprematism, Petrogradskiy listok, December 1915",
+   "reason": "non-painting:press-clipping"
+  },
+  {
+   "id": 34219161,
+   "title": "Васнецов А.М. Художество. Опыт анализа понятий, определяющих искусство живописи. (1908).djvu",
+   "reason": "non-painting:book-djvu"
+  },
+  {
+   "id": 14032078,
+   "title": "Savrasov-1890-s",
+   "reason": "unsuitable:photo-portrait"
+  },
+  {
+   "id": 56382750,
+   "title": "Живописное обозрение 1891, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 0812",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56418580,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 165",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56418631,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 203",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56378418,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 222",
+   "reason": "unsuitable:writer-portrait-not-artwork"
+  },
+  {
+   "id": 56378569,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 281",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56378587,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 290",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56418716,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 318",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56378938,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 431",
+   "reason": "unsuitable:non-art-text-dominates-frame"
+  },
+  {
+   "id": 56379214,
+   "title": "Живописное обозрение 1885, № 01-26 (6 янв. - 30 июня); № 27-52 (7 июля - 29 дек.) Page 730",
+   "reason": "unsuitable:unrelated-multi-topic-composite"
+  }
+ ]
+}
