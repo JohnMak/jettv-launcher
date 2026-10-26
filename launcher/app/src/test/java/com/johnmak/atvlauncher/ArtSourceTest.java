@@ -938,6 +938,93 @@ public class ArtSourceTest {
         }
     }
 
+    // ---- retire-abort grace: shutdownWithin(graceMs) (Model B) --------------------------------
+
+    /** Captures every watchdog arm by its delay so the test can fire a specific one. */
+    private static final class MultiWatchdog implements ArtSource.Watchdog {
+        final java.util.List<Long> delays = new java.util.concurrent.CopyOnWriteArrayList<>();
+        private final java.util.Map<Long, Runnable> byDelay = new java.util.concurrent.ConcurrentHashMap<>();
+
+        @Override public Arm arm(long delayMs, Runnable onFire) {
+            delays.add(delayMs);
+            byDelay.put(delayMs, onFire);
+            return () -> { };
+        }
+
+        void fire(long delayMs) {
+            Runnable r = byDelay.get(delayMs);
+            if (r != null) r.run();
+        }
+    }
+
+    @Test public void shutdownWithinArmsAGraceReAbortButPlainShutdownDoesNot() {
+        MultiWatchdog graced = new MultiWatchdog();
+        source(new Net(), FIXED_CLOCK, graced).shutdownWithin(1_500L); // idle source: the grace is still armed
+        assertTrue("shutdownWithin arms a grace re-abort at the given delay", graced.delays.contains(1_500L));
+
+        MultiWatchdog plain = new MultiWatchdog();
+        source(new Net(), FIXED_CLOCK, plain).shutdown(); // plain shutdown arms NO extra grace (behaviour unchanged)
+        assertTrue("plain shutdown() arms no grace re-abort", plain.delays.isEmpty());
+    }
+
+    @Test public void shutdownWithinGraceReAbortVacatesAStalledPost393Request() throws Exception {
+        // The worker is paused right before getResponseCode when shutdownWithin runs, so the immediate abort's
+        // disconnect hits a still-unstarted socket (Android no-op). The worker then enters getResponseCode and stalls.
+        // Firing the GRACE re-abort (not the 30s deadline) disconnects the now-started connection and vacates it.
+        MultiWatchdog wd = new MultiWatchdog();
+        CountDownLatch pastGate = new CountDownLatch(1);
+        CountDownLatch proceed = new CountDownLatch(1);
+        FakeConn c = okConn(goodManifest());
+        c.stall = true;
+        c.beforeResponse = () -> {
+            pastGate.countDown();
+            while (proceed.getCount() > 0) {
+                try { proceed.await(); } catch (InterruptedException e) { /* stay paused until resumed */ }
+            }
+        };
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            Future<FetchResult<ArtManifest>> f = ex.submit(src::manifest);
+            assertTrue("worker reached the pre-connect checkpoint", pastGate.await(3, TimeUnit.SECONDS));
+            src.shutdownWithin(1_500L);                       // immediate abort = no-op here; grace armed at 1500
+            proceed.countDown();                              // worker resumes and stalls inside getResponseCode
+            assertTrue("getResponseCode entered and stalled", c.stallEntered.await(3, TimeUnit.SECONDS));
+            wd.fire(1_500L);                                  // the GRACE re-abort fires -> effective disconnect
+            FetchResult<ArtManifest> r = f.get(3, TimeUnit.SECONDS);
+            assertFalse("the grace re-abort vacated the stalled :393 request (not the 30s deadline)", r.isOk());
+        } finally {
+            ex.shutdownNow();
+        }
+    }
+
+    @Test public void graceReAbortDoesNotBlockTheTimerThreadOnABlockingDisconnect() throws Exception {
+        // The grace fires on the shared watchdog TIMER thread, which must never block. Even with a disconnect() that
+        // blocks, firing the grace must return promptly (interrupt-first on the timer thread; blocking disconnect
+        // offloaded to a separate thread), and the interrupt must still reach the blocked read.
+        MultiWatchdog wd = new MultiWatchdog();
+        FakeConn c = okConn(new byte[0]);
+        c.interruptibleRead = true;               // the body read responds ONLY to an interrupt
+        c.disconnectGate = new CountDownLatch(1); // every disconnect() BLOCKS until released
+        ArtManifest.Entry entry = new ArtManifest.Entry(90L, "t", "y", Collections.emptyList(), FILE, SHA);
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            ex.submit(() -> src.image(entry));
+            assertTrue("worker blocked in the body read", c.readEntered.await(3, TimeUnit.SECONDS));
+            src.shutdownWithin(1_500L);           // arms the grace at 1500 on the watchdog
+            long t0 = System.nanoTime();
+            wd.fire(1_500L);                      // fire the grace AS IF on the timer thread
+            long ms = (System.nanoTime() - t0) / 1_000_000L;
+            assertTrue("the grace fire returned promptly despite a blocking disconnect (" + ms + "ms)", ms < 1_000);
+            assertTrue("the interrupt still reached the blocked read (interrupt-first on the timer thread)",
+                    c.readInterrupted.await(3, TimeUnit.SECONDS));
+        } finally {
+            c.disconnectGate.countDown();
+            ex.shutdownNow();
+        }
+    }
+
     // ---- helpers ------------------------------------------------------------------------------
 
     private static ArtManifest.Entry entry(int id) {

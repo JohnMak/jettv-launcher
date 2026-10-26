@@ -77,6 +77,9 @@ final class ArtSource {
         }
     }
 
+    /** Passed to {@link #shutdownWithin} to mean "no grace re-abort" (the plain {@link #shutdown()} behaviour). */
+    private static final long NO_GRACE = -1L;
+
     private final ArtCache cache;
     private final Connections connections;
     private final Clock clock;
@@ -179,12 +182,48 @@ final class ArtSource {
      * disposal).
      */
     void shutdown() {
+        shutdownWithin(NO_GRACE);
+    }
+
+    /**
+     * Terminal teardown with a bounded retire-abort GRACE (Model B). Same as {@link #shutdown()} — flip {@code closed},
+     * best-effort abort the in-flight requests, reaper disposes the watchdog after drain — PLUS, when {@code graceMs ≥ 0},
+     * arm a one-shot grace watchdog that RE-aborts the still-in-flight requests after {@code graceMs}. The immediate
+     * abort disconnects any already-started socket at once; the grace re-abort covers the narrow window where the
+     * worker had not yet published its connection when the immediate abort ran (ArtSourceTest's {@code :393} case) and a
+     * still-blocked body read — by {@code graceMs} the connection is published, so the re-abort's {@code disconnect()}
+     * is effective. A retiring request therefore vacates its worker in ≤~{@code graceMs} instead of the 30s deadline,
+     * WITHOUT shortening the deadline of ACTIVE requests (callers that use {@link #shutdown()} are unchanged —
+     * {@code NO_GRACE} arms nothing new, so behaviour is identical). Non-blocking; idempotent.
+     */
+    void shutdownWithin(long graceMs) {
         List<Request> toAbort;
         synchronized (lifecycleLock) {
             if (closed) return;               // idempotent: already torn down
             closed = true;                    // SYNCHRONOUS stop signal: no new admission, and every worker check polls it
             toAbort = new ArrayList<>(active);
         }
+        // Arm the grace re-abort BEFORE submitting the reaper, so it is scheduled on the still-live watchdog. If a
+        // concurrent disposal already rejected it, the immediate abort + per-request deadline remain the safety net.
+        Watchdog.Arm graceArm = null;
+        if (graceMs >= 0) {
+            try {
+                // The grace fires on the WATCHDOG TIMER THREAD, which must never block. So interrupt INLINE here
+                // (non-blocking) and run the possibly-blocking disconnect() on a SEPARATE daemon thread — otherwise a
+                // stalled disconnect would wedge the shared timer and starve other requests' 30s deadline tasks.
+                graceArm = watchdog.arm(graceMs, () -> {
+                    for (Request r : toAbort) r.signalAndInterrupt();
+                    Thread disconnector = new Thread(() -> {
+                        for (Request r : toAbort) r.disconnectLive();
+                    }, "art-grace-disconnect");
+                    disconnector.setDaemon(true);
+                    disconnector.start();
+                });
+            } catch (RejectedExecutionException alreadyDisposed) {
+                graceArm = null;
+            }
+        }
+        final Watchdog.Arm grace = graceArm;
         // Two independent daemon tasks so a BLOCKING disconnect() in the abort can never delay the reaper (watchdog
         // disposal) or the caller. The caller only flips `closed` (above, non-blocking) + submits these and returns.
         ExecutorService teardown = Executors.newFixedThreadPool(2, r -> {
@@ -192,9 +231,10 @@ final class ArtSource {
             t.setDaemon(true);
             return t;
         });
-        // Reaper FIRST and on its own thread: await in-flight exit (bounded, monotonic) then dispose the watchdog.
+        // Reaper FIRST and on its own thread: await in-flight exit (bounded, monotonic), disarm the grace, then dispose.
         teardown.execute(() -> {
             awaitDrain(REQUEST_DEADLINE_MS + REAPER_GRACE_MS);
+            if (grace != null) grace.disarm();
             watchdog.shutdown(); // dispose ONLY after in-flight requests have exited (or the bounded grace elapsed)
         });
         // Abort work (interrupt + disconnect, possibly blocking) off the caller thread — fire-and-forget, idempotent.
@@ -452,10 +492,22 @@ final class ArtSource {
          * is started. Idempotent; any thread.
          */
         void abort() {
+            signalAndInterrupt();
+            disconnectLive();
+        }
+
+        /** The NON-BLOCKING half of {@link #abort()}: set the cancel flag and deliver the retirement-guarded interrupt.
+         * Safe to call on a shared timer thread — it never blocks. */
+        void signalAndInterrupt() {
             cancelled.set(true);
             synchronized (retireLock) {
                 if (!retired && worker != null) worker.interrupt();
             }
+        }
+
+        /** The possibly-BLOCKING half of {@link #abort()}: disconnect the live connection (a disconnect-before-connect
+         * is an Android no-op). MUST run off any timer thread (a blocked disconnect must never stall the shared watchdog). */
+        void disconnectLive() {
             HttpURLConnection c = live.get();
             if (c != null) c.disconnect();
         }
