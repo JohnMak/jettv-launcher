@@ -57,4 +57,20 @@ enum ArtPreset {
         ArtPreset stored = fromKey(storedKey);
         return available.contains(stored) ? stored : ALL;
     }
+
+    /**
+     * The preset reached by stepping {@code step} (+1 next / −1 previous) from {@code current} within the
+     * {@code available} list, wrapping at both ends. Pure. When {@code available} has fewer than two members the
+     * category row is not cyclable, so cycling is a no-op: {@code current} is returned unchanged (0 elements → the
+     * row is disabled; 1 element → nothing to cycle to) — never an index crash. {@code current} is expected to be the
+     * already-resolved effective preset (a member of {@code available} whenever that list is nonempty), but a
+     * {@code current} not found in {@code available} defensively restarts the cycle at its first member.
+     */
+    static ArtPreset cycle(List<ArtPreset> available, ArtPreset current, int step) {
+        int n = available.size();
+        if (n < 2) return current;
+        int i = available.indexOf(current);
+        if (i < 0) return available.get(0);
+        return available.get(((i + step) % n + n) % n);
+    }
 }

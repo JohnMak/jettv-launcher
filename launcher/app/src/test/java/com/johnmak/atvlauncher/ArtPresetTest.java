@@ -86,4 +86,46 @@ public class ArtPresetTest {
         List<ArtPreset> available = java.util.Arrays.asList(ArtPreset.ALL, ArtPreset.PEREDVIZHNIKI);
         assertSame(ArtPreset.ALL, ArtPreset.effective("not-a-real-key", available));
     }
+
+    // ---- available-preset cycling (Step 7): wrap in both directions over 0/1/2/3-element sets ------
+
+    @Test public void cycleEmptySetIsDisabledNoWrapNoCrash() {
+        // 0 elements = the category row is disabled; cycling either way is a no-op, never an index crash.
+        List<ArtPreset> none = Collections.emptyList();
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(none, ArtPreset.ALL, 1));
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(none, ArtPreset.ALL, -1));
+    }
+
+    @Test public void cycleSingleElementSetStaysPut() {
+        // 1 element = nothing to cycle to; the lone preset is returned unchanged in both directions.
+        List<ArtPreset> one = Collections.singletonList(ArtPreset.ALL);
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(one, ArtPreset.ALL, 1));
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(one, ArtPreset.ALL, -1));
+    }
+
+    @Test public void cycleTwoElementSetWrapsBothDirections() {
+        List<ArtPreset> two = java.util.Arrays.asList(ArtPreset.ALL, ArtPreset.PEREDVIZHNIKI);
+        assertSame(ArtPreset.PEREDVIZHNIKI, ArtPreset.cycle(two, ArtPreset.ALL, 1));
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(two, ArtPreset.PEREDVIZHNIKI, 1));          // forward wrap
+        assertSame(ArtPreset.PEREDVIZHNIKI, ArtPreset.cycle(two, ArtPreset.ALL, -1));         // backward wrap
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(two, ArtPreset.PEREDVIZHNIKI, -1));
+    }
+
+    @Test public void cycleThreeElementSetWrapsBothDirections() {
+        List<ArtPreset> three = java.util.Arrays.asList(ArtPreset.ALL, ArtPreset.PEREDVIZHNIKI, ArtPreset.ERA_19C);
+        // forward: ALL -> PEREDVIZHNIKI -> ERA_19C -> ALL
+        assertSame(ArtPreset.PEREDVIZHNIKI, ArtPreset.cycle(three, ArtPreset.ALL, 1));
+        assertSame(ArtPreset.ERA_19C, ArtPreset.cycle(three, ArtPreset.PEREDVIZHNIKI, 1));
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(three, ArtPreset.ERA_19C, 1));
+        // backward: ALL -> ERA_19C -> PEREDVIZHNIKI -> ALL
+        assertSame(ArtPreset.ERA_19C, ArtPreset.cycle(three, ArtPreset.ALL, -1));
+        assertSame(ArtPreset.PEREDVIZHNIKI, ArtPreset.cycle(three, ArtPreset.ERA_19C, -1));
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(three, ArtPreset.PEREDVIZHNIKI, -1));
+    }
+
+    @Test public void cycleDefensivelyRestartsWhenCurrentNotInAvailable() {
+        // current absent from a 2+ set (should not happen via effective(), but must never crash): start at the first.
+        List<ArtPreset> two = java.util.Arrays.asList(ArtPreset.ALL, ArtPreset.PEREDVIZHNIKI);
+        assertSame(ArtPreset.ALL, ArtPreset.cycle(two, ArtPreset.AVANTGARDE, 1));
+    }
 }

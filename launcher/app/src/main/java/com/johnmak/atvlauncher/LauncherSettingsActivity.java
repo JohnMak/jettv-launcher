@@ -21,15 +21,16 @@ import android.view.WindowInsets;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.johnmak.atvlauncher.SettingsTabsNav.Key;
@@ -66,6 +67,9 @@ public final class LauncherSettingsActivity extends Activity {
         final Runnable ok;
         final Runnable left;
         final Runnable right;
+        /** When set, the cyclic arrows show only while this returns true (a row cyclable only in some states, e.g. the
+         * ART category row while its catalog is loaded). Null = a plain cyclic row (arrows whenever {@link #left} is set). */
+        private BooleanSupplier cyclable;
 
         Row(String label, TextView value, Supplier<String> valueText, Runnable ok, Runnable left, Runnable right) {
             this.value = value;
@@ -93,11 +97,18 @@ public final class LauncherSettingsActivity extends Activity {
             value.setTextColor(c);
         }
 
-        /** Cyclic rows show arrows around the value while focused. */
+        /** Cyclic rows show arrows around the value while focused (and, when gated, only while {@link #cyclable} holds). */
         void refresh(boolean focused) {
             if (valueText == null) return;
             String v = valueText.get();
-            value.setText(left != null && focused ? "‹  " + v + "  ›" : v);
+            boolean arrows = focused && left != null && (cyclable == null || cyclable.getAsBoolean());
+            value.setText(arrows ? "‹  " + v + "  ›" : v);
+        }
+
+        /** Gates the cyclic arrows on {@code c}; returns this row for call-site chaining. */
+        Row cyclable(BooleanSupplier c) {
+            this.cyclable = c;
+            return this;
         }
     }
 
@@ -149,6 +160,20 @@ public final class LauncherSettingsActivity extends Activity {
     private boolean busy;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
+
+    // ---- ART catalog (Заставка tab, «Категория» row) ----
+    private ArtSource artSource;
+    /** The presets offered for this Activity session: null while the catalog loads, non-null (possibly empty) once loaded. */
+    private List<ArtPreset> artAvailable;
+    /** Single-flight guard: the catalog loads at most once per session; a result (even an empty one) is then reused. */
+    private boolean artLoadInFlight;
+    /** Index of the ART category row in {@link #rows}, or -1 when absent. Reset by {@link #clearRows()} on every rebuild
+     * and re-derived per build — this is the generation guard: a load completing after a rebuild finds either the
+     * current category row or -1, never a stale index. */
+    private int artCategoryRow = -1;
+    /** A dedicated executor for the (up to {@link ArtSource#REQUEST_DEADLINE_MS}) catalog load, so it never stalls the
+     * interactive {@link #worker} (city detect / search / rights). */
+    private final ExecutorService artWorker = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,6 +261,10 @@ public final class LauncherSettingsActivity extends Activity {
     protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
         worker.shutdownNow();
+        // shutdown() aborts a blocked catalog fetch (so artWorker can unblock and die) AND disposes the source's
+        // watchdog executor, so no art-watchdog thread outlives this settings session.
+        if (artSource != null) artSource.shutdown();
+        artWorker.shutdownNow();
         super.onDestroy();
     }
 
@@ -311,7 +340,6 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private void buildGeneral() {
-        addLogo();
         cityRow = rows.size();
         addRow(R.string.settings_city, this::cityText, null, null, null);
         addRow(R.string.settings_detect, null, this::detectCity, null, null);
@@ -336,17 +364,30 @@ public final class LauncherSettingsActivity extends Activity {
                 this::toggleAnimations, this::toggleAnimations);
     }
 
+    /** Order top→bottom: dim → type → note → [category, only when ART] → launch (Point B #1). */
     private void buildScreensaver() {
+        addRow(R.string.settings_dim_delay, () -> delayText(settings.dimDelaySec, R.string.settings_seconds), null,
+                () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
+        addRow(R.string.settings_screensaver_type, this::typeText, null,
+                () -> changeType(settings.prevScreensaverType()), () -> changeType(settings.nextScreensaverType()));
+        videoNote = addNote(getString(R.string.settings_screensaver_hint));
+        if (settings.screensaverType == LauncherSettings.ScreensaverType.ART) {
+            addArtCategoryRow();
+            triggerCatalogLoad();
+        }
         addRow(R.string.settings_screensaver_delay,
                 () -> delayText(settings.screensaverDelayMin, R.string.settings_minutes), null,
                 () -> changeScreensaverDelay(settings.prevScreensaverDelay()),
                 () -> changeScreensaverDelay(settings.nextScreensaverDelay()));
-        addRow(R.string.settings_screensaver_type, this::typeText, null,
-                () -> changeType(settings.prevScreensaverType()), () -> changeType(settings.nextScreensaverType()));
-        videoNote = addNote(getString(R.string.settings_screensaver_hint));
         updateVideoNote();
-        addRow(R.string.settings_dim_delay, () -> delayText(settings.dimDelaySec, R.string.settings_seconds), null,
-                () -> change(settings.prevDimDelay()), () -> change(settings.nextDimDelay()));
+    }
+
+    /** The «Категория» row: cycles the available presets only, and only once the catalog has loaded (see {@link #artCyclingEnabled()}). */
+    private void addArtCategoryRow() {
+        artCategoryRow = rows.size();
+        addRow(R.string.settings_art_category, this::artCategoryText, null,
+                () -> cycleArtPreset(-1), () -> cycleArtPreset(1))
+                .cyclable(this::artCyclingEnabled);
     }
 
     private void buildOptimization() {
@@ -391,18 +432,21 @@ public final class LauncherSettingsActivity extends Activity {
 
     private void clearRows() {
         videoNote = null;
+        artCategoryRow = -1;
         topRows.clear();
         topList.removeAllViews();
         rows.clear();
         list.removeAllViews();
     }
 
-    private void addRow(int label, Supplier<String> valueText, Runnable ok, Runnable left, Runnable right) {
-        addRow(label, text("", R.color.text_secondary, R.font.outfit_light), valueText, ok, left, right);
+    private Row addRow(int label, Supplier<String> valueText, Runnable ok, Runnable left, Runnable right) {
+        return addRow(label, text("", R.color.text_secondary, R.font.outfit_light), valueText, ok, left, right);
     }
 
-    private void addRow(int label, TextView value, Supplier<String> valueText, Runnable ok, Runnable left, Runnable right) {
-        addRowView(new Row(getString(label), value, valueText, ok, left, right));
+    private Row addRow(int label, TextView value, Supplier<String> valueText, Runnable ok, Runnable left, Runnable right) {
+        Row row = new Row(getString(label), value, valueText, ok, left, right);
+        addRowView(row);
+        return row;
     }
 
     private void addRowView(Row row) {
@@ -416,23 +460,6 @@ public final class LauncherSettingsActivity extends Activity {
         parent.addView(row.view, lp);
         into.add(row);
         row.refresh(false);
-    }
-
-    /** Non-focusable JetTV logo header at the top of the General tab's list; not a {@link Row}, so D-pad math is unaffected. */
-    private void addLogo() {
-        ImageView logo = new ImageView(this);
-        logo.setId(R.id.settings_logo);
-        logo.setImageResource(R.drawable.ic_jettv_logo);
-        logo.setAdjustViewBounds(true);
-        logo.setScaleType(ImageView.ScaleType.FIT_START);
-        logo.setFocusable(false);
-        logo.setClickable(false);
-        logo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, dp(56));
-        lp.topMargin = dp(4);
-        lp.bottomMargin = dp(16);
-        list.addView(logo, lp);
     }
 
     private TextView addNote(String s) {
@@ -565,23 +592,120 @@ public final class LauncherSettingsActivity extends Activity {
     }
 
     private String typeText() {
-        return getString(settings.screensaverType == LauncherSettings.ScreensaverType.NASA_VIDEO
-                ? R.string.settings_type_video : R.string.settings_type_starfield);
+        switch (settings.screensaverType) {
+            case NASA_VIDEO: return getString(R.string.settings_type_video);
+            case ART: return getString(R.string.settings_type_art);
+            default: return getString(R.string.settings_type_starfield);
+        }
     }
 
+    /**
+     * Cycles the screensaver type. The category row exists only for ART, so when ART-ness flips the list is rebuilt
+     * (the {@link #refreshRights()} precedent); {@code nav} keeps D-pad focus on the type row across the rebuild. A
+     * step that does not cross the ART boundary only refreshes the note.
+     */
     private void changeType(LauncherSettings next) {
-        change(next);
+        boolean wasArt = settings.screensaverType == LauncherSettings.ScreensaverType.ART;
+        change(next); // overwrites settings and refreshes the current rows
+        boolean isArt = settings.screensaverType == LauncherSettings.ScreensaverType.ART;
+        if (wasArt != isArt) {
+            showMain(nav);
+        } else {
+            updateVideoNote();
+        }
+    }
+
+    /**
+     * The note directly under the type row (named {@code updateVideoNote} historically; now covers every type): the
+     * generic screensaver hint for STARFIELD; the NASA streaming credit for NASA_VIDEO; and for ART the loading hint
+     * while the catalog loads, the unavailable hint when no paintings are available (empty pool / host unreachable),
+     * or the generic hint once a nonempty catalog is loaded.
+     */
+    private void updateVideoNote() {
+        if (videoNote == null || page != Page.MAIN) return;
+        switch (settings.screensaverType) {
+            case NASA_VIDEO:
+                videoNote.setText(getString(R.string.settings_video_credit, getString(R.string.nasa_credit)));
+                break;
+            case ART:
+                videoNote.setText(artNoteRes());
+                break;
+            default:
+                videoNote.setText(R.string.settings_screensaver_hint);
+                break;
+        }
+    }
+
+    /** The ART note string resource by catalog state: loading → unavailable → generic. */
+    private int artNoteRes() {
+        if (artAvailable == null) return R.string.settings_art_loading_hint;
+        if (artAvailable.isEmpty()) return R.string.settings_art_empty_hint;
+        return R.string.settings_screensaver_hint;
+    }
+
+    // ---- ART category row ----
+
+    private String artCategoryText() {
+        return getString(presetLabelRes(ArtPreset.effective(settings.artPreset.key, artAvailableOrEmpty())));
+    }
+
+    private static int presetLabelRes(ArtPreset preset) {
+        switch (preset) {
+            case PEREDVIZHNIKI: return R.string.settings_art_peredvizhniki;
+            case ERA_19C: return R.string.settings_art_era_19c;
+            case AVANTGARDE: return R.string.settings_art_avantgarde;
+            default: return R.string.settings_art_all;
+        }
+    }
+
+    /** Cycling is enabled only once a catalog with at least two available presets has loaded. */
+    private boolean artCyclingEnabled() {
+        return artAvailable != null && artAvailable.size() >= 2;
+    }
+
+    private List<ArtPreset> artAvailableOrEmpty() {
+        return artAvailable == null ? Collections.emptyList() : artAvailable;
+    }
+
+    private void cycleArtPreset(int step) {
+        if (!artCyclingEnabled()) return; // disabled while loading / when unavailable
+        ArtPreset current = ArtPreset.effective(settings.artPreset.key, artAvailable);
+        ArtPreset next = ArtPreset.cycle(artAvailable, current, step);
+        if (next != current) change(settings.withArtPreset(next)); // the only path that persists a preset
+    }
+
+    /**
+     * Loads the catalog on {@link #artWorker} (never the UI thread) and lands the result on the main thread. Single-flight
+     * and cached for the session: the manifest fetch can take up to {@link ArtSource#REQUEST_DEADLINE_MS}, and re-loading
+     * on every rebuild would flicker the row back to the loading state and re-hit the network — so a result (even an empty
+     * one from an unreachable host) is loaded once and reused across rebuilds.
+     */
+    private void triggerCatalogLoad() {
+        if (artAvailable != null || artLoadInFlight) return;
+        artLoadInFlight = true;
+        ArtSource source = artSource();
+        artWorker.execute(() -> {
+            FetchResult<ArtManifest> r = source.manifest();
+            List<ArtPreset> available = r.isOk() ? r.value().availablePresets() : Collections.emptyList();
+            main.post(() -> {
+                if (isDestroyed()) return;
+                artLoadInFlight = false;
+                artAvailable = available;
+                refreshArtCategory();
+            });
+        });
+    }
+
+    /** Reflects a freshly loaded catalog on the category row and its note, when that row is the one currently shown. */
+    private void refreshArtCategory() {
+        if (page != Page.MAIN || artCategoryRow < 0 || artCategoryRow >= rows.size()) return;
+        rows.get(artCategoryRow).refresh(nav.zone == Zone.LIST && artCategoryRow == nav.row);
         updateVideoNote();
     }
 
-    /** The note under the type row: the screensaver hint, or the NASA credit when that type is selected. */
-    private void updateVideoNote() {
-        if (videoNote == null || page != Page.MAIN) return;
-        if (settings.screensaverType == LauncherSettings.ScreensaverType.NASA_VIDEO) {
-            videoNote.setText(getString(R.string.settings_video_credit, getString(R.string.nasa_credit)));
-        } else {
-            videoNote.setText(R.string.settings_screensaver_hint);
-        }
+    private ArtSource artSource() {
+        if (artSource == null) artSource = new ArtSource(new ArtCache(getFilesDir()), HttpText.USER_AGENT);
+        return artSource;
     }
 
     private String vpnButtonText() {

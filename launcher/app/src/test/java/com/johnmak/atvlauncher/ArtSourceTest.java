@@ -20,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -67,7 +68,16 @@ public class ArtSourceTest {
         byte[] body = new byte[0];
         boolean blockHeaders;
         boolean blockBody;
+        boolean stall;                    // getResponseCode blocks (connect/headers stalled), modelling Android semantics:
+        volatile boolean responseStarted; //   a disconnect BEFORE the response started is a no-op; only a POST-start one is effective
         Runnable onFirstRead;             // runs once at the start of the first body read, then EOF
+        Runnable beforeResponse;          // runs at the last pre-connect checkpoint (User-Agent set), before getResponseCode
+        CountDownLatch holdBody;          // if set, the body read blocks here, SWALLOWING interrupts and IGNORING disconnect
+        CountDownLatch inBody;            // counted down when the body read is entered
+        CountDownLatch blockDisconnect;   // if set, disconnect() blocks AFTER releasing (models a blocking close)
+        CountDownLatch disconnectGate;    // if set, disconnect() blocks FIRST, before releasing any worker latch
+        boolean interruptibleRead;        // body read blocks on an interruptible sleep (responds ONLY to interrupt)
+        final CountDownLatch readInterrupted = new CountDownLatch(1); // the blocked read observed an interrupt
         AtomicInteger liveGauge;          // concurrency probe: live connections (headers..disconnect)
         AtomicInteger maxGauge;
         long headerDwellMs;               // widen the live window so overlapping fetches are observable
@@ -75,6 +85,8 @@ public class ArtSourceTest {
         volatile boolean disconnected;
         final CountDownLatch released = new CountDownLatch(1);
         final CountDownLatch readEntered = new CountDownLatch(1);
+        final CountDownLatch stallEntered = new CountDownLatch(1);   // getResponseCode's stall was entered
+        final CountDownLatch effectiveAbort = new CountDownLatch(1); // a POST-start disconnect (the real kill) arrived
 
         FakeConn() throws IOException {
             super(new URL("https://art.jmwork.ru/placeholder"));
@@ -121,7 +133,24 @@ public class ArtSourceTest {
                 await();
                 throw new IOException("disconnected before headers");
             }
+            if (stall) {
+                // The connection has now STARTED; a disconnect from here on is effective (Android semantics). Block
+                // until an effective abort or an interrupt — modelling a connect/header stall that read-timeout cannot
+                // bound, so only the absolute-deadline task can kill it.
+                responseStarted = true;
+                stallEntered.countDown();
+                try {
+                    effectiveAbort.await(3, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                throw new IOException("stalled connection aborted");
+            }
             return status;
+        }
+
+        @Override public void setRequestProperty(String key, String value) {
+            if (beforeResponse != null) beforeResponse.run(); // the production fetch sets User-Agent right before getResponseCode
         }
 
         @Override public String getHeaderField(String name) {
@@ -133,6 +162,37 @@ public class ArtSourceTest {
         }
 
         @Override public InputStream getInputStream() {
+            if (interruptibleRead) {
+                return new InputStream() {
+                    @Override public int read() throws IOException { return ir(); }
+                    @Override public int read(byte[] b, int off, int len) throws IOException { return ir(); }
+                    private int ir() throws IOException {
+                        readEntered.countDown();
+                        try {
+                            Thread.sleep(3_000); // interruptible block; ONLY an interrupt stops it in time
+                        } catch (InterruptedException e) {
+                            readInterrupted.countDown();        // the interrupt reached the blocked read
+                            throw new IOException("interrupted mid-read");
+                        }
+                        throw new IOException("read timed out (not interrupted)");
+                    }
+                };
+            }
+            if (holdBody != null) {
+                return new InputStream() {
+                    @Override public int read() throws IOException { return hold(); }
+                    @Override public int read(byte[] b, int off, int len) throws IOException { return hold(); }
+                    private int hold() throws IOException {
+                        if (inBody != null) inBody.countDown();
+                        // Block ignoring interrupt AND disconnect until the test releases — a worker slow to notice
+                        // cancellation, so the reaper must await drain before disposing the watchdog.
+                        while (holdBody.getCount() > 0) {
+                            try { holdBody.await(); } catch (InterruptedException e) { /* swallow; keep holding */ }
+                        }
+                        throw new IOException("released");
+                    }
+                };
+            }
             if (blockBody) {
                 return new InputStream() {
                     @Override public int read() throws IOException {
@@ -173,10 +233,17 @@ public class ArtSourceTest {
         @Override public void connect() { }
 
         @Override public void disconnect() {
+            if (disconnectGate != null) { // block BEFORE releasing anything (models a disconnect that stalls at the socket)
+                try { disconnectGate.await(5, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
             boolean first = !disconnected;
             disconnected = true;
             if (first && liveGauge != null) liveGauge.decrementAndGet();
             released.countDown();
+            if (responseStarted) effectiveAbort.countDown(); // pre-start disconnect is a no-op; only post-start is effective
+            if (blockDisconnect != null) {
+                try { blockDisconnect.await(3, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            }
         }
 
         @Override public boolean usingProxy() {
@@ -185,6 +252,13 @@ public class ArtSourceTest {
     }
 
     private static final ArtSource.Clock FIXED_CLOCK = () -> 0L;
+
+    /** A controllable monotonic clock: the reaper budget must track THIS, never wall-clock. */
+    private static final class MutableClock implements ArtSource.Clock {
+        volatile long ms;
+        @Override public long nowMs() { return ms; }
+        void set(long v) { ms = v; }
+    }
     private static final ArtSource.Watchdog NOOP_WATCHDOG = (delay, onFire) -> () -> { };
 
     private static final class CapturingWatchdog implements ArtSource.Watchdog {
@@ -203,8 +277,371 @@ public class ArtSourceTest {
         }
     }
 
+    /**
+     * Captures the armed per-request deadline task (fireable on demand) AND records disposal via {@link #shutdown()}
+     * with a latch — so both the deadline-kill and the reaper-disposes-after-drain behaviours are observable.
+     */
+    private static final class RecordingWatchdog implements ArtSource.Watchdog {
+        final AtomicInteger shutdowns = new AtomicInteger();
+        final CountDownLatch disposed = new CountDownLatch(1);
+        private volatile Runnable onFire;
+        private final CountDownLatch armed = new CountDownLatch(1);
+
+        @Override public Arm arm(long delayMs, Runnable fire) {
+            this.onFire = fire;
+            armed.countDown();
+            return () -> { };
+        }
+
+        @Override public void shutdown() {
+            shutdowns.incrementAndGet();
+            disposed.countDown();
+        }
+
+        void fireAfterArming() throws InterruptedException {
+            assertTrue("watchdog was armed", armed.await(3, TimeUnit.SECONDS));
+            onFire.run();
+        }
+
+        /** Fires the armed callback on its OWN daemon thread (as the production watchdog thread would). */
+        void fireAfterArmingOnNewThread() throws InterruptedException {
+            assertTrue("watchdog was armed", armed.await(3, TimeUnit.SECONDS));
+            Thread t = new Thread(onFire, "test-deadline-fire");
+            t.setDaemon(true);
+            t.start();
+        }
+    }
+
     private ArtSource source(Net net, ArtSource.Clock clock, ArtSource.Watchdog wd) {
         return new ArtSource(new ArtCache(tmp.getRoot()), "ua-test", net, clock, wd);
+    }
+
+    // ---- teardown: watchdog disposed by the reaper AFTER drain (Codex rounds 2 + 5) -----------
+
+    @Test public void shutdownDisposesTheWatchdogViaReaper() throws Exception {
+        RecordingWatchdog wd = new RecordingWatchdog();
+        source(new Net(), FIXED_CLOCK, wd).shutdown(); // idle source: the reaper drains immediately then disposes
+        assertTrue("the reaper disposes the watchdog after drain", wd.disposed.await(3, TimeUnit.SECONDS));
+        assertEquals(1, wd.shutdowns.get());
+    }
+
+    @Test public void shutdownIsIdempotent() throws Exception {
+        RecordingWatchdog wd = new RecordingWatchdog();
+        ArtSource src = source(new Net(), FIXED_CLOCK, wd);
+        src.shutdown();
+        src.shutdown(); // terminal + idempotent: the second call returns early → one reaper → one disposal
+        assertTrue(wd.disposed.await(3, TimeUnit.SECONDS));
+        assertEquals("watchdog disposed exactly once", 1, wd.shutdowns.get());
+    }
+
+    @Test public void shutdownIsTerminalLateRequestsNeverRun() {
+        // A request that arrives AFTER close must be refused at registration — it must never open a connection.
+        Net net = new Net(okConn(goodManifest())); // if any connection opened, this scripted one would be consumed
+        ArtSource src = source(net, FIXED_CLOCK, NOOP_WATCHDOG);
+        src.shutdown();
+        FetchResult<ArtManifest> r = src.manifest();
+        assertFalse("a request on a closed source must not run", r.isOk());
+        assertEquals("no connection opened after close", 0, net.opens.get());
+        assertEquals("the late request was never registered", 0, src.activeCount());
+    }
+
+    @Test public void rejectedWatchdogArmingCancelsBeforeIO() {
+        // If the deadline watchdog cannot be armed (executor disposed by a concurrent shutdown), the fetch must bail
+        // WITHOUT starting unguarded network I/O — not proceed with no absolute deadline.
+        ArtSource.Watchdog rejecting = (delayMs, onFire) -> {
+            throw new RejectedExecutionException("watchdog disposed");
+        };
+        Net net = new Net(okConn(goodManifest()));
+        FetchResult<ArtManifest> r = source(net, FIXED_CLOCK, rejecting).manifest();
+        assertFalse("a request whose deadline watchdog cannot arm must not run unguarded", r.isOk());
+        assertEquals("no connection opened when the watchdog could not be armed", 0, net.opens.get());
+    }
+
+    @Test public void shutdownRacingConnectStartDiscardsTheResponse() throws Exception {
+        // Deterministic: pause the worker at the last pre-connect checkpoint (right AFTER the atomic start gate),
+        // run a full shutdown in that window, then resume. The response the worker then reads must be DISCARDED —
+        // nothing is served and no manifest is written — proving the gate→connect window is handled (Codex round 4).
+        CountDownLatch pastGate = new CountDownLatch(1);
+        CountDownLatch resume = new CountDownLatch(1);
+        FakeConn c = okConn(goodManifest());
+        c.beforeResponse = () -> {
+            pastGate.countDown();          // the worker has passed the start gate and is about to connect
+            try {
+                assertTrue("test released the worker", resume.await(3, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        };
+        ArtSource src = source(new Net(c), FIXED_CLOCK, NOOP_WATCHDOG);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            Future<FetchResult<ArtManifest>> f = ex.submit(src::manifest);
+            assertTrue("worker reached the pre-connect checkpoint", pastGate.await(3, TimeUnit.SECONDS));
+            src.shutdown();                // close + abort in-flight, inside the gate->connect window (non-blocking)
+            resume.countDown();            // worker resumes and would start the connection
+            FetchResult<ArtManifest> r = f.get(3, TimeUnit.SECONDS);
+            assertFalse("a response fetched after shutdown must be discarded", r.isOk());
+            assertFalse("no manifest written from a post-shutdown response",
+                    new ArtCache(tmp.getRoot()).readManifest().isOk());
+        } finally {
+            ex.shutdownNow();
+        }
+    }
+
+    // ---- brain design of record: deadline task bound to the request, non-blocking reaper (round 5) ----
+
+    @Test public void postShutdownGetResponseCodeIsKilledByTheDeadlineTask() throws Exception {
+        // (a) Worker paused right before getResponseCode; shutdown runs (its disconnect hits a still-UNSTARTED socket =
+        // Android no-op); worker resumes and ENTERS getResponseCode AFTER close, unguarded but for the armed deadline
+        // task. Firing that task (survives shutdown — never disposed inline) is what kills it.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        CountDownLatch pastGate = new CountDownLatch(1);
+        CountDownLatch proceed = new CountDownLatch(1);
+        FakeConn c = okConn(goodManifest());
+        c.stall = true;
+        c.beforeResponse = () -> {
+            pastGate.countDown();
+            // non-interruptible wait: shutdown() interrupts us, but we must stay paused until the test resumes us, so
+            // the worker provably enters getResponseCode AFTER shutdown has completed.
+            while (proceed.getCount() > 0) {
+                try { proceed.await(); } catch (InterruptedException e) { /* swallow; keep waiting */ }
+            }
+        };
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            Future<FetchResult<ArtManifest>> f = ex.submit(src::manifest);
+            assertTrue("worker reached the pre-connect checkpoint", pastGate.await(3, TimeUnit.SECONDS));
+            src.shutdown();                                   // disconnect is a no-op here (not started yet)
+            proceed.countDown();                              // worker resumes and enters getResponseCode after close
+            assertTrue("getResponseCode entered after shutdown (the refuted window is real)",
+                    c.stallEntered.await(3, TimeUnit.SECONDS));
+            wd.fireAfterArming();                             // the armed absolute-deadline task fires -> interrupt + effective disconnect
+            FetchResult<ArtManifest> r = f.get(3, TimeUnit.SECONDS);
+            assertFalse("post-shutdown getResponseCode was killed by the deadline task, not left running", r.isOk());
+        } finally {
+            ex.shutdownNow();
+        }
+    }
+
+    @Test public void tricklingHeadersKilledAtTheAbsoluteDeadline() throws Exception {
+        // (b) Headers that trickle forever never trip read-timeout (it bounds only inter-byte gaps). Only the
+        // per-request absolute-deadline task bounds it: firing it kills the stalled getResponseCode.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        FakeConn c = okConn(goodManifest());
+        c.stall = true;
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            Future<FetchResult<ArtManifest>> f = ex.submit(src::manifest);
+            assertTrue("getResponseCode entered and stalled", c.stallEntered.await(3, TimeUnit.SECONDS));
+            wd.fireAfterArming();                              // absolute deadline reached
+            FetchResult<ArtManifest> r = f.get(3, TimeUnit.SECONDS);
+            assertFalse("trickling headers killed at the absolute deadline", r.isOk());
+        } finally {
+            ex.shutdownNow();
+        }
+    }
+
+    @Test public void stalledConnectKilledAtTheAbsoluteDeadline() throws Exception {
+        // (c) A connect that never establishes (getResponseCode never returns a status) is bounded only by the
+        // absolute-deadline task. The connection was opened but produces nothing and writes no manifest.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        FakeConn c = okConn(goodManifest());
+        c.stall = true;
+        Net net = new Net(c);
+        ArtSource src = source(net, FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            Future<FetchResult<ArtManifest>> f = ex.submit(src::manifest);
+            assertTrue("connect entered and stalled", c.stallEntered.await(3, TimeUnit.SECONDS));
+            wd.fireAfterArming();
+            FetchResult<ArtManifest> r = f.get(3, TimeUnit.SECONDS);
+            assertFalse("stalled connect killed at the absolute deadline", r.isOk());
+            assertEquals("the connection was opened once", 1, net.opens.get());
+            assertFalse("no manifest written from a killed connect",
+                    new ArtCache(tmp.getRoot()).readManifest().isOk());
+        } finally {
+            ex.shutdownNow();
+        }
+    }
+
+    @Test public void reaperDisposesWatchdogOnlyAfterTheWorkerExits() throws Exception {
+        // (d) A worker that ignores interrupt AND disconnect until the test releases it. The reaper MUST NOT dispose
+        // the watchdog while that worker is in flight — only after it drains.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        CountDownLatch release = new CountDownLatch(1);
+        CountDownLatch inBody = new CountDownLatch(1);
+        FakeConn c = okConn(new byte[0], 0);
+        c.holdBody = release;
+        c.inBody = inBody;
+        String sha1 = ArtCache.sha1Hex(new byte[0]);
+        String file = "14-" + sha1.substring(0, 12) + ".jpg";
+        ArtManifest.Entry entry = new ArtManifest.Entry(14L, "t", "y", Collections.emptyList(), file, sha1);
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            Future<FetchResult<File>> f = ex.submit(() -> src.image(entry));
+            assertTrue("worker is in the body read (in flight)", inBody.await(3, TimeUnit.SECONDS));
+            src.shutdown();                                    // reaper submitted; worker still held in flight
+            assertFalse("watchdog NOT disposed while a worker is in flight",
+                    wd.disposed.await(300, TimeUnit.MILLISECONDS));
+            assertEquals(0, wd.shutdowns.get());
+            release.countDown();                               // worker exits now
+            assertTrue("watchdog disposed after the worker exits", wd.disposed.await(3, TimeUnit.SECONDS));
+            assertEquals(1, wd.shutdowns.get());
+            f.get(3, TimeUnit.SECONDS);
+        } finally {
+            release.countDown();
+            ex.shutdownNow();
+        }
+    }
+
+    @Test public void shutdownDoesNotBlockOnAnInFlightWorker() throws Exception {
+        // (e) onDestroy/shutdown is non-blocking: it must NOT join a still-blocked worker. It returns promptly after
+        // flipping closed, aborting in-flight, and submitting the reaper.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        CountDownLatch release = new CountDownLatch(1);
+        CountDownLatch inBody = new CountDownLatch(1);
+        FakeConn c = okConn(new byte[0], 0);
+        c.holdBody = release;
+        c.inBody = inBody;
+        String sha1 = ArtCache.sha1Hex(new byte[0]);
+        String file = "15-" + sha1.substring(0, 12) + ".jpg";
+        ArtManifest.Entry entry = new ArtManifest.Entry(15L, "t", "y", Collections.emptyList(), file, sha1);
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            ex.submit(() -> src.image(entry));
+            assertTrue(inBody.await(3, TimeUnit.SECONDS));
+            long t0 = System.nanoTime();
+            src.shutdown();                                    // must NOT join the (still-blocked) worker
+            long elapsedMs = (System.nanoTime() - t0) / 1_000_000L;
+            assertTrue("shutdown returned promptly without joining the worker (" + elapsedMs + "ms)", elapsedMs < 1_000);
+        } finally {
+            release.countDown();
+            ex.shutdownNow();
+        }
+    }
+
+    // ---- round 6: three bounded teardown fixes ------------------------------------------------
+
+    @Test public void shutdownStaysNonBlockingWhenDisconnectBlocks() throws Exception {
+        // FIX #1: the abort's disconnect() runs on a background thread, so even a BLOCKING disconnect cannot block the
+        // caller (onDestroy). shutdown() returns promptly after flipping `closed` + submitting the reaper/abort.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        CountDownLatch inBody = new CountDownLatch(1);
+        CountDownLatch releaseBody = new CountDownLatch(1);
+        CountDownLatch blockDisc = new CountDownLatch(1);
+        FakeConn c = okConn(new byte[0], 0);
+        c.holdBody = releaseBody;
+        c.inBody = inBody;
+        c.blockDisconnect = blockDisc;              // the abort's disconnect() will block
+        String sha1 = ArtCache.sha1Hex(new byte[0]);
+        ArtManifest.Entry entry = new ArtManifest.Entry(16L, "t", "y", Collections.emptyList(),
+                "16-" + sha1.substring(0, 12) + ".jpg", sha1);
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            ex.submit(() -> src.image(entry));
+            assertTrue(inBody.await(3, TimeUnit.SECONDS));
+            long t0 = System.nanoTime();
+            src.shutdown();                         // the blocking disconnect is off the caller thread
+            long elapsedMs = (System.nanoTime() - t0) / 1_000_000L;
+            assertTrue("shutdown non-blocking despite a blocking disconnect (" + elapsedMs + "ms)", elapsedMs < 1_000);
+        } finally {
+            blockDisc.countDown();
+            releaseBody.countDown();
+            ex.shutdownNow();
+        }
+    }
+
+    @Test public void staleDeadlineCallbackDoesNotInterruptTheReusedThread() throws Exception {
+        // FIX #2: a cancellation/deadline callback that fires AFTER its request retired must NOT interrupt the pooled
+        // thread that has moved on to a different task. Retirement and interrupt delivery are serialized under the
+        // request lock, so the stale abort sees `retired` and skips the interrupt.
+        RecordingWatchdog wd = new RecordingWatchdog(); // captures the first request's deadline callback
+        ArtSource src = source(new Net(okConn(goodManifest())), FIXED_CLOCK, wd);
+        ExecutorService pool = Executors.newSingleThreadExecutor(); // ONE reused pooled thread
+        try {
+            // 1) first request runs to completion and RETIRES (run()'s finally called retire()).
+            assertTrue(pool.submit(src::manifest).get(3, TimeUnit.SECONDS).isOk());
+            // 2) a SECOND task on the SAME pooled thread; the stale callback must not interrupt it.
+            CountDownLatch started = new CountDownLatch(1);
+            CountDownLatch fired = new CountDownLatch(1);
+            Future<Boolean> f2 = pool.submit(() -> {
+                started.countDown();
+                assertTrue(fired.await(3, TimeUnit.SECONDS));
+                return Thread.currentThread().isInterrupted();
+            });
+            assertTrue(started.await(3, TimeUnit.SECONDS));
+            wd.fireAfterArming();   // fire the first (now stale, retired) request's deadline callback -> abort()
+            fired.countDown();
+            assertFalse("a stale callback must not interrupt the reused pooled thread", f2.get(3, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test public void reaperBudgetUsesMonotonicClockNotWallClock() throws Exception {
+        // FIX #3: the reaper budget is driven by the injected MONOTONIC clock, never System.currentTimeMillis — so a
+        // forward wall-clock correction can never expire it early. Frozen clock -> no expiry (real wall-clock time
+        // passes, yet no disposal); advancing the injected clock past the budget -> disposal.
+        RecordingWatchdog wd = new RecordingWatchdog();
+        MutableClock clock = new MutableClock(); // starts at 0
+        CountDownLatch inBody = new CountDownLatch(1);
+        CountDownLatch releaseBody = new CountDownLatch(1);
+        FakeConn c = okConn(new byte[0], 0);
+        c.holdBody = releaseBody;
+        c.inBody = inBody;
+        String sha1 = ArtCache.sha1Hex(new byte[0]);
+        ArtManifest.Entry entry = new ArtManifest.Entry(17L, "t", "y", Collections.emptyList(),
+                "17-" + sha1.substring(0, 12) + ".jpg", sha1);
+        ArtSource src = source(new Net(c), clock, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            ex.submit(() -> src.image(entry));
+            assertTrue(inBody.await(3, TimeUnit.SECONDS));
+            src.shutdown();                     // reaper budget = clock.now()(=0) + REQUEST_DEADLINE_MS + grace
+            // real wall-clock time passes, but the injected clock is frozen -> the reaper does NOT expire/dispose
+            assertFalse("frozen monotonic clock: no premature disposal", wd.disposed.await(400, TimeUnit.MILLISECONDS));
+            assertEquals(0, wd.shutdowns.get());
+            // advance the injected monotonic clock past the budget -> the reaper now expires and disposes
+            clock.set(ArtSource.REQUEST_DEADLINE_MS + ArtSource.REAPER_GRACE_MS + 1_000);
+            assertTrue("advancing the monotonic clock past the budget disposes the watchdog",
+                    wd.disposed.await(2, TimeUnit.SECONDS));
+            assertEquals(1, wd.shutdowns.get());
+        } finally {
+            releaseBody.countDown();
+            ex.shutdownNow();
+        }
+    }
+
+    // ---- round 7: abort delivers interrupt BEFORE the (possibly blocking) disconnect ----------
+
+    @Test public void blockingDisconnectDoesNotStallInterruptDelivery() throws Exception {
+        // FIX (round 7): abort() interrupts the worker FIRST (under the retire lock), THEN disconnects. So even a
+        // disconnect() that blocks BEFORE releasing anything cannot stall the interrupt that actually stops the
+        // request. The abort is fired on its own thread (as the production watchdog/teardown thread would be).
+        RecordingWatchdog wd = new RecordingWatchdog();
+        FakeConn c = okConn(new byte[0], 0);
+        c.interruptibleRead = true;           // the body read responds ONLY to an interrupt
+        c.disconnectGate = new CountDownLatch(1); // disconnect() blocks FIRST, before releasing the read
+        String sha1 = ArtCache.sha1Hex(new byte[0]);
+        ArtManifest.Entry entry = new ArtManifest.Entry(18L, "t", "y", Collections.emptyList(),
+                "18-" + sha1.substring(0, 12) + ".jpg", sha1);
+        ArtSource src = source(new Net(c), FIXED_CLOCK, wd);
+        ExecutorService ex = Executors.newSingleThreadExecutor();
+        try {
+            ex.submit(() -> src.image(entry));
+            assertTrue("worker blocked in the body read", c.readEntered.await(3, TimeUnit.SECONDS));
+            wd.fireAfterArmingOnNewThread();  // deadline callback -> abort(): interrupt FIRST, then the blocked disconnect
+            assertTrue("the interrupt reached the blocked read despite a blocking disconnect()",
+                    c.readInterrupted.await(3, TimeUnit.SECONDS));
+        } finally {
+            c.disconnectGate.countDown();     // let the blocked disconnect(s) proceed so the worker can unwind
+            ex.shutdownNow();
+        }
     }
 
     // ---- manifest: validate-before-replace (D9) ----------------------------------------------
