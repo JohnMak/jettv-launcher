@@ -9,17 +9,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 /**
  * The slim published manifest ({@code https://art.jmwork.ru/manifest.json}): a top-level {@code base_url} plus entries
  * {@code {id, title, year, categories, file, sha1}}.
  *
- * <p>Step 4 subset (bead fs8): the {@link Entry} record, structural {@link #parse(byte[])}, and the
+ * <p>Step 4 (bead fs8): the {@link Entry} record, structural {@link #parse(byte[])}, and the
  * {@link #isValidCandidate(byte[])} gate that {@link ArtSource} consumes before replacing the on-disk last-valid
- * manifest (D9). The preset catalog, availability, shuffled queue and the effective-preset resolver are Step 5 and are
- * NOT defined here (see the Rev5.1 boundary amendment in the plan). {@code parse} never touches disk — reading and
- * replacing are separate acts.
+ * manifest (D9). {@code parse} never touches disk — reading and replacing are separate acts.
+ *
+ * <p>Step 5 (bead j7e, Rev5.1 boundary): the preset-level layer on top — {@link #availablePresets()} and
+ * {@link #shuffledQueue(ArtPreset, long)} — plus the {@link ArtPreset} catalog and its shared effective-preset
+ * resolver in that sibling file. Both are pure functions of an already-parsed, already-validated manifest; neither
+ * touches disk, the network, or any shared/mutable state.
  */
 final class ArtManifest {
     /** A parsed candidate with more entries than this is invalid. */
@@ -97,6 +101,34 @@ final class ArtManifest {
     /** True when {@code bytes} are a fully valid candidate (same checks as {@link #parse(byte[])}). */
     static boolean isValidCandidate(byte[] bytes) {
         return parse(bytes).isOk();
+    }
+
+    /**
+     * The ordered presets (catalog declaration order) whose match count over {@link #entries()} reaches
+     * {@link ArtPreset#MIN_PRESET_WORKS} (D6); {@link ArtPreset#ALL} is exempt from the threshold and included
+     * whenever the pool is nonempty. An empty pool yields an empty list — the valid "stay on starfield, category
+     * row disabled" state (a parsed instance never actually has an empty pool, since {@link #parse(byte[])} rejects
+     * zero valid entries, but this stays defensive rather than relying on that invariant).
+     */
+    List<ArtPreset> availablePresets() {
+        List<ArtPreset> available = new ArrayList<>();
+        if (entries.isEmpty()) return available;
+        for (ArtPreset preset : ArtPreset.values()) {
+            if (preset == ArtPreset.ALL || preset.filter(entries).size() >= ArtPreset.MIN_PRESET_WORKS) {
+                available.add(preset);
+            }
+        }
+        return available;
+    }
+
+    /**
+     * {@code preset}'s subset of {@link #entries()}, deterministically shuffled by {@code seed}; may be empty (a
+     * valid "stay on starfield" state). Same seed + same filtered subset → same order every time.
+     */
+    List<Entry> shuffledQueue(ArtPreset preset, long seed) {
+        List<Entry> queue = preset.filter(entries);
+        Collections.shuffle(queue, new Random(seed));
+        return queue;
     }
 
     /** One entry, or null when it is malformed (skipped at the boundary). */
