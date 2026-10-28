@@ -48,6 +48,7 @@ final class Screensaver extends FlatFrameLayout {
             art = null;
         }
         type = settings.screensaverType;
+        overlay.setAttributionVisible(type == LauncherSettings.ScreensaverType.ART);
         starfield = new StarfieldView(getContext());
         addView(starfield, 0, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         video = null;

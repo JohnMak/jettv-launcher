@@ -19,6 +19,8 @@ import java.util.TimeZone;
  * The clock/date/weather block shared by every screensaver: white at 15 % opacity, centred, creeping around the
  * centre every {@link OverlayDrift#INTERVAL_MS} (OLED burn-in). Ticks only while attached and shown.
  * Weather is fed via {@link #setWeatherText} / {@link #setWeatherIcon}.
+ * Also carries the voluntary "wallhaven.cc" credit (plan B9) — a separate, non-drifting, non-animating corner
+ * label, shown only for the ART screensaver type via {@link #setAttributionVisible}.
  */
 final class ScreensaverOverlay extends FrameLayout {
     private final OverlayDrift drift = new OverlayDrift(System.nanoTime() ^ 0x5DEECE66DL);
@@ -28,6 +30,7 @@ final class ScreensaverOverlay extends FrameLayout {
     private final LinearLayout weatherRow;
     private final ImageView weatherIcon;
     private final TextView weatherText;
+    private final TextView attribution;
     private final SimpleDateFormat timeFormat;
     private final SimpleDateFormat dateFormat;
 
@@ -67,6 +70,7 @@ final class ScreensaverOverlay extends FrameLayout {
         weatherRow = findViewById(R.id.overlay_weather);
         weatherIcon = findViewById(R.id.overlay_weather_icon);
         weatherText = findViewById(R.id.overlay_weather_text);
+        attribution = findViewById(R.id.overlay_attribution);
         Locale locale = "en".equals(context.getString(R.string.date_language)) ? Locale.ENGLISH : new Locale("ru");
         timeFormat = new SimpleDateFormat("HH:mm", locale);
         dateFormat = new SimpleDateFormat("EEEE, d MMMM", locale);
@@ -96,6 +100,12 @@ final class ScreensaverOverlay extends FrameLayout {
         weatherIcon.setImageDrawable(icon);
         weatherIcon.setVisibility(icon == null ? GONE : VISIBLE);
         updateWeatherVisibility();
+    }
+
+    /** Shows/hides the voluntary "wallhaven.cc" credit (plan B9); the caller ({@code Screensaver}) passes
+     * {@code screensaverType == ART}. A static label — never animated, never drifted. */
+    void setAttributionVisible(boolean visible) {
+        attribution.setVisibility(visible ? VISIBLE : GONE);
     }
 
     private void updateWeatherVisibility() {

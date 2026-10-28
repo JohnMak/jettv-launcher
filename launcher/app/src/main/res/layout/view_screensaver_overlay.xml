@@ -61,4 +61,21 @@
                 android:textSize="22sp" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- Voluntary "wallhaven.cc" credit (plan B9): bottom-right, separate from overlay_block so it never drifts and
+         never participates in the ART layer's Ken-Burns zoom. Shown only for the ART screensaver type. -->
+    <TextView
+        android:id="@+id/overlay_attribution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
+        android:alpha="0.35"
+        android:fontFamily="@font/outfit_light"
+        android:includeFontPadding="false"
+        android:text="wallhaven.cc"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:visibility="gone" />
 </merge>
