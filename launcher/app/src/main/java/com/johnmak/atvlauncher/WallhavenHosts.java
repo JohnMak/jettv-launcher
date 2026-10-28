@@ -5,9 +5,9 @@ import java.net.URISyntaxException;
 import java.util.Locale;
 
 /**
- * The strict two-host allowlist for the Wallhaven image stream — the successor to {@link ArtHosts}, generalized from
- * the single {@code art.jmwork.ru} host to exactly {@code {wallhaven.cc (search API), w.wallhaven.cc (full-res CDN)}}.
- * Pure, mirrors {@link ArtHosts#check}/{@link ArtHosts#redirect}: HTTPS only, EXACT host match against the two-host
+ * The strict two-host allowlist for the Wallhaven image stream — the successor to the retired {@code ArtHosts},
+ * generalized from its single {@code art.jmwork.ru} host to exactly {@code {wallhaven.cc (search API), w.wallhaven.cc (full-res CDN)}}.
+ * Pure, same shape as the old {@code check}/{@code redirect} pair: HTTPS only, EXACT host match against the two-host
  * set, default/443 port, no credentials, the initial URL checked, and every redirect hop re-checked against the SAME
  * set (no off-allowlist redirect ever followed). {@code th.wallhaven.cc} (thumbnails) and every other host are rejected.
  *
@@ -30,7 +30,7 @@ final class WallhavenHosts {
 
     /**
      * ok(url) when it is https, the host is EXACTLY {@code wallhaven.cc} or {@code w.wallhaven.cc}, on the default/443
-     * port, without credentials. err otherwise — identical shape to {@link ArtHosts#check} but over the two-host set.
+     * port, without credentials. err otherwise — over the two-host set.
      */
     static FetchResult<String> check(String url) {
         if (url == null) return FetchResult.err("url is null");

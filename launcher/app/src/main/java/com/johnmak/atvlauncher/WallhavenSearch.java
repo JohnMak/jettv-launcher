@@ -11,11 +11,11 @@ import java.util.List;
 
 /**
  * The pure, bounded parser of a Wallhaven {@code GET /api/v1/search} JSON response — the structural trust perimeter
- * that REPLACES {@link ArtManifest}'s (lost with the private manifest; see plan B3). Never touches disk, the network,
+ * that REPLACES the retired private manifest's (lost with that manifest; see plan B3). Never touches disk, the network,
  * or shared state. It turns raw public bytes into a {@link Page} of {@link WallhavenImage} descriptors plus the
  * {@code meta.seed} and {@code meta.last_page} the streaming pager needs (plan B5).
  *
- * <p>Perimeter (every untrusted field is bounded, mirroring {@link ArtManifest}'s 256KiB/500-entry caps):
+ * <p>Perimeter (every untrusted field is bounded, as the retired manifest parser's 256KiB/500-entry caps were):
  * <ul>
  *   <li>a {@link #JSON_MAX_BYTES} byte cap on the whole response (the fetch is capped at the same figure);</li>
  *   <li>an entry-count cap {@link #MAX_ENTRIES} (Wallhaven serves 24/page; capped defensively higher);</li>
@@ -23,7 +23,7 @@ import java.util.List;
  *   <li>pagination sanity — {@code current_page}/{@code last_page} coerced non-negative and capped at
  *       {@link #MAX_PAGE};</li>
  *   <li>each descriptor's {@code path} must itself pass {@link WallhavenHosts#check} (https + {@code w.wallhaven.cc});
- *       a malformed or off-allowlist entry is SKIPPED at the boundary (like {@link ArtManifest#parse} skips bad
+ *       a malformed or off-allowlist entry is SKIPPED at the boundary (as the retired manifest parser skipped bad
  *       entries), never aborting the whole page.</li>
  * </ul>
  *

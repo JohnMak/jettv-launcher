@@ -23,16 +23,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * The runtime Wallhaven boundary — the successor to {@link ArtSource} for the ART variant (plan B1/step 2). It builds
- * the keyless search URL, performs the guarded fetch (the {@link ArtSource}/{@link UpdateHosts} pattern: manual
+ * The runtime Wallhaven boundary — the successor to the retired {@code ArtSource} for the ART variant (plan B1/step 2).
+ * It builds the keyless search URL, performs the guarded fetch (the {@link UpdateHosts} pattern: manual
  * redirects, per-hop {@link WallhavenHosts} re-check, one monotonic deadline, watchdog + cancel, at most two in-flight)
  * and surfaces the STRUCTURED HTTP status (so the recovery layer can honour {@code 429 Retry-After}). ZERO disk writes
- * for images: a body is read into a single pre-sized bounded {@code byte[]} {@link Handle} in memory (no {@link ArtCache}).
+ * for images: a body is read into a single pre-sized bounded {@code byte[]} {@link Handle} in memory (no disk cache).
  *
- * <p>This is a self-contained COPY of {@link ArtSource}'s brain-reviewed teardown/cancellation design of record (the
- * project already keeps independent copies of this fetch pattern in {@code ArtSource}/{@code ApkDownloader}/
- * {@code UpdateHosts}); {@link ArtSource} is deleted in a later cutover step, at which point only this copy remains.
- * The only departures from {@link ArtSource} are the BODY handling (a bounded {@code byte[]} with exact/absent
+ * <p>This is a self-contained copy of the retired {@code ArtSource}'s brain-reviewed teardown/cancellation design of
+ * record (the project keeps independent copies of this fetch pattern in {@link ApkDownloader}/{@link UpdateHosts}).
+ * The only departures from that pattern are the BODY handling (a bounded {@code byte[]} with exact/absent
  * {@code Content-Length} handling, replacing the growing {@code ByteArrayOutputStream}), the structured status + the
  * {@code image/*} {@code Content-Type} early reject (image fetches only), and {@link OutOfMemoryError} caught around
  * the allocating read phase.
@@ -174,7 +173,7 @@ final class WallhavenSource {
         shutdownWithin(NO_GRACE);
     }
 
-    /** See {@link ArtSource#shutdownWithin(long)} — identical bounded retire-abort grace semantics. */
+    /** Bounded retire-abort grace: stop admitting work, then wait up to {@code graceMs} for in-flight requests. */
     void shutdownWithin(long graceMs) {
         List<Request> toAbort;
         synchronized (lifecycleLock) {
@@ -260,7 +259,7 @@ final class WallhavenSource {
     // ---- guarded fetch loop -------------------------------------------------------------------
 
     /**
-     * The production fetch loop (mirrors {@link ArtSource}'s): manual redirects (≤{@link #MAX_REDIRECTS}), one
+     * The production fetch loop: manual redirects (≤{@link #MAX_REDIRECTS}), one
      * monotonic deadline covering hops + connect + headers + body, per-phase remaining-time clamps, an armed watchdog
      * and the cancel flag. On a 200 it reads the body into a bounded {@link Handle}; on a non-200 it returns an error
      * carrying the structured {@link HttpStatus}.
@@ -396,7 +395,7 @@ final class WallhavenSource {
         // The buffer is now full (total == buffer.length) OR the stream hit EOF early (total < buffer.length). The
         // overflow/EOF probe below is itself a blocking read, so RE-CHECK the abort immediately before reporting
         // success — otherwise a cancel/deadline that lands during the probe would be wrongly reported as ok
-        // (preserving ArtSource's post-EOF cancellation invariant).
+        // (preserving the post-EOF cancellation invariant of this fetch pattern).
         if (length >= 0) {
             if (total < buffer.length) return FetchResult.err("truncated: " + total + " < " + length);
             if (in.read() >= 0) return FetchResult.err("oversized: more than advertised " + length);
@@ -450,7 +449,7 @@ final class WallhavenSource {
         }
     }
 
-    /** One request's cancellation state, worker thread and current connection — identical to {@link ArtSource.Request}. */
+    /** One request's cancellation state, worker thread and current connection. */
     private static final class Request {
         final AtomicBoolean cancelled = new AtomicBoolean();
         final AtomicReference<HttpURLConnection> live = new AtomicReference<>();

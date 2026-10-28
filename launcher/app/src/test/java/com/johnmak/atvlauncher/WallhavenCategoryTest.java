@@ -10,9 +10,8 @@ import org.junit.Test;
 
 /**
  * The static Wallhaven category catalog (plan B2, bead j9m): the category→{@code q=} mapping, the legacy-key
- * fallback (including every key from the old, untouched {@link ArtPreset} scheme), and cycling. Deliberately a
- * SEPARATE type from {@link ArtPreset} (owner decision 2026-10-28, Option B) — {@link ArtPresetTest} and
- * {@link ArtManifestTest} are untouched and still exercise the old taxonomy.
+ * fallback (every persisted key from the retired {@code art.jmwork.ru} preset scheme), and cycling. The old
+ * preset enum is gone after the cutover, so its keys survive here only as historical literal strings.
  */
 public class WallhavenCategoryTest {
 
@@ -76,12 +75,14 @@ public class WallhavenCategoryTest {
         assertSame(WallhavenCategory.NATURE, WallhavenCategory.DEFAULT);
     }
 
-    /** Every key from the old pre-cutover {@link ArtPreset} scheme must resolve gracefully (never crash) on an
-     * upgrading install — it simply lands on {@link WallhavenCategory#DEFAULT} until the user picks a new category. */
+    /** Every persisted key from the retired {@code art.jmwork.ru} preset scheme must resolve gracefully (never
+     * crash) on an upgrading install — it simply lands on {@link WallhavenCategory#DEFAULT} until the user picks a
+     * new category. The old enum is gone, so these are the historical literal {@code art_preset} values it wrote. */
     @Test public void everyLegacyArtPresetKeyFallsBackToDefaultWithoutCrashing() {
-        for (ArtPreset legacy : ArtPreset.values()) {
-            assertSame("legacy key " + legacy.key + " must not crash", WallhavenCategory.DEFAULT,
-                    WallhavenCategory.fromKey(legacy.key));
+        String[] legacyKeys = {"all", "peredvizhniki", "era_19c", "avantgarde"};
+        for (String legacy : legacyKeys) {
+            assertSame("legacy key " + legacy + " must not crash", WallhavenCategory.DEFAULT,
+                    WallhavenCategory.fromKey(legacy));
         }
     }
 
