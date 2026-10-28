@@ -6,80 +6,75 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The ART paintings screensaver layer: a slow fade-through-black slideshow of the preset-filtered vetted paintings fetched
- * through {@link ArtSource} and decoded from the verified cache file, over a black letterbox, with a {@code title · year}
- * caption. The starfield shows beneath it until the first image is ready and whenever the pool is exhausted/empty/
- * unreachable (the owner crossfades this whole layer's alpha on {@link PhaseListener#onPhase}).
+ * The ART screensaver layer: a slow fade-through-black slideshow of 4K+ Wallhaven wallpapers streamed keylessly from
+ * {@link WallhavenSource}, decoded IN MEMORY (no disk cache) at the panel's resolution, over a black letterbox. The
+ * starfield shows beneath it until the first image is ready and whenever the stream is loading / recovering / has
+ * given up (the owner crossfades this whole layer's alpha on {@link PhaseListener#onPhase}).
  *
- * <p>Threading / memory contract (M3): the ONLY place state is mutated is the MAIN thread — the background pool does
- * nothing but the blocking {@link Session#queue()} / {@link Session#fetch} / {@link Session#decode} and then posts its
- * result back to main, so {@link Slideshow} needs no locks. The main thread captures the immutable decode job
- * {@code (viewWidth, viewHeight, epoch)} at schedule time; the worker receives only those values and never touches a View.
- * Decode sizing waits for nonzero bounds (the Dream prepares before layout), re-triggering the first item on the first
- * nonzero layout. Release order on replace/teardown: cancel timers/animators → clear the {@link ImageView} drawable
+ * <p>Threading / memory contract (M3, unchanged): the ONLY place state is mutated is the MAIN thread — the background
+ * pool does nothing but the blocking {@link Session#page}/{@link Session#fetch}/{@link Session#decode} and then posts
+ * its result back to main, so {@link Slideshow} needs no locks. The main thread captures the immutable decode job
+ * {@code (viewWidth, viewHeight, epoch)} at schedule time; the worker receives only those values and never touches a
+ * View. Decode sizing waits for nonzero bounds (the Dream prepares before layout), re-triggering on the first nonzero
+ * layout. Release order on replace/teardown: cancel timers/animators → clear the {@link ImageView} drawable
  * reference → recycle the bitmap (and release its budget permit).
  *
- * <p><b>Unified bounded model (Model B)</b> — a stopped session NEVER delays its replacement, yet threads AND bitmaps
- * stay hard-bounded across active + retiring sessions:
- * <ul>
- *   <li><b>One shared fixed pool, size 2.</b> The active session decodes on one thread; a retiring session's still-running
- *       fetch holds at most the other, so the replacement always has a thread. Pool size 2 HARD-bounds background threads
- *       regardless of activate/deactivate rate (no per-session executors, no accumulation). A stale queued task is a no-op
- *       (its epoch pre-check returns at once); a running one is aborted by its session's {@link ArtSource#shutdown()} and
- *       bounded by the injected short deadline.</li>
- *   <li><b>Shared bitmap budget {@code Semaphore(2)}.</b> A permit is acquired on the worker AFTER the fetch and BEFORE
- *       the bitmap allocation (a stuck fetch holds NO bitmap permit), and released when the bitmap is recycled (assigned
- *       → crossfade-recycle, or stale → discard-recycle). A late SUCCESSFUL decode from a retiring session must take a
- *       permit first → it blocks until the active session frees one → live bitmaps never exceed 2, across sessions.</li>
- *   <li><b>Session-scoped, admission-atomic cancellation.</b> Each session owns its own {@link ArtSource};
- *       {@link Session#cancel()} is {@link ArtSource#shutdown()} (synchronous {@code closed} flag → atomic admission
- *       refusal; non-blocking abort off-thread). The screensaver injects a SHORT request deadline so a retiring session's
- *       stuck/{@code :393}-window fetch exits fast, hard-closing the pool-occupancy residual.</li>
- * </ul>
+ * <p><b>Unified bounded model (Model B, unchanged)</b> — a stopped session NEVER delays its replacement, yet threads
+ * AND bitmaps stay hard-bounded across active + retiring sessions: ONE shared fixed pool (size 2); a shared bitmap
+ * budget {@code Semaphore(2)} acquired on the worker AFTER the fetch and BEFORE the bitmap allocation and released on
+ * recycle; session-scoped, admission-atomic cancellation ({@link WallhavenSource#shutdownWithin} with a short retire
+ * grace). The raw image {@code byte[]} is held only until {@code decodeByteArray} returns, then released.
  *
- * <p>Reuse: decode subsampling is {@link PosterSampling#sampleSize}, phase/index/failure logic is {@link ArtPlayback}.
- * Visibility handling intentionally DIVERGES from {@link VideoScreensaverView} (which keys off {@link #isShown()}): this
- * layer keys off the aggregate (view AND window) visibility from {@link #onVisibilityAggregated}, so an invisible window
- * reliably stops playback.
+ * <p><b>Streaming (plan B5).</b> On the happy path the queue is a bounded 2-page sliding window ({@link WallhavenPager});
+ * pages are fetched one-ahead carrying the seed and discarded once consumed; the seed renews at end-of-results
+ * (per-seed no-repeat).
+ *
+ * <p><b>Recovery — the SIMPLE clean-restart model (plan B6, owner-approved).</b> There is ONE error path, no per-piece
+ * salvage: on ANY error (page 429, image/CDN 429, network/decode failure, or a valid-but-empty page) the coordinator
+ * FIRST extends the single monotonic {@code cooldownDeadline} ({@code max(current, now + Retry-After-or-backoff)}, never
+ * shortened), then DISCARDS all in-flight work atomically (bumps {@code seedGeneration} so every in-flight page/image/
+ * decode is dropped on arrival; clears {@code decodeInFlight}/{@code pageFetchInFlight}; drops a prefetched pending
+ * bitmap). When the deadline passes a single {@code cooldownTick} performs a CLEAN RESTART: a brand-new
+ * {@link WallhavenPager} (a fresh random seed at page 1). Recovery from {@link ArtPlayback.Phase#EXHAUSTED} is that very
+ * same clean restart (EXHAUSTED is non-terminal — it only signals a persistent-failure run). The currently-SHOWN image
+ * is kept across a transient error; the visual starfield fallback is automatic (the 2s black-hold → {@code
+ * ScreensaverKind} non-RENDERING→STARFIELD) during the wait. {@code screensaverType} is never mutated.
  */
 final class ArtScreensaverView extends FlatFrameLayout {
-    /** A source edge larger than this is rejected BEFORE any bitmap allocation (corrupt/oversized source = unavailable). */
-    static final int MAX_SOURCE_EDGE = 4000;
-    /** At most this many decoded bitmaps live at once, across the active and any retiring session (GLOBAL — the owning
-     * {@code Screensaver} shares ONE {@code Semaphore(this)} over all views/sessions/activations). */
+    /** At most this many decoded bitmaps live at once, across the active and any retiring session (GLOBAL). */
     static final int MAX_LIVE_BITMAPS = 2;
-    /** Shared background threads (GLOBAL — one pool owned by {@code Screensaver}): the active session needs one, a
-     * retiring fetch (vacating within {@link #RETIRE_ABORT_GRACE_MS}) at most one more. */
+    /** Shared background threads (GLOBAL — one pool owned by {@code Screensaver}). */
     static final int POOL_SIZE = 2;
-    /** Idle shared-pool threads die after this, so a discarded {@code Screensaver} (e.g. a finished Dream) leaves no
-     * lingering threads without needing an explicit pool shutdown. */
     static final long POOL_KEEPALIVE_MS = 10_000;
-    /** On RETIRE, a session's in-flight request is aborted within ~this long (not the 30s active deadline) via
-     * {@link ArtSource#shutdownWithin(long)} — so a stopped session vacates its pool thread fast and the replacement
-     * never waits. ACTIVE fetches keep the default {@link ArtSource#REQUEST_DEADLINE_MS}. */
+    /** On RETIRE a session's in-flight request is aborted within ~this long (not the 30s active deadline). */
     static final long RETIRE_ABORT_GRACE_MS = 1_500;
-    /** Each painting change fades the current image OUT to black, then the next IN from black (never a direct A↔B
-     * crossfade). The black window is the LOAD COVER: a prefetched next appears instantly; any brief load latency
-     * happens entirely behind the intentional black. Named for easy tuning (owner said "0.3s" each way). */
     static final long FADE_OUT_MS = 300;
     static final long FADE_IN_MS = 300;
-    /** If the next image is still not ready this long after reaching black, stop holding on black and reveal the
-     * starfield (tasteful fallback) rather than an indefinite black hold; the image fades in once it finally loads. */
+    /** If the next image is still not ready this long after reaching black, reveal the starfield (tasteful fallback). */
     static final long BLACK_HOLD_MAX_MS = 2_000;
+
+    // ---- retry/recovery policy (plan B6; SIMPLE clean-restart model — tuning numbers, reversible) -------------
+    /** Consecutive errors with no decoded READY before the persistent-failure signal (EXHAUSTED/starfield) is emitted;
+     * the clean restart keeps running regardless (EXHAUSTED is non-terminal). */
+    static final int MAX_ERROR_STREAK = 6;
+    /** Backoff for a clean restart after an error: {@code RETRY_BASE_MS << min(errorStreak, 5)} capped at
+     * {@link #RETRY_MAX_MS} (used when there is no {@code Retry-After}). */
+    static final long RETRY_BASE_MS = 2_000;
+    static final long RETRY_MAX_MS = 60_000;
+    /** Backoff used for a 429 when no (or an unparsable) {@code Retry-After} is given. */
+    static final long DEFAULT_429_BACKOFF_MS = 30_000;
 
     /** Reports the slideshow phase so the owner ({@code Screensaver}) can crossfade this whole layer in/out. */
     interface PhaseListener {
@@ -93,54 +88,46 @@ final class ArtScreensaverView extends FlatFrameLayout {
         Session<B> open();
     }
 
-    /** One fetch session. {@link #queue()}, {@link #fetch} and {@link #decode} block and run on a pool thread only.
-     * {@code fetch} and {@code decode} are SPLIT so the coordinator can take the shared bitmap-budget permit between
-     * them (after I/O, before allocation). */
+    /** One fetch session. All three blocking methods run on a pool thread only. {@code fetch} and {@code decode} are
+     * SPLIT so the coordinator can take the shared bitmap-budget permit between them (after I/O, before allocation). */
     interface Session<B> {
-        /** The shuffled, preset-filtered play queue (D11 resolver applied); empty = stay on starfield. */
-        List<ArtManifest.Entry> queue();
+        /** Fetch+parse one search page. {@code seed==""} with {@code page==1} requests a FRESH random seed. err may
+         * carry a {@link WallhavenSource.HttpStatus} kind (e.g. 429 with {@code Retry-After}). Holds NO bitmap budget. */
+        FetchResult<WallhavenSearch.Page> page(String seed, int page);
 
-        /** Fetch (cache-or-guarded-fetch) the verified source for {@code entry}; null = unavailable. Holds NO bitmap
-         * budget — a stuck fetch never pins memory. Bounded by the session's injected request deadline. */
-        Object fetch(ArtManifest.Entry entry);
+        /** Fetch the full-resolution image bytes for {@code image} into an opaque in-memory handle. ok(handle) = ready
+         * to decode; err = unavailable, and may carry a {@link WallhavenSource.HttpStatus} kind (e.g. a CDN 429 with
+         * {@code Retry-After}) so the coordinator can cooldown-retry rather than consume the descriptor. Holds NO bitmap
+         * budget — a stuck fetch never pins decoded memory. Bounded by the session's request deadline. */
+        FetchResult<Object> fetch(WallhavenImage image);
 
         /** Allocate+decode the bitmap from a {@code fetched} handle at the captured display size; null = unavailable
-         * (corrupt/oversized source or decode failure). The caller already holds one bitmap-budget permit. */
+         * (corrupt/oversized/over-budget source, wrong format, or decode failure). The caller already holds one permit. */
         B decode(Object fetched, int targetW, int targetH);
 
-        /** Cancel THIS session: SYNCHRONOUSLY refuse any further request admission (atomic with registration) and abort
-         * in-flight I/O. Non-blocking to the caller; idempotent; affects no other session. Production =
-         * {@link ArtSource#shutdown()}. */
+        /** Cancel THIS session: SYNCHRONOUSLY refuse further admission and abort in-flight I/O. Non-blocking; idempotent. */
         void cancel();
     }
 
     /** The main-thread rendering surface: two layers + a shared caption over a black letterbox. Transitions go THROUGH
      * BLACK — the two layers are never both visible at once. */
     interface Stage<B> {
-        /** Fade {@code layer} OUT to black (alpha→0, with its caption) over {@code ms}; {@code onEnd} runs when fully
-         * black. */
         void fadeOutToBlack(int layer, long ms, Runnable onEnd);
 
-        /** Put {@code bitmap}+{@code caption} on {@code layer} and fade it IN from black (alpha 0→1) over {@code ms},
-         * hiding the other layer; {@code onEnd} runs when fully shown. */
         void fadeInFromBlack(int layer, B bitmap, String caption, long ms, Runnable onEnd);
 
-        /** Drop {@code layer}'s drawable reference (no recycle); always called before {@link #recycle} of its bitmap. */
         void clear(int layer);
 
-        /** Free a bitmap. Precondition: it is referenced by no layer (its layer was {@link #clear}ed first). */
         void recycle(B bitmap);
 
-        /** Cancel any running fade animators (so a cancelled fade never runs its end-action). */
         void cancelAnimations();
 
-        /** Target decode size in px {@code {w, h}}; {@code {0, 0}} before layout. */
         int[] boundsPx();
     }
 
-    /** Posts work onto the main thread (production: a {@link Handler}; test: inline/queued). {@link #post} returns
-     * whether the runnable was accepted (mirrors {@link Handler#post} — false when the looper is dead/rejected), so the
-     * caller can clean up a bitmap handoff that will never be delivered. */
+    /** Posts work onto the main thread. {@link #post} returns whether the runnable was accepted (false when the looper
+     * is dead), so the caller can clean up a bitmap handoff that will never be delivered. {@link #postDelayed} keys the
+     * runnable by identity (distinct timers: display, black-hold, cooldown, recover). */
     interface Main {
         boolean post(Runnable r);
 
@@ -149,12 +136,19 @@ final class ArtScreensaverView extends FlatFrameLayout {
         void cancel(Runnable r);
     }
 
+    /** A monotonic clock in ms — the SAME timebase the {@link Main} handler schedules against (production:
+     * {@code SystemClock.uptimeMillis}). Used for the single absolute cooldown deadline (plan B6). */
+    interface Clock {
+        long nowMs();
+    }
+
     // ---- the pure coordinator (the hard part; unit-tested offline) ----------------------------
 
     /**
      * The slideshow state machine. Pure (no Android types), single-threaded (every method here runs on {@code main}).
      * The shared {@code worker} pool and {@code bitmapBudget} semaphore span sessions; each session owns its own
-     * {@link Session} (source). Every session has an atomic {@code epoch} (worker pre-check + stale-result discard).
+     * {@link Session}. Every session has an atomic {@code epoch} (worker pre-check + stale-result discard). The stream
+     * is driven by a {@link WallhavenPager}; failures/retries are bounded by attempt caps (plan B6).
      */
     static final class Slideshow<B> {
         private final Pipeline<B> pipeline;
@@ -162,84 +156,86 @@ final class ArtScreensaverView extends FlatFrameLayout {
         private final Executor worker;
         private final Semaphore bitmapBudget; // shared across active + retiring sessions; cap = MAX_LIVE_BITMAPS
         private final Main main;
+        private final Clock clock;
         private final PhaseListener listener;
         private final Runnable displayTick = this::onDisplayElapsed;
         private final Runnable blackHoldTick = this::onBlackHoldTimeout;
+        /** Fires at the cooldown deadline and performs the CLEAN RESTART (fresh seed) — the ONE recovery path. */
+        private final Runnable cooldownTick = this::onCooldownWake;
 
-        /** The fade-through-black transition state (owner's design). NONE = steady (an image shown, or starfield when
-         * {@code artHidden}); FADING_OUT = current image fading to black; BLACK = fully black, load cover, waiting for
-         * the next image; FADING_IN = next image fading in from black. */
         private enum Trans { NONE, FADING_OUT, BLACK, FADING_IN }
 
-        /** Session generation. Bumped on every {@link #start()} and every {@link #quiesce()}; read cross-thread by the
-         * worker to pre-check cancellation before it admits any I/O (the cheap fast path). */
+        /** Session lifecycle token (start/stop/teardown): guards the main-thread transition callbacks. */
         private final AtomicInteger epoch = new AtomicInteger();
+        /**
+         * The ONE structural invariant pair (plan B6, Codex round-2). {@code seedGeneration} is bumped on every session
+         * (re)start/stop AND on every error-discard / clean restart; EVERY background work unit (page request, image
+         * fetch, decode) captures it at creation and is dropped on completion if it no longer matches — so an old-window
+         * decode can never consume the new window, and a late READY from a stale generation is ignored.
+         */
+        private final AtomicInteger seedGeneration = new AtomicInteger();
         private Session<B> currentSession;
         private boolean running;
         private boolean tornDown;
         private boolean decodeInFlight;
+        private boolean pageFetchInFlight;
+        /**
+         * The single monotonic cooldown deadline (absolute {@link Clock} ms) — the ONLY admission gate for BOTH page
+         * and image requests (plan B6). Extended only via {@code max(current, now + delay)} on any 429/backoff; NEVER
+         * reset or shortened by a descriptor change, page change or window exhaustion (only a fresh session resets it).
+         * Every admission point parks while {@code now < cooldownDeadline}; {@link #cooldownTick} wakes at the deadline.
+         */
+        private long cooldownDeadline;
         private Trans trans = Trans.NONE;
-        /** Whether the whole art layer is hidden (starfield showing) — initial LOADING, the black-hold fallback, and
-         * EXHAUSTED. Controls when a ready image is brought in via the owner's layer-fade vs the inner fade-in. */
         private boolean artHidden = true;
 
-        private List<ArtManifest.Entry> queue;
-        private int count;
-        private int cursor;          // next queue index to decode
-        private int failureStreak;
+        private WallhavenPager pager;
+        private int errorStreak;     // consecutive errors of ANY kind (reset only on a decoded READY)
         private ArtPlayback.Phase phase = ArtPlayback.Phase.LOADING;
 
-        private int curLayer;        // the layer the current image is on (the only visible layer — never two at once)
-        private B curBitmap;         // the current image's bitmap (null while black / starfield); holds one budget permit
-        private B pendingBitmap;     // a decoded next image waiting to fade in; holds one budget permit
+        private int curLayer;
+        private B curBitmap;         // the current image's bitmap (null while black / starfield); holds one permit
+        private B pendingBitmap;     // a decoded next image waiting to fade in; holds one permit
         private String pendingCaption;
 
         Slideshow(Pipeline<B> pipeline, Stage<B> stage, Executor worker, Semaphore bitmapBudget, Main main,
-                PhaseListener listener) {
+                Clock clock, PhaseListener listener) {
             this.pipeline = pipeline;
             this.stage = stage;
             this.worker = worker;
             this.bitmapBudget = bitmapBudget;
             this.main = main;
+            this.clock = clock;
             this.listener = listener;
         }
 
         /** Begins (or restarts) a session: opens a fresh {@link Session}, bumps the epoch, shows the starfield
-         * (LOADING), and loads the queue on the shared pool. Idempotent while running; refused after teardown. */
+         * (LOADING), and kicks off the page-1 fetch on the shared pool. Idempotent while running; refused after teardown. */
         void start() {
             if (running || tornDown) return;
             running = true;
             currentSession = pipeline.open();
-            final Session<B> session = currentSession;
-            final int e = epoch.incrementAndGet();
+            epoch.incrementAndGet();
+            seedGeneration.incrementAndGet(); // a fresh session is a new generation — old work units are stale
             decodeInFlight = false;
+            pageFetchInFlight = false;
+            cooldownDeadline = 0;             // a fresh session starts with no cooldown (per-session monotonic)
             trans = Trans.NONE;
             pendingBitmap = null;
             pendingCaption = null;
-            queue = null;
-            count = 0;
-            cursor = 0;
-            failureStreak = 0;
+            pager = new WallhavenPager();
+            errorStreak = 0;
             phase = ArtPlayback.Phase.LOADING;
             artHidden = true;
             listener.onPhase(ArtPlayback.Phase.LOADING); // starfield shows until the first image is ready
-            worker.execute(() -> {
-                if (e != epoch.get()) return; // the session was stopped/replaced before this ran — fetch nothing
-                final List<ArtManifest.Entry> q = session.queue();
-                main.post(() -> onQueue(e, q));
-            });
+            scheduleRefillIfNeeded(); // a fresh pager needs page 1 ("", 1, fresh)
         }
 
-        /** Pause: cancel the current session (scoped, admission-atomic), cancel timers/animators, bump the epoch, and
-         * release the live bitmaps (and their budget permits). The shared pool/budget stay; a later {@link #start()}
-         * opens a NEW session. */
         void stop() {
             if (!running) return;
             quiesce();
         }
 
-        /** Terminal teardown: quiesce and refuse any further start. Idempotent. (The shared pool is disposed by the
-         * owning view, not here.) */
         void teardown() {
             if (tornDown) return;
             tornDown = true;
@@ -263,20 +259,19 @@ final class ArtScreensaverView extends FlatFrameLayout {
             running = false;
             Session<B> ending = currentSession;
             currentSession = null;
-            epoch.incrementAndGet(); // invalidate any in-flight worker result AND pre-admission fast-path check
+            epoch.incrementAndGet();          // invalidate in-flight transition callbacks
+            seedGeneration.incrementAndGet(); // invalidate every in-flight fetch/decode work unit
             main.cancel(displayTick);
             main.cancel(blackHoldTick);
+            main.cancel(cooldownTick);
             stage.cancelAnimations();
-            // Cancel ONLY the ending session, INLINE and synchronously, so a worker past the epoch pre-check but not yet
-            // admitted is refused at registration; the blocking abort runs off-thread (ArtSource.shutdown) — no UI block.
             if (ending != null) ending.cancel();
             trans = Trans.NONE;
+            pageFetchInFlight = false;
+            cooldownDeadline = 0;
             releaseBitmaps();
         }
 
-        /** Release order (M3): clear the layer's drawable reference first, then recycle + free the budget permit. A
-         * pending bitmap was never on a layer, so it is recycle-only. At most these two bitmaps are ever live (the
-         * shown one + one prefetched) — the two layers are never both visible (transitions go through black). */
         private void releaseBitmaps() {
             if (curBitmap != null) {
                 stage.clear(curLayer);
@@ -289,86 +284,209 @@ final class ArtScreensaverView extends FlatFrameLayout {
             }
         }
 
-        /** Recycle a decoded bitmap AND return its budget permit — paired one-to-one with the acquire in the worker. */
         private void recycleBitmap(B bitmap) {
             stage.recycle(bitmap);
             bitmapBudget.release();
         }
 
-        private void onQueue(int e, List<ArtManifest.Entry> q) {
-            if (e != epoch.get() || !running) return; // stale (a newer session started) — drop it
-            queue = q;
-            count = q.size();
-            phase = ArtPlayback.initialPhase(count);
-            if (count == 0) {
-                listener.onPhase(phase); // EXHAUSTED: empty/unavailable pool → stay on starfield
+        // ---- page streaming (plan B5) ---------------------------------------------------------
+
+        /** Issues a page fetch on the shared pool when the pager wants one and none is already in flight. Used both for
+         * the initial page-1 fetch (fresh pager) and for one-ahead refills; never while EXHAUSTED/stopped. */
+        private void scheduleRefillIfNeeded() {
+            if (!running || tornDown || pageFetchInFlight) return;
+            if (inCooldown()) return;          // the ONE monotonic cooldown gates admission (no per-path flag)
+            if (phase == ArtPlayback.Phase.EXHAUSTED) return;
+            if (currentSession == null) return;
+            if (!pager.needsFetch()) return;
+            pageFetchInFlight = true;
+            final WallhavenPager.Fetch f = pager.plannedFetch();
+            final int g = seedGeneration.get(); // captured at creation — checked again on completion
+            final Session<B> session = currentSession;
+            worker.execute(() -> {
+                if (g != seedGeneration.get()) return; // stale generation (stop/replace/seed-renewal) — fetch nothing
+                final FetchResult<WallhavenSearch.Page> r = session.page(f.seed, f.page);
+                main.post(() -> onPageResult(g, f, r));
+            });
+        }
+
+        private void onPageResult(int g, WallhavenPager.Fetch planned, FetchResult<WallhavenSearch.Page> result) {
+            if (g != seedGeneration.get() || !running) return; // stale generation — drop it
+            pageFetchInFlight = false;
+            if (result.isOk() && pager != null) {
+                // Classify the INCOMING page's usable (post-dedup) descriptors — NOT pager.current(), which could still
+                // point at the OLDER page's images and so mask an empty prefetched refill (plan B6: ANY valid-empty page
+                // → clean restart, never a silent accept).
+                int usable = pager.onPage(result.value(), planned.fresh);
+                if (usable > 0) {
+                    scheduleDecode();              // decode the current / prefetch the next (errorStreak resets on READY)
+                    scheduleRefillIfNeeded();      // keep the one-ahead window filled
+                    return;
+                }
+                onError(backoffMs(errorStreak));   // a valid-but-empty page is an error → clean restart on a fresh seed
                 return;
             }
+            WallhavenSource.HttpStatus st = result.errorKind(WallhavenSource.HttpStatus.class);
+            onError(delayFor(st));
+        }
+
+        private boolean inCooldown() {
+            return clock.nowMs() < cooldownDeadline;
+        }
+
+        /** The ONE error path (plan B6, simple model): FIRST extend the single monotonic cooldown deadline, THEN discard
+         * ALL in-flight work. The clean restart happens when {@link #cooldownTick} fires at the deadline. */
+        private void onError(long delayMs) {
+            extendCooldown(delayMs);               // (1) deadline FIRST — always set before anything else
+            discardInFlight();                     // (2) atomically strand every in-flight page/image/decode
+            if (++errorStreak >= MAX_ERROR_STREAK && artHidden && phase != ArtPlayback.Phase.EXHAUSTED) {
+                // persistent failure with nothing on screen → signal EXHAUSTED (already starfield); the clean restart
+                // still runs at the deadline (EXHAUSTED is non-terminal). A currently-shown image is left untouched.
+                phase = ArtPlayback.Phase.EXHAUSTED;
+                listener.onPhase(ArtPlayback.Phase.EXHAUSTED);
+            }
+        }
+
+        /** The decode-byte delay for an error: a 429's {@code Retry-After} (or a default), else the backoff schedule. */
+        private long delayFor(WallhavenSource.HttpStatus st) {
+            if (st != null && st.code == 429) {
+                return st.retryAfterMs >= 0 ? st.retryAfterMs : DEFAULT_429_BACKOFF_MS;
+            }
+            return backoffMs(errorStreak);
+        }
+
+        /** Discards ALL in-flight work atomically (plan B6 step 2): bump the generation so every in-flight page/image/
+         * decode is dropped on arrival, clear the in-flight flags, and drop any prefetched-but-unshown bitmap. The
+         * currently-SHOWN image is deliberately kept (it is not in-flight; the automatic black-hold reveals the
+         * starfield once its dwell ends). */
+        private void discardInFlight() {
+            seedGeneration.incrementAndGet();
+            decodeInFlight = false;
+            pageFetchInFlight = false;
+            if (pendingBitmap != null) {
+                recycleBitmap(pendingBitmap);
+                pendingBitmap = null;
+                pendingCaption = null;
+            }
+        }
+
+        /** Extends the ONE cooldown deadline monotonically ({@code max(current, now+delay)}) and (re)arms the wake. The
+         * deadline is never shortened — a longer {@code Retry-After} is never undercut by a later shorter backoff. */
+        private void extendCooldown(long delayMs) {
+            long d = Math.max(0, delayMs);
+            cooldownDeadline = Math.max(cooldownDeadline, clock.nowMs() + d);
+            main.cancel(cooldownTick);
+            main.postDelayed(cooldownTick, Math.max(0, cooldownDeadline - clock.nowMs()));
+        }
+
+        /** Fires at the cooldown deadline: performs the ONE clean restart (or re-arms if the deadline was extended). */
+        private void onCooldownWake() {
+            if (!running || tornDown) return;
+            if (inCooldown()) {                 // the deadline was extended since this wake was armed — re-arm
+                main.cancel(cooldownTick);
+                main.postDelayed(cooldownTick, Math.max(0, cooldownDeadline - clock.nowMs()));
+                return;
+            }
+            cleanRestart();
+        }
+
+        /** The ONE recovery path (plan B6 step 3): wipe the window and start a brand-new search from a FRESH random seed
+         * at page 1. Also the recovery out of EXHAUSTED. No old descriptors or stale in-flight state survive. */
+        private void cleanRestart() {
+            seedGeneration.incrementAndGet();   // fresh generation for the new search
+            pager = new WallhavenPager();        // fresh random seed, page 1
+            decodeInFlight = false;
+            pageFetchInFlight = false;
+            if (phase == ArtPlayback.Phase.EXHAUSTED) phase = ArtPlayback.Phase.LOADING; // leave EXHAUSTED (still starfield)
+            scheduleRefillIfNeeded();
             scheduleDecode();
         }
 
-        /** Submits a fetch+decode of {@code queue.get(cursor)} unless a gate forbids it: not running / torn down / a
-         * decode is already in flight / a decoded image is already waiting (the third-decode gate — budget cap 2) /
-         * the pool is exhausted or empty / no session / bounds not known yet (parked until onBoundsReady). */
-        private void scheduleDecode() {
-            if (!running || tornDown || decodeInFlight) return;
-            if (pendingBitmap != null) return; // the next image is already decoded and waiting to fade in
-            if (queue == null || queue.isEmpty() || phase == ArtPlayback.Phase.EXHAUSTED) return;
-            if (currentSession == null) return;
-            int[] b = stage.boundsPx();
-            if (b[0] <= 0 || b[1] <= 0) return; // no bounds yet (Dream prepares before layout) — resumed by onBoundsReady
-            decodeInFlight = true;
-            final Session<B> session = currentSession;
-            final int e = epoch.get();
-            final ArtManifest.Entry entry = queue.get(cursor);
-            final int w = b[0];
-            final int h = b[1];
-            worker.execute(() -> runFetchDecode(session, e, entry, w, h));
+        private static long backoffMs(int attempt) {
+            int shift = Math.min(Math.max(0, attempt), 5);
+            return Math.min(RETRY_MAX_MS, RETRY_BASE_MS << shift);
         }
 
-        /** The pool task: fetch (no permit) → acquire the shared bitmap permit → allocate → post. A permit is held ONLY
-         * while a bitmap exists, and is handed to {@link #onDecode} (released there on a stale/failed path, or carried by
-         * the live bitmap until it is recycled). Pool thread only. */
-        private void runFetchDecode(Session<B> session, int e, ArtManifest.Entry entry, int w, int h) {
+        // ---- image decode scheduling ----------------------------------------------------------
+
+        /** Submits a fetch+decode of the pager's current descriptor unless a gate forbids it; when the window is
+         * momentarily empty it triggers a page refill instead. */
+        private void scheduleDecode() {
+            if (!running || tornDown || decodeInFlight) return;
+            if (pendingBitmap != null) return;          // the next image is already decoded and waiting
+            if (inCooldown()) return;                   // the ONE cooldown gates image admission too (no per-path flag)
+            if (phase == ArtPlayback.Phase.EXHAUSTED) return;
+            if (currentSession == null || pager == null) return;
+            WallhavenImage image = pager.current();
+            if (image == null) {                         // nothing buffered — fetch a page, decode resumes on delivery
+                scheduleRefillIfNeeded();
+                return;
+            }
+            int[] b = stage.boundsPx();
+            if (b[0] <= 0 || b[1] <= 0) return;          // no bounds yet (Dream prepares before layout)
+            decodeInFlight = true;
+            final Session<B> session = currentSession;
+            final int g = seedGeneration.get();
+            final int w = b[0];
+            final int h = b[1];
+            worker.execute(() -> runFetchDecode(session, g, image, w, h));
+        }
+
+        /** The pool task: fetch (no permit) → acquire the shared bitmap permit → allocate → post. Pool thread only. A
+         * fetch failure carrying a 429 is posted as a STRUCTURED status (no permit) so the coordinator can cooldown-retry
+         * the SAME descriptor instead of consuming it. */
+        private void runFetchDecode(Session<B> session, int g, WallhavenImage image, int w, int h) {
+            // phase 1: fetch (holds NO bitmap permit)
+            FetchResult<Object> fetchResult;
+            try {
+                if (g != seedGeneration.get()) return;        // stale generation before this ran — admit no fetch
+                fetchResult = session.fetch(image);           // cancelled session → err; bounded by the retire grace
+            } catch (RuntimeException | OutOfMemoryError crash) {
+                fetchResult = FetchResult.err("fetch crashed: " + crash);
+            }
+            if (g != seedGeneration.get()) return;
+            if (!fetchResult.isOk()) {
+                WallhavenSource.HttpStatus st = fetchResult.errorKind(WallhavenSource.HttpStatus.class);
+                final WallhavenSource.HttpStatus cdn429 = (st != null && st.code == 429) ? st : null;
+                main.post(() -> onDecode(g, null, cdn429));    // no permit held — nothing to clean up
+                return;
+            }
+            final Object fetched = fetchResult.value();
+            // phase 2: acquire the shared bitmap permit, then allocate/decode
             B decoded = null;
             boolean permit = false;
             try {
-                if (e != epoch.get()) return;                 // stopped/replaced before this ran — admit no fetch
-                Object fetched = session.fetch(entry);        // cancelled session → null; bounded by the retire grace
-                if (fetched == null || e != epoch.get()) return;
-                bitmapBudget.acquire();                        // AFTER fetch, BEFORE allocation — caps live bitmaps globally
+                bitmapBudget.acquire();                        // AFTER fetch, BEFORE allocation — caps live bitmaps
                 permit = true;
-                if (e != epoch.get()) return;                 // stale while waiting for a permit — do not allocate
+                if (g != seedGeneration.get()) return;        // stale while waiting for a permit — do not allocate
                 decoded = session.decode(fetched, w, h);       // may return null (unavailable) or throw
             } catch (InterruptedException interrupted) {
                 Thread.currentThread().interrupt();
-            } catch (RuntimeException decodeFailed) {
-                // treated as unavailable; the finally releases the permit and still posts a result
+            } catch (RuntimeException | OutOfMemoryError decodeFailed) {
+                // treated as unavailable; the finally releases the permit and still posts (plan B4: catch OOM around
+                // the bounds/pixel decode phase too, not just RuntimeException)
             } finally {
                 final B result = decoded;
                 final boolean hadPermit = permit;
-                // Ownership handoff (leak-safe). The ONLY successful handoff is a post that is ACCEPTED: only then does
-                // onDecode own the bitmap + its permit (released on recycle, incl. the stale-discard path). Attempt the
-                // single post inside the finally; on ANY failure to deliver (rejected/false or a thrown post) clean up
-                // HERE — recycle the bitmap and release the permit — so a dead looper can never leak either. A non-bitmap
-                // result carries no bitmap, so its reservation permit is freed here once the post is accepted.
                 boolean accepted;
                 try {
-                    accepted = main.post(() -> onDecode(e, entry, result));
+                    accepted = main.post(() -> onDecode(g, result, null));
                 } catch (RuntimeException postRejected) {
                     accepted = false;
                 }
                 if (!accepted) {
-                    if (result != null) stage.recycle(result); // never assigned to a layer → safe to recycle off-main
+                    if (result != null) stage.recycle(result);
                     if (hadPermit) bitmapBudget.release();
                 } else if (result == null && hadPermit) {
-                    bitmapBudget.release(); // accepted, but no bitmap — free the reservation (onDecode(null) won't)
+                    bitmapBudget.release(); // accepted, but no bitmap — free the reservation (onDecode won't)
                 }
             }
         }
 
-        private void onDecode(int e, ArtManifest.Entry entry, B bmp) {
-            if (e != epoch.get()) { // a hide/detach/replace bumped the epoch — discard, never assign (and free its permit)
+        private void onDecode(int g, B bmp, WallhavenSource.HttpStatus imageStatus) {
+            if (g != seedGeneration.get()) {
+                // a stale generation (session replaced OR seed renewed): drop it — an old-window decode must NEVER
+                // consume the new window, and a late old-generation READY is ignored (plan B6, Codex round-2 P2).
                 if (bmp != null) recycleBitmap(bmp);
                 return;
             }
@@ -377,67 +495,48 @@ final class ArtScreensaverView extends FlatFrameLayout {
                 if (bmp != null) recycleBitmap(bmp);
                 return;
             }
-            if (bmp == null) {
-                onItemUnavailable();
+            if (bmp != null) {
+                onReady(bmp);
                 return;
             }
-            onReady(entry, bmp);
+            // any image fetch/decode failure (incl. a CDN 429, carrying imageStatus) is just an error: discard + clean
+            // restart from a fresh seed (plan B6 simple model — NO per-descriptor salvage, NO consume-and-advance).
+            onError(delayFor(imageStatus));
         }
 
-        private void onItemUnavailable() {
-            failureStreak = ArtPlayback.nextFailureStreak(failureStreak, ArtPlayback.Event.ITEM_UNAVAILABLE);
-            ArtPlayback.Phase prev = phase;
-            phase = ArtPlayback.nextPhase(phase, ArtPlayback.Event.ITEM_UNAVAILABLE, failureStreak, count);
-            if (phase == ArtPlayback.Phase.EXHAUSTED) {
-                main.cancel(blackHoldTick);
-                trans = Trans.NONE;                 // abandon any pending transition
-                if (prev != ArtPlayback.Phase.EXHAUSTED) { // emit once on the terminal transition → starfield
-                    artHidden = true;
-                    listener.onPhase(ArtPlayback.Phase.EXHAUSTED);
-                }
-                return; // stop attempting
-            }
-            cursor = ArtPlayback.nextIndex(cursor, count);
-            scheduleDecode(); // advance past the bad item and keep trying to fill the next slot
-        }
-
-        private void onReady(ArtManifest.Entry entry, B bmp) {
-            failureStreak = ArtPlayback.nextFailureStreak(failureStreak, ArtPlayback.Event.READY);
-            phase = ArtPlayback.nextPhase(phase, ArtPlayback.Event.READY, failureStreak, count);
+        private void onReady(B bmp) {
+            errorStreak = 0;          // a decoded bitmap — the ONLY thing that resets the error run / recovers the phase
+            main.cancel(cooldownTick); // we are rendering again → cancel any pending clean restart
+            cooldownDeadline = 0;      // healthy — clear the cooldown
+            phase = ArtPlayback.nextPhase(phase, ArtPlayback.Event.READY); // → RENDERING (incl. out of EXHAUSTED)
+            pager.consume();          // this descriptor is now shown/queued — advance the stream past it
             if (trans == Trans.BLACK) {
-                // the awaited image arrived during the black load-cover → fade it in now
                 pendingBitmap = bmp;
-                pendingCaption = captionOf(entry);
+                pendingCaption = captionFor();
                 maybeFadeIn();
             } else if (curBitmap == null) {
-                // nothing is shown (the first image, or a recovery after the black-hold fallback) → bring the art
-                // layer in WITH this image via the owner's whole-layer fade (no inner fade needed)
-                showAsCurrent(entry, bmp);
+                showAsCurrent(bmp);   // the first image, or a recovery after the black-hold fallback / give-up
             } else {
-                // a prefetched next image while one is showing → hold it until the display timer fires
-                pendingBitmap = bmp;
-                pendingCaption = captionOf(entry);
+                pendingBitmap = bmp;  // a prefetched next image while one is showing → hold until the display timer
+                pendingCaption = captionFor();
             }
         }
 
-        /** Brings {@code bmp} in as the new current image (the first image, or a recovery after the black-hold
-         * fallback). The art layer is raised (starfield → art, the OUTER fade) AND the image is faded IN FROM BLACK
-         * (the INNER fade 0→1). Because the effective on-screen alpha is outer × inner and the inner starts at 0, a
-         * recovery image that arrives while the outer fade is still near full can NEVER cut to a bright painting — the
-         * effective alpha always ramps from ~0 (no flash under any arrival timing). */
-        private void showAsCurrent(ArtManifest.Entry entry, B bmp) {
+        private void showAsCurrent(B bmp) {
             curBitmap = bmp;
-            showArt(); // onPhase(RENDERING) — owner fades the whole art layer in (from 0, or from mid during recovery)
-            stage.fadeInFromBlack(curLayer, bmp, captionOf(entry), FADE_IN_MS, null); // inner 0→1 → effective starts at ~0
-            if (count == 1) return; // a single-image queue holds forever (no transitions)
-            cursor = ArtPlayback.nextIndex(cursor, count);
+            showArt(); // onPhase(RENDERING) — owner fades the whole art layer in
+            stage.fadeInFromBlack(curLayer, bmp, captionFor(), FADE_IN_MS, null); // inner 0→1 → effective starts ~0
+            // Replace the old single-image hold-forever: hold only when the stream is genuinely terminal (nothing more
+            // buffered AND nothing more to fetch). For an endless seed-paged stream a fresh seed is always reachable,
+            // so this normally starts the dwell timer and keeps paging.
+            if (pager.current() == null && !pager.needsFetch()) return;
             startDisplayTimer();
-            scheduleDecode(); // prefetch the next image during the hold
+            scheduleDecode();           // prefetch the next image during the hold
+            scheduleRefillIfNeeded();   // and keep the page window filled
         }
 
         private void onDisplayElapsed() {
             if (!running || trans != Trans.NONE || curBitmap == null) return;
-            // begin the transition: fade the current image OUT to black
             trans = Trans.FADING_OUT;
             final int e = epoch.get();
             stage.fadeOutToBlack(curLayer, FADE_OUT_MS, () -> onFadeOutDone(e));
@@ -445,16 +544,15 @@ final class ArtScreensaverView extends FlatFrameLayout {
 
         private void onFadeOutDone(int e) {
             if (e != epoch.get() || trans != Trans.FADING_OUT) return;
-            stage.clear(curLayer);     // fully black now — drop the outgoing drawable reference,
-            recycleBitmap(curBitmap);  // then recycle it + free its permit (release order)
+            stage.clear(curLayer);
+            recycleBitmap(curBitmap);
             curBitmap = null;
-            trans = Trans.BLACK;       // the load cover: hold on black until the next image is ready
+            trans = Trans.BLACK;
             main.cancel(blackHoldTick);
             main.postDelayed(blackHoldTick, BLACK_HOLD_MAX_MS);
-            maybeFadeIn();             // if the next was already prefetched, fade it in immediately
+            maybeFadeIn();
         }
 
-        /** Fades the prefetched next image in from black once it is ready (while in the BLACK load-cover window). */
         private void maybeFadeIn() {
             if (trans != Trans.BLACK || pendingBitmap == null) return;
             main.cancel(blackHoldTick);
@@ -464,7 +562,7 @@ final class ArtScreensaverView extends FlatFrameLayout {
             pendingBitmap = null;
             pendingCaption = null;
             curLayer = newLayer;
-            curBitmap = bmp;           // the only live shown bitmap (the old one was recycled at fade-out)
+            curBitmap = bmp;
             trans = Trans.FADING_IN;
             final int e = epoch.get();
             stage.fadeInFromBlack(newLayer, bmp, cap, FADE_IN_MS, () -> onFadeInDone(e));
@@ -473,19 +571,17 @@ final class ArtScreensaverView extends FlatFrameLayout {
         private void onFadeInDone(int e) {
             if (e != epoch.get() || trans != Trans.FADING_IN) return;
             trans = Trans.NONE;
-            cursor = ArtPlayback.nextIndex(cursor, count);
             startDisplayTimer();
-            scheduleDecode(); // prefetch the next image during the hold
+            scheduleDecode();
+            scheduleRefillIfNeeded();
         }
 
-        /** The next image did not arrive within {@link #BLACK_HOLD_MAX_MS} of reaching black (a rare long load): stop
-         * holding on pure black and reveal the starfield. The image fades back in (as a recovery) once it finally
-         * loads — never an endless black hold, never a frozen frame. */
         private void onBlackHoldTimeout() {
             if (!running || trans != Trans.BLACK) return;
             trans = Trans.NONE;
             hideArt(ArtPlayback.Phase.LOADING); // → starfield; a later ready image shows via showAsCurrent (recovery)
-            scheduleDecode();                   // keep trying to load something to show
+            scheduleDecode();
+            scheduleRefillIfNeeded();
         }
 
         private void showArt() {
@@ -498,7 +594,7 @@ final class ArtScreensaverView extends FlatFrameLayout {
         private void hideArt(ArtPlayback.Phase reason) {
             if (!artHidden) {
                 artHidden = true;
-                listener.onPhase(reason); // LOADING or EXHAUSTED — both map to STARFIELD (art layer alpha 0)
+                listener.onPhase(reason);
             }
         }
 
@@ -506,106 +602,99 @@ final class ArtScreensaverView extends FlatFrameLayout {
             main.cancel(displayTick);
             main.postDelayed(displayTick, ArtPlayback.DISPLAY_MS);
         }
+
+        /** The per-image caption. Wallhaven descriptors carry no title/year, so it is empty for now; the courtesy
+         * "wallhaven.cc" credit is a separate overlay (plan B9, a later bead). */
+        private String captionFor() {
+            return "";
+        }
     }
 
-    // ---- pure helpers (unit-tested; the BitmapFactory wrapper is device-only) -----------------
+    // ---- pure helpers / device decode ---------------------------------------------------------
 
-    /** True when a source image's bounds-decode dimensions are usable: positive and within {@link #MAX_SOURCE_EDGE}
-     * on each edge. Checked BEFORE any bitmap allocation (D10) — a corrupt (≤0) or oversized source is unavailable. */
-    static boolean acceptableSource(int srcW, int srcH) {
-        return srcW > 0 && srcH > 0 && srcW <= MAX_SOURCE_EDGE && srcH <= MAX_SOURCE_EDGE;
-    }
-
-    /** The {@code title · year} caption (D4); artist omitted. Degrades gracefully when a part is empty. */
-    static String captionOf(ArtManifest.Entry entry) {
-        String title = entry.title == null ? "" : entry.title;
-        String year = entry.year == null ? "" : entry.year;
-        if (year.isEmpty()) return title;
-        if (title.isEmpty()) return year;
-        return title + " · " + year;
-    }
-
-    /** Whether the slideshow should run: attached to a window AND aggregate-visible (view hierarchy + window) — the
-     * signal {@link #onVisibilityAggregated} delivers, which (unlike {@link #isShown()}) accounts for an invisible window. */
+    /** Whether the slideshow should run: attached to a window AND aggregate-visible (view hierarchy + window). */
     static boolean shouldRun(boolean attached, boolean aggregateVisible) {
         return attached && aggregateVisible;
     }
 
-    /** Decodes a verified cache file at display size from the file (no whole-image {@code byte[]}): bounds-decode first
-     * and reject before any allocation (D10), then decode at a power-of-two sample size ({@link PosterSampling}). null =
-     * unavailable. */
-    private static Bitmap decodeBitmap(File file, int targetW, int targetH) {
-        String path = file.getAbsolutePath();
+    /**
+     * Decodes the in-memory image bytes at the panel size (plan B2/B4): a cheap bounds pass first (reject corrupt/
+     * absurd dims AND verify the decoded format is JPEG/PNG via {@code outMimeType} — the authoritative sanitization
+     * replacement), then a budget-sampled pixel decode. BOTH passes use the explicit {@code (buffer, 0, bytesRead)}
+     * length, never {@code buffer.length}. null = unavailable. Device-only; the sizing math is {@link DecodeBudget}
+     * (unit-tested). The caller catches {@link OutOfMemoryError} around this (plan B4 phase 2/3).
+     */
+    private static Bitmap decodeBitmap(WallhavenSource.Handle handle, int targetW, int targetH) {
+        byte[] buf = handle.buffer;
+        int len = handle.bytesRead;
         BitmapFactory.Options bounds = new BitmapFactory.Options();
         bounds.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, bounds);
-        if (!acceptableSource(bounds.outWidth, bounds.outHeight)) return null;
+        BitmapFactory.decodeByteArray(buf, 0, len, bounds);
+        if (!DecodeBudget.acceptable(bounds.outWidth, bounds.outHeight)) return null;
+        String mime = bounds.outMimeType;
+        if (!"image/jpeg".equals(mime) && !"image/png".equals(mime)) return null; // authoritative format gate
+        // Account for the ACTUAL decoded stride: Android may promote a 16-bit PNG to RGBA_F16 (8 B/px) DESPITE an
+        // ARGB_8888 preference, so the budget must use the config the bounds pass reports, not a hard-coded 4 B/px.
+        int bytesPerPixel = bytesPerPixel(bounds.outConfig);
+        int sample = DecodeBudget.sampleSizeForBudget(bounds.outWidth, bounds.outHeight,
+                DecodeBudget.budgetBytes(targetW, targetH), bytesPerPixel);
+        if (sample <= 0) return null; // cannot fit the decoded-byte budget even at the largest sane subsample
         BitmapFactory.Options opts = new BitmapFactory.Options();
-        opts.inSampleSize = PosterSampling.sampleSize(bounds.outWidth, bounds.outHeight, targetW, targetH);
+        opts.inSampleSize = sample;
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        return BitmapFactory.decodeFile(path, opts); // null on a corrupt body → the UI treats it as ITEM_UNAVAILABLE
+        return BitmapFactory.decodeByteArray(buf, 0, len, opts); // null on a corrupt body → treated as ITEM_UNAVAILABLE
+    }
+
+    /** The decoded bytes-per-pixel for a bounds-reported {@link Bitmap.Config}: 8 for RGBA_F16, otherwise 4 (the
+     * ARGB_8888 stride we request; a conservative 4 for any null/other config so the budget never under-counts). */
+    private static int bytesPerPixel(Bitmap.Config config) {
+        return config == Bitmap.Config.RGBA_F16 ? 8 : 4;
     }
 
     // ---- production wiring (Android) ----------------------------------------------------------
 
-    /** The production pipeline: each session gets its OWN {@link ArtSource} (fetch+cache scope) built with the short ART
-     * request deadline, so cancelling / retiring one session never touches another and its stuck fetch exits fast. */
-    private static final class ArtPipeline implements Pipeline<Bitmap> {
-        private final File filesDir;
-        private final String storedPresetKey;
-
-        ArtPipeline(File filesDir, String storedPresetKey) {
-            this.filesDir = filesDir;
-            this.storedPresetKey = storedPresetKey;
-        }
+    /** The production pipeline: each session gets its OWN {@link WallhavenSource} (fetch scope) so cancelling /
+     * retiring one session never touches another and its stuck fetch exits fast. */
+    private static final class WallhavenPipeline implements Pipeline<Bitmap> {
+        WallhavenPipeline() {}
 
         @Override public Session<Bitmap> open() {
             // ACTIVE fetches keep the default 30s deadline; the short bound applies only on retire (cancel()).
-            ArtSource source = new ArtSource(new ArtCache(filesDir), HttpText.USER_AGENT);
-            return new ArtSession(source, storedPresetKey, System.nanoTime());
+            return new WallhavenSession(new WallhavenSource(HttpText.USER_AGENT));
         }
     }
 
-    /** One fetch session over a dedicated {@link ArtSource}: the D11 resolver picks the pool; fetch yields the verified
-     * cache file; decode streams the bitmap from it; cancel is {@link ArtSource#shutdown()}. */
-    private static final class ArtSession implements Session<Bitmap> {
-        private final ArtSource source;
-        private final String storedPresetKey;
-        private final long seed;
+    /** One fetch session over a dedicated {@link WallhavenSource}: {@code page} is the keyless search; {@code fetch}
+     * yields the bounded in-memory image bytes; {@code decode} allocates the bitmap; {@code cancel} is a bounded shutdown. */
+    private static final class WallhavenSession implements Session<Bitmap> {
+        private final WallhavenSource source;
 
-        ArtSession(ArtSource source, String storedPresetKey, long seed) {
+        WallhavenSession(WallhavenSource source) {
             this.source = source;
-            this.storedPresetKey = storedPresetKey;
-            this.seed = seed;
         }
 
-        @Override public List<ArtManifest.Entry> queue() {
-            FetchResult<ArtManifest> r = source.manifest();
-            if (!r.isOk()) return Collections.emptyList();
-            ArtManifest manifest = r.value();
-            ArtPreset preset = ArtPreset.effective(storedPresetKey, manifest.availablePresets());
-            return manifest.shuffledQueue(preset, seed);
+        @Override public FetchResult<WallhavenSearch.Page> page(String seed, int page) {
+            // Preset → Wallhaven q= tag mapping is a later bead (plan B2 / step 5); for now only the fixed SFW defaults.
+            return source.search(null, seed, page);
         }
 
-        @Override public Object fetch(ArtManifest.Entry entry) {
-            FetchResult<File> file = source.image(entry);
-            return file.isOk() ? file.value() : null;
+        @Override public FetchResult<Object> fetch(WallhavenImage image) {
+            FetchResult<WallhavenSource.Handle> r = source.image(image);
+            if (r.isOk()) return FetchResult.ok((Object) r.value());
+            return r.propagate(); // preserve the structured error (e.g. a CDN 429 with Retry-After)
         }
 
         @Override public Bitmap decode(Object fetched, int targetW, int targetH) {
-            return decodeBitmap((File) fetched, targetW, targetH);
+            return decodeBitmap((WallhavenSource.Handle) fetched, targetW, targetH);
         }
 
         @Override public void cancel() {
-            // Retire fast: the in-flight fetch is aborted within the grace (not the 30s active deadline), so this
-            // session's pool thread frees quickly and the replacement never waits. Non-blocking.
             source.shutdownWithin(RETIRE_ABORT_GRACE_MS);
         }
     }
 
-    /** The shared background pool (finding 3): ONE per {@code Screensaver}, injected into every view so threads are
-     * bounded GLOBALLY across activations. {@code allowCoreThreadTimeOut} lets idle threads die, so a discarded
-     * {@code Screensaver} (e.g. a finished Dream) needs no explicit shutdown. */
+    /** The shared background pool (ONE per {@code Screensaver}); idle threads die so a discarded Screensaver needs no
+     * explicit shutdown. */
     static ExecutorService newSharedPool() {
         java.util.concurrent.ThreadPoolExecutor pool = new java.util.concurrent.ThreadPoolExecutor(
                 POOL_SIZE, POOL_SIZE, POOL_KEEPALIVE_MS, java.util.concurrent.TimeUnit.MILLISECONDS,
@@ -619,8 +708,6 @@ final class ArtScreensaverView extends FlatFrameLayout {
         return pool;
     }
 
-    /** The shared bitmap budget (finding 3): ONE {@code Semaphore(MAX_LIVE_BITMAPS)} per {@code Screensaver}, injected
-     * into every view so live bitmaps are bounded GLOBALLY across active + retiring sessions + activations. */
     static Semaphore newSharedBudget() {
         return new Semaphore(MAX_LIVE_BITMAPS);
     }
@@ -631,36 +718,37 @@ final class ArtScreensaverView extends FlatFrameLayout {
     private boolean sized;
     private boolean aggregateVisible;
 
-    /** @param worker shared pool ({@link #newSharedPool}) and @param bitmapBudget shared budget ({@link #newSharedBudget})
-     * both owned by the {@code Screensaver} and shared across ALL views/activations — NEVER created per view. */
+    /** @param storedPresetKey the persisted category preset; NOT yet translated to a Wallhaven {@code q=} tag (that
+     * mapping is a later bead), so it is currently informational only. @param worker shared pool and @param bitmapBudget
+     * shared budget are owned by the {@code Screensaver} and shared across ALL views/activations. */
     ArtScreensaverView(Context context, String storedPresetKey, Executor worker, Semaphore bitmapBudget,
             PhaseListener listener) {
         super(context);
-        setBackgroundColor(Color.BLACK); // the letterbox behind every FIT_CENTER image
+        setBackgroundColor(Color.BLACK); // the letterbox behind every fitted image
         LayoutParams full = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         for (int i = 0; i < layers.length; i++) {
             ImageView iv = new ImageView(context);
-            iv.setScaleType(ImageView.ScaleType.FIT_CENTER); // aspect-preserving, portrait-safe; no centre-crop
+            iv.setScaleType(ImageView.ScaleType.FIT_CENTER); // aspect-preserving; Ken-Burns is a later bead
             iv.setAlpha(0f);
             layers[i] = iv;
             addView(iv, full);
         }
         caption = new TextView(context);
         caption.setTextColor(Color.WHITE);
-        caption.setBackgroundColor(0x80000000); // a scrim so the caption stays readable over any painting
         caption.setPadding(48, 24, 48, 24);
         LayoutParams captionLp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         captionLp.gravity = Gravity.BOTTOM | Gravity.START;
         addView(caption, captionLp);
 
-        Pipeline<Bitmap> pipeline = new ArtPipeline(context.getFilesDir(), storedPresetKey);
+        Pipeline<Bitmap> pipeline = new WallhavenPipeline();
         Main main = new Main() {
             private final Handler handler = new Handler(Looper.getMainLooper());
             @Override public boolean post(Runnable r) { return handler.post(r); }
             @Override public void postDelayed(Runnable r, long delayMs) { handler.postDelayed(r, delayMs); }
             @Override public void cancel(Runnable r) { handler.removeCallbacks(r); }
         };
-        slideshow = new Slideshow<>(pipeline, new ViewStage(), worker, bitmapBudget, main, listener);
+        Clock clock = SystemClock::uptimeMillis; // the SAME monotonic timebase the Handler schedules delays against
+        slideshow = new Slideshow<>(pipeline, new ViewStage(), worker, bitmapBudget, main, clock, listener);
     }
 
     /** The {@link Stage} over the two {@link ImageView}s + the shared caption. Transitions go through black, so only
@@ -675,6 +763,7 @@ final class ArtScreensaverView extends FlatFrameLayout {
             ImageView in = layers[layer];
             in.setImageBitmap(bitmap);
             caption.setText(text);
+            caption.setVisibility(text == null || text.isEmpty() ? GONE : VISIBLE);
             in.setAlpha(0f);
             caption.setAlpha(0f);
             layers[1 - layer].setAlpha(0f);
@@ -705,7 +794,7 @@ final class ArtScreensaverView extends FlatFrameLayout {
         super.onSizeChanged(w, h, oldw, oldh);
         if (!sized && w > 0 && h > 0) {
             sized = true;
-            slideshow.onBoundsReady(); // the Dream prepares before layout — decode the first item now that bounds exist
+            slideshow.onBoundsReady();
         }
     }
 
@@ -718,13 +807,13 @@ final class ArtScreensaverView extends FlatFrameLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        teardown(); // a detached art layer is never reused (the launcher re-prepares a fresh one each session)
+        teardown();
     }
 
     @Override
     public void onVisibilityAggregated(boolean isVisible) {
         super.onVisibilityAggregated(isVisible);
-        aggregateVisible = isVisible; // honour window visibility, not just view visibility
+        aggregateVisible = isVisible;
         updateRunning();
     }
 
@@ -733,11 +822,7 @@ final class ArtScreensaverView extends FlatFrameLayout {
         else slideshow.stop();
     }
 
-    /** Terminal teardown of THIS view; called by {@code Screensaver.prepare} before removing the layer, and on window
-     * detach. Idempotent and non-blocking (safe on the main thread): the slideshow cancels the current session via a
-     * bounded {@link ArtSource#shutdownWithin(long)} (retire grace ≤{@value #RETIRE_ABORT_GRACE_MS} ms), so its pool
-     * thread frees fast. The SHARED pool and bitmap budget are OWNED BY {@code Screensaver} and OUTLIVE this view — they
-     * are deliberately NOT shut down here (finding 3). */
+    /** Terminal teardown of THIS view. Idempotent and non-blocking. The SHARED pool and bitmap budget OUTLIVE this view. */
     void teardown() {
         slideshow.teardown();
     }

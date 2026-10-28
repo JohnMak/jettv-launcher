@@ -17,7 +17,9 @@ final class ArtPlayback {
     /** Crossfade duration between two consecutive paintings. */
     static final long CROSSFADE_MS = 1500;
 
-    /** Lifecycle of one screensaver session. EXHAUSTED is final until the next {@code prepare}. */
+    /** Lifecycle of one screensaver session. Since the Wallhaven rework (plan B6) EXHAUSTED is NON-terminal: it is
+     * entered when the background retry policy gives up (nothing renderable), yet a later decoded bitmap reaching
+     * {@link Event#READY} recovers to {@link #RENDERING} — the screensaver never permanently blanks within a session. */
     enum Phase { LOADING, RENDERING, EXHAUSTED }
 
     /** {@code ITEM_UNAVAILABLE} covers both a fetch failure and a decode failure — the phase engine treats them
@@ -26,34 +28,25 @@ final class ArtPlayback {
 
     private ArtPlayback() {}
 
-    /** The phase a freshly-built queue starts in: {@code EXHAUSTED} immediately for an empty pool (no entry to
-     * even attempt), {@code LOADING} otherwise. */
-    static Phase initialPhase(int count) {
-        return count <= 0 ? Phase.EXHAUSTED : Phase.LOADING;
-    }
-
     /**
-     * The consecutive-failure streak AFTER {@code event}: reset to 0 on {@link Event#READY}, incremented on
-     * {@link Event#ITEM_UNAVAILABLE}. The caller computes this first and passes the result into
-     * {@link #nextPhase} — a slow but eventually-successful pool never falsely exhausts, because any single
-     * success resets the count towards a full failing pass back to zero.
+     * The consecutive item-failure streak AFTER {@code event}: reset to 0 on {@link Event#READY}, incremented on
+     * {@link Event#ITEM_UNAVAILABLE}. The coordinator uses this to bound a run of decode/descriptor failures (plan
+     * B6's "unsuccessful pass"); any single {@code READY} resets it — recovery and streak-reset both REQUIRE a
+     * decoded bitmap, never a mere HTTP/search success.
      */
     static int nextFailureStreak(int streak, Event event) {
         return event == Event.READY ? 0 : streak + 1;
     }
 
     /**
-     * Next phase after {@code event}, given the failure streak AFTER this event ({@link #nextFailureStreak})
-     * and the queue size. {@code EXHAUSTED} is terminal — no event resurrects it, and an empty queue is always
-     * {@code EXHAUSTED}. A {@code READY} always moves to (or stays in) {@code RENDERING}. An
-     * {@code ITEM_UNAVAILABLE} keeps the CURRENT phase — {@code LOADING} until some image has ever been ready,
-     * {@code RENDERING} with the last good image still shown otherwise — unless the streak has now covered
-     * every queue entry once with no {@code READY}, in which case the pass is exhausted.
+     * Next phase after {@code event} (plan B6 — EXHAUSTED is non-terminal). A {@code READY} ALWAYS moves to (or stays
+     * in) {@code RENDERING} — including recovering OUT of {@code EXHAUSTED} the instant a decoded bitmap arrives. An
+     * {@code ITEM_UNAVAILABLE} keeps the CURRENT phase (the last good image stays shown; a single bad item never
+     * blanks). Entering {@code EXHAUSTED} (the background retry giving up) is a separate, explicit act of the
+     * coordinator, NOT computed here from any cycle/queue count.
      */
-    static Phase nextPhase(Phase current, Event event, int failureStreakAfterEvent, int count) {
-        if (current == Phase.EXHAUSTED || count <= 0) return Phase.EXHAUSTED;
-        if (event == Event.READY) return Phase.RENDERING;
-        return failureStreakAfterEvent >= count ? Phase.EXHAUSTED : current;
+    static Phase nextPhase(Phase current, Event event) {
+        return event == Event.READY ? Phase.RENDERING : current;
     }
 
     /** Next queue index, cyclic; a single-item queue always holds on index 0 (no crossfade target changes). */
