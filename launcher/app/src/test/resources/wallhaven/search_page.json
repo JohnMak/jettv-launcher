@@ -1,0 +1,84 @@
+{
+  "data": [
+    {
+      "id": "94x38z",
+      "url": "https://wallhaven.cc/w/94x38z",
+      "short_url": "https://whvn.cc/94x38z",
+      "views": 1842,
+      "favorites": 73,
+      "source": "",
+      "purity": "sfw",
+      "category": "general",
+      "dimension_x": 3840,
+      "dimension_y": 2160,
+      "resolution": "3840x2160",
+      "ratio": "1.78",
+      "file_size": 4210531,
+      "file_type": "image/jpeg",
+      "created_at": "2026-02-11 09:14:02",
+      "colors": ["#424153", "#000000", "#333399"],
+      "path": "https://w.wallhaven.cc/full/94/wallhaven-94x38z.jpg",
+      "thumbs": {
+        "large": "https://th.wallhaven.cc/lg/94/94x38z.jpg",
+        "original": "https://th.wallhaven.cc/orig/94/94x38z.jpg",
+        "small": "https://th.wallhaven.cc/small/94/94x38z.jpg"
+      }
+    },
+    {
+      "id": "7dkz9q",
+      "url": "https://wallhaven.cc/w/7dkz9q",
+      "short_url": "https://whvn.cc/7dkz9q",
+      "views": 905,
+      "favorites": 41,
+      "source": "",
+      "purity": "sfw",
+      "category": "general",
+      "dimension_x": 5120,
+      "dimension_y": 2880,
+      "resolution": "5120x2880",
+      "ratio": "1.78",
+      "file_size": 7813002,
+      "file_type": "image/png",
+      "created_at": "2026-01-30 22:05:51",
+      "colors": ["#66cccc", "#000000"],
+      "path": "https://w.wallhaven.cc/full/7d/wallhaven-7dkz9q.png",
+      "thumbs": {
+        "large": "https://th.wallhaven.cc/lg/7d/7dkz9q.jpg",
+        "original": "https://th.wallhaven.cc/orig/7d/7dkz9q.jpg",
+        "small": "https://th.wallhaven.cc/small/7d/7dkz9q.jpg"
+      }
+    },
+    {
+      "id": "eo8k2l",
+      "url": "https://wallhaven.cc/w/eo8k2l",
+      "short_url": "https://whvn.cc/eo8k2l",
+      "views": 2560,
+      "favorites": 118,
+      "source": "",
+      "purity": "sfw",
+      "category": "general",
+      "dimension_x": 7680,
+      "dimension_y": 4320,
+      "resolution": "7680x4320",
+      "ratio": "1.78",
+      "file_size": 15994210,
+      "file_type": "image/jpeg",
+      "created_at": "2026-03-02 05:41:19",
+      "colors": ["#cccccc", "#999999", "#000000"],
+      "path": "https://w.wallhaven.cc/full/eo/wallhaven-eo8k2l.jpg",
+      "thumbs": {
+        "large": "https://th.wallhaven.cc/lg/eo/eo8k2l.jpg",
+        "original": "https://th.wallhaven.cc/orig/eo/eo8k2l.jpg",
+        "small": "https://th.wallhaven.cc/small/eo/eo8k2l.jpg"
+      }
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 100,
+    "per_page": 24,
+    "total": 2400,
+    "query": null,
+    "seed": "aBc123"
+  }
+}

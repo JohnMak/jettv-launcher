@@ -80,6 +80,85 @@ public class ArtScreensaverViewTest {
         assertTrue("release order held throughout", h.stage.ok());
     }
 
+    // ---- endless-cycle e2e: images keep cycling with zoom + fade, across a seed renewal -------
+
+    /**
+     * The full slideshow e2e over MANY images spanning page boundaries AND an end-of-results seed renewal: it must keep
+     * cycling — fade-out → black → fade-in on the alternating layer, a fresh Ken-Burns zoom per image — indefinitely,
+     * never stalling and never blanking to EXHAUSTED on the happy path. This is the "cycles images, zoom, fade" e2e;
+     * the "zero image disk writes" steady-state invariant is asserted structurally in {@link WallhavenNoDiskWriteTest}.
+     */
+    @Test public void cyclesManyImagesAcrossPagesAndASeedRenewalWithZoomAndFadeNeverStalling() {
+        Harness h = new Harness();
+        // seed s1: three pages; then end-of-results → a FRESH seed s2 (two pages); then another renewal → s3.
+        h.pipeline.pages.add(ok(page("s1", 1, 3, "a", "b")));
+        h.pipeline.pages.add(ok(page("s1", 2, 3, "c", "d")));
+        h.pipeline.pages.add(ok(page("s1", 3, 3, "e", "f")));
+        h.pipeline.pages.add(ok(page("s2", 1, 2, "g", "h"))); // served when a FRESH seed ("",1) is requested
+        h.pipeline.pages.add(ok(page("s2", 2, 2, "i", "j")));
+        h.pipeline.pages.add(ok(page("s3", 1, 1, "k", "l"))); // second renewal
+
+        h.slideshow.start();
+        // Drive the whole machine over and over: drain pool work FIRST (so a prefetch is always ready before the dwell
+        // ends), auto-complete fades, then fire the dwell timer to begin the next transition.
+        int guard = 0;
+        while (h.stage.recycled.size() < 6 && guard++ < 800) {
+            if (h.worker.pending() > 0) {
+                h.worker.runNext();
+            } else if (h.stage.fadingOut()) {
+                h.stage.finishFadeOut();
+            } else if (h.stage.fadingIn()) {
+                h.stage.finishFadeIn();
+            } else if (h.main.hasDelayed()) {
+                h.main.fireDelayed();   // the dwell timer → fade out begins (no error timers on the happy path)
+            } else {
+                break;                  // nothing left to do — would be a stall
+            }
+        }
+        // Settle the in-progress transition to a steady "one image shown" state WITHOUT starting another cycle (do not
+        // fire the dwell timer here) so the per-image zoom count is counted against a settled window.
+        int settle = 0;
+        while ((h.stage.fadingOut() || h.stage.fadingIn() || h.worker.pending() > 0) && settle++ < 200) {
+            if (h.worker.pending() > 0) h.worker.runNext();
+            else if (h.stage.fadingOut()) h.stage.finishFadeOut();
+            else h.stage.finishFadeIn();
+        }
+
+        int transitions = h.stage.recycled.size();
+        int imagesShown = transitions + 1; // the currently-shown image has not been recycled
+        assertTrue("the slideshow cycled through at least 6 completed fade transitions (not stalled), got " + transitions,
+                transitions >= 6);
+        assertEquals("it is actively rendering at the end, never blanked", ArtPlayback.Phase.RENDERING, last(h.phases));
+        assertFalse("the happy-path endless stream never signals EXHAUSTED", h.phases.contains(ArtPlayback.Phase.EXHAUSTED));
+        assertTrue("a decoded image is currently shown", h.stage.layerBmp[0] != null || h.stage.layerBmp[1] != null);
+        assertTrue("release order held throughout the whole run (never recycled a referenced bitmap)", h.stage.ok());
+
+        // PER-IMAGE zoom behaviour from the event log (not aggregate counters): exactly one zoom per shown image, each
+        // aligned to the dwell, and strictly alternating layers (0,1,0,1,…) — the crossfade never reuses a live layer.
+        assertEquals("exactly one Ken-Burns zoom started per shown image", imagesShown, h.stage.kenBurnsEvents.size());
+        for (int i = 0; i < h.stage.kenBurnsEvents.size(); i++) {
+            int[] ev = h.stage.kenBurnsEvents.get(i);
+            assertEquals("zoom #" + i + " aligned to the 15s dwell", (int) ArtPlayback.DISPLAY_MS, ev[1]);
+            assertEquals("zoom #" + i + " on the alternating layer", i % 2, ev[0]);
+        }
+
+        // A GENUINE end-of-results renewal: the startup fetch is already ("",1) fresh, so count is not proof. Assert the
+        // pager issued at least one mid-stream NON-fresh page (prefetch within seed s1) AND a SECOND fresh page-1 request
+        // AFTER it — i.e. it exhausted s1 and renewed onto a new random seed, not merely started.
+        int firstNonFresh = -1, renewalAfterNonFresh = -1;
+        for (int i = 0; i < h.pipeline.pageRequests.size(); i++) {
+            String req = h.pipeline.pageRequests.get(i);
+            if (firstNonFresh < 0 && !req.startsWith("@")) firstNonFresh = i;           // e.g. "s1@2"
+            else if (firstNonFresh >= 0 && req.equals("@1")) { renewalAfterNonFresh = i; break; } // fresh page-1 again
+        }
+        assertEquals("startup issued a fresh page-1 request first", "@1", h.pipeline.pageRequests.get(0));
+        assertTrue("the pager prefetched a further page within seed s1 (a non-fresh request): " + h.pipeline.pageRequests,
+                firstNonFresh >= 1);
+        assertTrue("after exhausting s1 the pager renewed onto a FRESH random seed (a 2nd fresh page-1 request): "
+                + h.pipeline.pageRequests, renewalAfterNonFresh > firstNonFresh);
+        assertTrue("so at least two fresh-seed requests occurred (startup + renewal)", h.pipeline.freshSeedRequests >= 2);
+    }
+
     // ---- Ken-Burns zoom lifecycle (plan B7) ---------------------------------------------------
 
     @Test public void kenBurnsStartsWhenTheFirstImageBecomesCurrentAlignedToTheDwell() {
@@ -626,6 +705,8 @@ public class ArtScreensaverViewTest {
         final Set<Integer> handedOut = new HashSet<>();
         final List<FakeSession> sessions = new ArrayList<>();
         int pageCalls;
+        int freshSeedRequests; // page() calls that asked for a FRESH random seed (seed=="") — end-of-results renewals
+        final List<String> pageRequests = new ArrayList<>(); // the ordered (seed,page) the pager actually asked for
         int fetches;
         int cancels;
         int nextId = 100;
@@ -655,6 +736,9 @@ public class ArtScreensaverViewTest {
 
         @Override public FetchResult<WallhavenSearch.Page> page(String seed, int page) {
             p.pageCalls++;
+            boolean fresh = seed == null || seed.isEmpty();
+            if (fresh) p.freshSeedRequests++;
+            p.pageRequests.add((fresh ? "" : seed) + "@" + page);
             p.lastPageSeed = seed;
             p.lastPageNum = page;
             if (cancelled) return FetchResult.err("cancelled");
@@ -701,6 +785,10 @@ public class ArtScreensaverViewTest {
         final int[] kenBurnsStarts = new int[2];
         final long[] kenBurnsDuration = {-1, -1};
         final boolean[] kenBurnsRunning = new boolean[2];
+        // A per-start EVENT LOG (layer + duration, in order) so a test can assert PER-IMAGE zoom behaviour — strict
+        // layer alternation and that EVERY zoom (not just the last) used the dwell duration — which aggregate counters
+        // alone cannot establish (a skipped + a duplicate zoom can cancel out numerically).
+        final List<int[]> kenBurnsEvents = new ArrayList<>(); // each = {layer, (int) durationMs}
         private Runnable fadeOutEnd;
         private Runnable fadeInEnd;
         private boolean violated;
@@ -719,6 +807,7 @@ public class ArtScreensaverViewTest {
             kenBurnsStarts[layer]++;
             kenBurnsDuration[layer] = durationMs;
             kenBurnsRunning[layer] = true;
+            kenBurnsEvents.add(new int[]{layer, (int) durationMs});
         }
 
         @Override public void clear(int layer) {

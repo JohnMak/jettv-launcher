@@ -21,6 +21,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class WallhavenSourceTest {
     private static final WallhavenSource.AbortCheck NEVER = () -> null;
 
+    /** The raw bytes of a resource fixture (the project's {@code *.json} convention, as {@code WeatherModelTest}). */
+    private static byte[] fixtureBytes(String name) throws IOException {
+        try (InputStream in = WallhavenSourceTest.class.getClassLoader().getResourceAsStream(name)) {
+            assertNotNull(name, in);
+            return in.readAllBytes();
+        }
+    }
+
     // ---- searchUrl builder --------------------------------------------------------------------
 
     @Test public void page1NoSeedNoTagCarriesOnlyTheSfwDefaults() {
@@ -192,6 +200,24 @@ public class WallhavenSourceTest {
         assertEquals(1, r.value().images.size());
         assertEquals("sd", r.value().seed);
         assertEquals(5, r.value().lastPage);
+    }
+
+    /**
+     * Integration end-to-end: the WHOLE adapter — guarded fetch loop (headers, Content-Length bounded body read) THEN
+     * {@link WallhavenSearch#parse} — against a realistic full-fidelity Wallhaven sample response served as bytes over
+     * the fake connection. Exercises the same path the live {@code WallhavenSession#page} takes, minus the real socket.
+     */
+    @Test public void searchParsesTheRealisticSampleFixtureEndToEnd() throws IOException {
+        byte[] body = fixtureBytes("wallhaven/search_page.json");
+        WallhavenSource src = source(new Net(FakeConn.ok(body, body.length, "application/json")));
+        FetchResult<WallhavenSearch.Page> r = src.search("nature", null, 1);
+        assertTrue(r.isOk() ? "" : r.error(), r.isOk());
+        assertEquals("the fixture's three full-res descriptors survive the fetch+parse", 3, r.value().images.size());
+        assertEquals("aBc123", r.value().seed);
+        assertEquals(1, r.value().page);
+        assertEquals(100, r.value().lastPage);
+        assertEquals("94x38z", r.value().images.get(0).id);
+        assertTrue("delivered path stays on the allowlist", WallhavenHosts.check(r.value().images.get(0).path).isOk());
     }
 
     @Test public void imageFetchReturnsBoundedHandleForAnImageContentType() {
