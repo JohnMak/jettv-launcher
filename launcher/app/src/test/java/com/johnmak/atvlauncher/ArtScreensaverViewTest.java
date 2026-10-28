@@ -80,6 +80,91 @@ public class ArtScreensaverViewTest {
         assertTrue("release order held throughout", h.stage.ok());
     }
 
+    // ---- Ken-Burns zoom lifecycle (plan B7) ---------------------------------------------------
+
+    @Test public void kenBurnsStartsWhenTheFirstImageBecomesCurrentAlignedToTheDwell() {
+        Harness h = new Harness();
+        h.pipeline.pages.add(ok(page("s1", 1, 1, "a", "b")));
+        h.slideshow.start();
+        h.runNext();                        // page
+        h.runNext();                        // decode(a) -> shown on layer 0 via showAsCurrent
+        assertEquals("the zoom starts for the first image", 1, h.stage.kenBurnsStarts[0]);
+        assertTrue("the zoom is running", h.stage.kenBurnsRunning[0]);
+        assertEquals("the zoom duration is aligned to the 15s dwell", ArtPlayback.DISPLAY_MS, h.stage.kenBurnsDuration[0]);
+        assertEquals("no zoom on the idle layer", 0, h.stage.kenBurnsStarts[1]);
+    }
+
+    @Test public void kenBurnsRestartsForASubsequentImageAtFadeInDoneOnTheNewLayer() {
+        Harness h = new Harness();
+        h.pipeline.pages.add(ok(page("s1", 1, 1, "a", "b", "c")));
+        h.slideshow.start();
+        h.runNext();                        // page
+        h.runNext();                        // decode(a) -> shown on layer 0 (zoom started)
+        h.runNext();                        // decode(b) -> prefetched
+        h.main.fireDelayed();               // hold elapses -> fade out
+        h.stage.finishFadeOut();            // -> black, next fades in on layer 1 (NOT started yet — waits for fade-in)
+        assertEquals("the subsequent-image zoom is NOT started during the fade-in", 0, h.stage.kenBurnsStarts[1]);
+        h.stage.finishFadeIn();             // onFadeInDone -> the subsequent image's zoom begins on the NEW layer
+        assertEquals("the zoom starts on the new layer once faded in", 1, h.stage.kenBurnsStarts[1]);
+        assertTrue(h.stage.kenBurnsRunning[1]);
+        assertEquals(ArtPlayback.DISPLAY_MS, h.stage.kenBurnsDuration[1]);
+    }
+
+    @Test public void aTransitionCancelsTheOutgoingLayersZoomBeforeRecyclingItsBitmap() {
+        Harness h = new Harness();
+        h.pipeline.pages.add(ok(page("s1", 1, 1, "a", "b")));
+        h.slideshow.start();
+        h.runNext();
+        h.runNext();                        // a shown on layer 0, zoom running
+        h.runNext();                        // b prefetched
+        assertTrue(h.stage.kenBurnsRunning[0]);
+        h.main.fireDelayed();               // fade out begins
+        h.stage.finishFadeOut();            // fully black -> clear(layer0) cancels the zoom, THEN recycle
+        assertFalse("the outgoing layer's zoom is cancelled at clear (before recycle)", h.stage.kenBurnsRunning[0]);
+        assertTrue("release order still held (bitmap recycled after cancel+clear)", h.stage.ok());
+    }
+
+    @Test public void stopCancelsTheKenBurnsZoom() {
+        Harness h = new Harness();
+        h.pipeline.pages.add(ok(page("s1", 1, 1, "a", "b")));
+        h.slideshow.start();
+        h.runNext();
+        h.runNext();                        // a shown, zoom running
+        assertTrue(h.stage.kenBurnsRunning[0]);
+        h.slideshow.stop();
+        assertFalse("stop cancels the zoom (via cancelAnimations)", h.stage.kenBurnsRunning[0]);
+        assertFalse(h.stage.kenBurnsRunning[1]);
+    }
+
+    @Test public void teardownCancelsTheKenBurnsZoom() {
+        Harness h = new Harness();
+        h.pipeline.pages.add(ok(page("s1", 1, 1, "a", "b")));
+        h.slideshow.start();
+        h.runNext();
+        h.runNext();                        // a shown, zoom running
+        h.slideshow.teardown();
+        assertFalse("teardown cancels the zoom", h.stage.kenBurnsRunning[0]);
+        assertFalse(h.stage.kenBurnsRunning[1]);
+    }
+
+    @Test public void aReusedLayerRestartsTheKenBurnsZoomFromScratch() {
+        Harness h = new Harness();
+        h.pipeline.pages.add(ok(page("s1", 1, 1, "a", "b", "c")));
+        h.slideshow.start();
+        h.runNext();                        // page
+        h.runNext();                        // a -> layer 0 (starts[0]=1)
+        h.runNext();                        // b prefetched
+        h.main.fireDelayed();
+        h.stage.finishFadeOut();
+        h.stage.finishFadeIn();             // b -> layer 1 (starts[1]=1)
+        h.runNext();                        // c prefetched
+        h.main.fireDelayed();
+        h.stage.finishFadeOut();
+        h.stage.finishFadeIn();             // c -> layer 0 REUSED (starts[0] must become 2)
+        assertEquals("the reused layer restarts the zoom for the fresh image", 2, h.stage.kenBurnsStarts[0]);
+        assertTrue("and it is running for the fresh image", h.stage.kenBurnsRunning[0]);
+    }
+
     @Test public void decodeWaitsForNonzeroBoundsThenRunsOnFirstLayout() {
         Harness h = new Harness();
         h.stage.w = 0;
@@ -611,6 +696,11 @@ public class ArtScreensaverViewTest {
         final Integer[] layerBmp = new Integer[2];
         final Set<Integer> recycled = new HashSet<>();
         double shownInnerStartAlpha = -1;
+        // Ken-Burns zoom lifecycle (plan B7): per-layer start count, last duration, and whether a zoom is "running"
+        // (started and not yet cancelled). clear()/cancelAnimations() cancel it exactly as the real ViewStage does.
+        final int[] kenBurnsStarts = new int[2];
+        final long[] kenBurnsDuration = {-1, -1};
+        final boolean[] kenBurnsRunning = new boolean[2];
         private Runnable fadeOutEnd;
         private Runnable fadeInEnd;
         private boolean violated;
@@ -625,8 +715,15 @@ public class ArtScreensaverViewTest {
             fadeInEnd = onEnd;
         }
 
+        @Override public void startKenBurns(int layer, long durationMs) {
+            kenBurnsStarts[layer]++;
+            kenBurnsDuration[layer] = durationMs;
+            kenBurnsRunning[layer] = true;
+        }
+
         @Override public void clear(int layer) {
             layerBmp[layer] = null;
+            kenBurnsRunning[layer] = false; // the real ViewStage cancels the zoom before clearing the drawable
         }
 
         @Override public void recycle(Integer bitmap) {
@@ -637,6 +734,8 @@ public class ArtScreensaverViewTest {
         @Override public void cancelAnimations() {
             fadeOutEnd = null;
             fadeInEnd = null;
+            kenBurnsRunning[0] = false;
+            kenBurnsRunning[1] = false;
         }
 
         @Override public int[] boundsPx() {

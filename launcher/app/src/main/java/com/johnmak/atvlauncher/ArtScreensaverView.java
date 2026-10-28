@@ -1,9 +1,12 @@
 package com.johnmak.atvlauncher;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -115,6 +118,12 @@ final class ArtScreensaverView extends FlatFrameLayout {
         void fadeOutToBlack(int layer, long ms, Runnable onEnd);
 
         void fadeInFromBlack(int layer, B bitmap, String caption, long ms, Runnable onEnd);
+
+        /** Begins the slow Ken-Burns zoom (plan B7) on {@code layer} over {@code durationMs} (the dwell). Cancels any
+         * zoom already running on that layer first, so a reused layer restarts from the fresh image's base-fit. The
+         * drawable must already be set (via {@link #fadeInFromBlack}). Called when an image becomes current
+         * ({@code showAsCurrent} / {@code onFadeInDone}), aligned with the display timer at each site. */
+        void startKenBurns(int layer, long durationMs);
 
         void clear(int layer);
 
@@ -526,6 +535,9 @@ final class ArtScreensaverView extends FlatFrameLayout {
             curBitmap = bmp;
             showArt(); // onPhase(RENDERING) — owner fades the whole art layer in
             stage.fadeInFromBlack(curLayer, bmp, captionFor(), FADE_IN_MS, null); // inner 0→1 → effective starts ~0
+            // The dwell timer for the first image / post-black-hold recovery starts NOW (concurrent with the fade-in),
+            // so the Ken-Burns zoom is aligned to begin here too (plan B7 — this is the "different start point").
+            stage.startKenBurns(curLayer, ArtPlayback.DISPLAY_MS);
             // Replace the old single-image hold-forever: hold only when the stream is genuinely terminal (nothing more
             // buffered AND nothing more to fetch). For an endless seed-paged stream a fresh seed is always reachable,
             // so this normally starts the dwell timer and keeps paging.
@@ -572,6 +584,9 @@ final class ArtScreensaverView extends FlatFrameLayout {
             if (e != epoch.get() || trans != Trans.FADING_IN) return;
             trans = Trans.NONE;
             startDisplayTimer();
+            // The subsequent-image dwell starts only once the fade-in completes, so the zoom is aligned to begin here
+            // (plan B7). The reused layer's matrix was reset to base-fit when its bitmap was set in fadeInFromBlack.
+            stage.startKenBurns(curLayer, ArtPlayback.DISPLAY_MS);
             scheduleDecode();
             scheduleRefillIfNeeded();
         }
@@ -728,7 +743,9 @@ final class ArtScreensaverView extends FlatFrameLayout {
         LayoutParams full = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         for (int i = 0; i < layers.length; i++) {
             ImageView iv = new ImageView(context);
-            iv.setScaleType(ImageView.ScaleType.FIT_CENTER); // aspect-preserving; Ken-Burns is a later bead
+            // MATRIX (not FIT_CENTER) so the Ken-Burns zoom can drive a per-frame matrix (base-fit + relative zoom,
+            // plan B7). ViewStage sets the base-fit matrix the instant a bitmap is shown, so framing is never lost.
+            iv.setScaleType(ImageView.ScaleType.MATRIX);
             iv.setAlpha(0f);
             layers[i] = iv;
             addView(iv, full);
@@ -754,6 +771,13 @@ final class ArtScreensaverView extends FlatFrameLayout {
     /** The {@link Stage} over the two {@link ImageView}s + the shared caption. Transitions go through black, so only
      * ONE layer is ever visible. Main thread only. */
     private final class ViewStage implements Stage<Bitmap> {
+        /** The per-layer Ken-Burns zoom animator (plan B7). A SEPARATE {@link ValueAnimator} from the view-property
+         * (alpha) animations that {@code cancelAnimations} already handles, so it must be tracked and cancelled
+         * explicitly on every layer-clear / teardown or a cancelled zoom could still touch a recycled bitmap. */
+        private final ValueAnimator[] kenBurns = new ValueAnimator[layers.length];
+        /** A reused per-layer matrix (avoids an allocation per animation frame). */
+        private final Matrix[] matrix = new Matrix[layers.length];
+
         @Override public void fadeOutToBlack(int layer, long ms, Runnable onEnd) {
             caption.animate().alpha(0f).setDuration(ms).start();
             layers[layer].animate().alpha(0f).setDuration(ms).withEndAction(onEnd).start();
@@ -762,6 +786,10 @@ final class ArtScreensaverView extends FlatFrameLayout {
         @Override public void fadeInFromBlack(int layer, Bitmap bitmap, String text, long ms, Runnable onEnd) {
             ImageView in = layers[layer];
             in.setImageBitmap(bitmap);
+            // RESET the reused layer's matrix to the fresh image's base-fit (zoom = 1.0) the instant the bitmap is set,
+            // so a stale matrix from a prior image never flashes during the fade (plan B7). The slow zoom itself is
+            // started later via startKenBurns (aligned with the dwell timer).
+            applyKenBurnsMatrix(layer, KenBurns.ZOOM_START);
             caption.setText(text);
             caption.setVisibility(text == null || text.isEmpty() ? GONE : VISIBLE);
             in.setAlpha(0f);
@@ -771,7 +799,48 @@ final class ArtScreensaverView extends FlatFrameLayout {
             in.animate().alpha(1f).setDuration(ms).withEndAction(onEnd).start();
         }
 
+        @Override public void startKenBurns(int layer, long durationMs) {
+            cancelKenBurns(layer);                       // a reused layer restarts from the fresh image's base-fit
+            applyKenBurnsMatrix(layer, KenBurns.ZOOM_START); // frame 0 immediately (the animator's first tick is deferred)
+            ValueAnimator anim = ValueAnimator.ofFloat(KenBurns.ZOOM_START, KenBurns.ZOOM_END);
+            anim.setDuration(durationMs);
+            anim.addUpdateListener(a -> applyKenBurnsMatrix(layer, (float) a.getAnimatedValue()));
+            kenBurns[layer] = anim;
+            anim.start();
+        }
+
+        /** Builds the base-fit + relative-zoom matrix (centre pivot) for {@code layer}'s current drawable and applies it.
+         * A no-op if the drawable or view has no usable size yet. */
+        private void applyKenBurnsMatrix(int layer, float zoom) {
+            ImageView iv = layers[layer];
+            Drawable d = iv.getDrawable();
+            if (d == null) return;
+            int srcW = d.getIntrinsicWidth();
+            int srcH = d.getIntrinsicHeight();
+            int viewW = iv.getWidth();
+            int viewH = iv.getHeight();
+            float[] m = KenBurns.transformAt(srcW, srcH, viewW, viewH, zoom, viewW / 2f, viewH / 2f);
+            if (m[0] <= 0f) return;                      // no usable size — leave the matrix untouched
+            Matrix mat = matrix[layer];
+            if (mat == null) {
+                mat = new Matrix();
+                matrix[layer] = mat;
+            }
+            mat.setScale(m[0], m[0]);
+            mat.postTranslate(m[1], m[2]);
+            iv.setImageMatrix(mat);
+        }
+
+        private void cancelKenBurns(int layer) {
+            ValueAnimator anim = kenBurns[layer];
+            if (anim != null) {
+                anim.cancel();
+                kenBurns[layer] = null;
+            }
+        }
+
         @Override public void clear(int layer) {
+            cancelKenBurns(layer);                       // cancel the zoom BEFORE the bitmap is cleared/recycled
             layers[layer].setImageDrawable(null);
         }
 
@@ -781,7 +850,10 @@ final class ArtScreensaverView extends FlatFrameLayout {
 
         @Override public void cancelAnimations() {
             caption.animate().cancel();
-            for (ImageView iv : layers) iv.animate().cancel();
+            for (int i = 0; i < layers.length; i++) {
+                layers[i].animate().cancel();
+                cancelKenBurns(i);                       // the alpha-animate().cancel() above does NOT touch this
+            }
         }
 
         @Override public int[] boundsPx() {
