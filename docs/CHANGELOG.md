@@ -2,6 +2,22 @@
 
 Dates are tag dates. SemVer; versionCode = X*1_000_000 + Y*1_000 + Z. `v0.0.1` is a local baseline, not a release.
 
+## v0.6.0 (2026-10-28)
+- ART screensaver reworked onto Wallhaven: a keyless 4K wallpaper source replaces the old art.jmwork.ru feed.
+- Native Ken-Burns slow-zoom for the ART slideshow.
+- Category selection for the Wallhaven source.
+- Voluntary wallhaven.cc attribution overlay (ART variant only).
+- One-time cleanup of the orphaned legacy art-cache directory.
+- Comprehensive offline test coverage for the Wallhaven rework.
+
+## v0.5.0 (2026-10-26)
+- New ART screensaver variant: a curated public-domain painting slideshow with a build-time Wikimedia manifest
+  generator and an owner-vetted set.
+- ART source/cache/manifest layer (`ArtSource`, `ArtCache`, `ArtManifest`, `ArtHosts`) with preset resolution and
+  availability checks.
+- `ScreensaverType.ART` with an `artPreset` setting; settings reordered with a category row and the logo removed.
+- ART playback timing/phase engine and `ArtScreensaverView` with fade-through-black transitions.
+
 ## v0.4.2 (2026-10-24)
 - Brighter focused app-tile glow: the icon-colour halo is rescaled into a clearly bright band instead of a dark one.
 
