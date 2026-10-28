@@ -12,7 +12,7 @@ final class LauncherSettings {
 
     static final LauncherSettings DEFAULTS =
             new LauncherSettings(2, ScreensaverType.STARFIELD, 30, true, "", UiScale.DEFAULT_PERCENT,
-                    PreviewScale.DEFAULT_PERCENT, false, ArtPreset.ALL);
+                    PreviewScale.DEFAULT_PERCENT, false, WallhavenCategory.DEFAULT);
 
     final int screensaverDelayMin;
     final ScreensaverType screensaverType;
@@ -26,14 +26,14 @@ final class LauncherSettings {
     final int previewScalePercent;
     /** Animations switched off (storage only here; behaviour is wired elsewhere). */
     final boolean animationsOff;
-    /** The stored ART preset preference (D1); meaningful only when {@link #screensaverType} is {@link ScreensaverType#ART},
-     * but always held so it survives type cycling. Availability reconciliation happens at render/display time via
-     * {@link ArtPreset#effective} (D11), never here. */
-    final ArtPreset artPreset;
+    /** The stored ART category preference (plan B2); meaningful only when {@link #screensaverType} is
+     * {@link ScreensaverType#ART}, but always held so it survives type cycling. The catalog is static (no
+     * availability gate) — {@link WallhavenCategory#effective} only resolves a legacy/unrecognized stored key. */
+    final WallhavenCategory artPreset;
 
     LauncherSettings(int screensaverDelayMin, ScreensaverType screensaverType, int dimDelaySec,
             boolean vpnButtonVisible, String vpnPackage, int uiScalePercent, int previewScalePercent,
-            boolean animationsOff, ArtPreset artPreset) {
+            boolean animationsOff, WallhavenCategory artPreset) {
         if (indexOf(SCREENSAVER_DELAYS_MIN, screensaverDelayMin) < 0) {
             throw new IllegalArgumentException("screensaver delay: " + screensaverDelayMin);
         }
@@ -75,7 +75,7 @@ final class LauncherSettings {
                 UiScale.fromStored(uiScalePercent),
                 PreviewScale.fromStored(previewScalePercent),
                 animationsOff,
-                ArtPreset.fromKey(artPresetKey));
+                WallhavenCategory.fromKey(artPresetKey));
     }
 
     private static ScreensaverType typeOf(String name) {
@@ -178,9 +178,8 @@ final class LauncherSettings {
                 animationsOff, artPreset);
     }
 
-    /** Persists a newly chosen preset (the only path that persists one — Step 7 cycling calls this; D11's
-     * resolver, not this setter, handles availability reconciliation at render/display time). */
-    LauncherSettings withArtPreset(ArtPreset p) {
+    /** Persists a newly chosen category (the only path that persists one — the settings row's cycling calls this). */
+    LauncherSettings withArtPreset(WallhavenCategory p) {
         return new LauncherSettings(screensaverDelayMin, screensaverType, dimDelaySec, vpnButtonVisible, vpnPackage, uiScalePercent, previewScalePercent,
                 animationsOff, p);
     }

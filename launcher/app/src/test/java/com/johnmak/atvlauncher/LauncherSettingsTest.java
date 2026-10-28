@@ -17,7 +17,7 @@ public class LauncherSettingsTest {
         assertEquals(100, s.uiScalePercent);
         assertEquals(100, s.previewScalePercent);
         assertFalse(s.animationsOff);
-        assertEquals(ArtPreset.ALL, s.artPreset);
+        assertEquals(WallhavenCategory.DEFAULT, s.artPreset);
     }
 
     @Test public void screensaverDelayCyclesThroughOptionsIncludingOffAndWraps() {
@@ -76,7 +76,7 @@ public class LauncherSettingsTest {
         assertEquals("x", video.vpnPackage);
         assertEquals("x", art.vpnPackage);
         assertEquals(2, video.screensaverDelayMin);
-        assertEquals(ArtPreset.ALL, art.artPreset);
+        assertEquals(WallhavenCategory.DEFAULT, art.artPreset);
     }
 
     @Test public void storedValuesOutsideTheOptionsFallBackToDefaults() {
@@ -89,8 +89,8 @@ public class LauncherSettingsTest {
         assertEquals(100, s.uiScalePercent);
         assertEquals(100, s.previewScalePercent);
         assertTrue(s.animationsOff);
-        assertEquals(ArtPreset.ALL, s.artPreset);
-        LauncherSettings ok = LauncherSettings.fromStored(true, 10, "NASA_VIDEO", true, 120, true, "p.q", 85, 130, false, "era_19c");
+        assertEquals(WallhavenCategory.DEFAULT, s.artPreset);
+        LauncherSettings ok = LauncherSettings.fromStored(true, 10, "NASA_VIDEO", true, 120, true, "p.q", 85, 130, false, "landscapes");
         assertEquals(10, ok.screensaverDelayMin);
         assertEquals(120, ok.dimDelaySec);
         assertEquals(LauncherSettings.ScreensaverType.NASA_VIDEO, ok.screensaverType);
@@ -98,12 +98,16 @@ public class LauncherSettingsTest {
         assertEquals(85, ok.uiScalePercent);
         assertEquals(130, ok.previewScalePercent);
         assertFalse(ok.animationsOff);
-        assertEquals(ArtPreset.ERA_19C, ok.artPreset);
-        LauncherSettings artType = LauncherSettings.fromStored(true, 5, "ART", true, 60, true, "", 100, 100, false, "avantgarde");
+        assertEquals(WallhavenCategory.LANDSCAPES, ok.artPreset);
+        LauncherSettings artType = LauncherSettings.fromStored(true, 5, "ART", true, 60, true, "", 100, 100, false, "abstract");
         assertEquals(LauncherSettings.ScreensaverType.ART, artType.screensaverType);
-        assertEquals(ArtPreset.AVANTGARDE, artType.artPreset);
+        assertEquals(WallhavenCategory.ABSTRACT, artType.artPreset);
+        // a key from the old ArtPreset scheme (pre-cutover) must not crash — it resolves to the new default (plan
+        // B2's legacy-key fallback, now living on WallhavenCategory instead of ArtPreset).
+        LauncherSettings legacyKey = LauncherSettings.fromStored(true, 5, "ART", true, 60, true, "", 100, 100, false, "avantgarde");
+        assertEquals(WallhavenCategory.DEFAULT, legacyKey.artPreset);
         LauncherSettings nullKey = LauncherSettings.fromStored(true, 5, "STARFIELD", true, 60, true, "", 100, 100, false, null);
-        assertEquals(ArtPreset.ALL, nullKey.artPreset);
+        assertEquals(WallhavenCategory.DEFAULT, nullKey.artPreset);
     }
 
     @Test public void legacyEnabledFlagsMigrateToDelayZero() {
@@ -130,26 +134,26 @@ public class LauncherSettingsTest {
         assertEquals(0L, newOff.screensaverDelayMillis());
     }
 
-    @Test public void artPresetRoundTripsThroughFromStoredForEveryPresetKey() {
-        for (ArtPreset p : ArtPreset.values()) {
-            LauncherSettings s = LauncherSettings.fromStored(true, 2, "ART", true, 30, true, "", 100, 100, false, p.key);
-            assertEquals(p, s.artPreset);
+    @Test public void artPresetRoundTripsThroughFromStoredForEveryCategoryKey() {
+        for (WallhavenCategory c : WallhavenCategory.values()) {
+            LauncherSettings s = LauncherSettings.fromStored(true, 2, "ART", true, 30, true, "", 100, 100, false, c.key);
+            assertEquals(c, s.artPreset);
         }
     }
 
     @Test public void withArtPresetPersistsTheChosenPresetAndKeepsTheRest() {
         LauncherSettings s = LauncherSettings.DEFAULTS.withVpnPackage("x").nextScreensaverType().nextScreensaverType();
         assertEquals(LauncherSettings.ScreensaverType.ART, s.screensaverType);
-        assertEquals(ArtPreset.ALL, s.artPreset);
-        LauncherSettings withPreset = s.withArtPreset(ArtPreset.PEREDVIZHNIKI);
-        assertEquals(ArtPreset.PEREDVIZHNIKI, withPreset.artPreset);
+        assertEquals(WallhavenCategory.DEFAULT, s.artPreset);
+        LauncherSettings withPreset = s.withArtPreset(WallhavenCategory.CITY);
+        assertEquals(WallhavenCategory.CITY, withPreset.artPreset);
         assertEquals(LauncherSettings.ScreensaverType.ART, withPreset.screensaverType);
         assertEquals("x", withPreset.vpnPackage);
-        // an unrelated-setting change and a type cycle both keep the chosen preset untouched
+        // an unrelated-setting change and a type cycle both keep the chosen category untouched
         LauncherSettings afterUnrelated = withPreset.withAnimationsOff(true).nextDimDelay();
-        assertEquals(ArtPreset.PEREDVIZHNIKI, afterUnrelated.artPreset);
+        assertEquals(WallhavenCategory.CITY, afterUnrelated.artPreset);
         LauncherSettings afterTypeCycle = withPreset.nextScreensaverType().prevScreensaverType();
-        assertEquals(ArtPreset.PEREDVIZHNIKI, afterTypeCycle.artPreset);
+        assertEquals(WallhavenCategory.CITY, afterTypeCycle.artPreset);
     }
 
     @Test public void constructorRejectsANullArtPreset() {
@@ -163,7 +167,7 @@ public class LauncherSettingsTest {
 
     @Test public void constructorRejectsUnknownDelays() {
         try {
-            new LauncherSettings(4, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 100, 100, false, ArtPreset.ALL);
+            new LauncherSettings(4, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 100, 100, false, WallhavenCategory.DEFAULT);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
@@ -188,7 +192,7 @@ public class LauncherSettingsTest {
 
     @Test public void constructorRejectsAScaleOutsideTheList() {
         try {
-            new LauncherSettings(2, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 101, 100, false, ArtPreset.ALL);
+            new LauncherSettings(2, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 101, 100, false, WallhavenCategory.DEFAULT);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok
@@ -216,7 +220,7 @@ public class LauncherSettingsTest {
 
     @Test public void constructorRejectsAPreviewScaleOutsideTheList() {
         try {
-            new LauncherSettings(2, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 100, 105, false, ArtPreset.ALL);
+            new LauncherSettings(2, LauncherSettings.ScreensaverType.STARFIELD, 30, true, "", 100, 105, false, WallhavenCategory.DEFAULT);
             fail();
         } catch (IllegalArgumentException expected) {
             // ok

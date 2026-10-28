@@ -669,28 +669,36 @@ final class ArtScreensaverView extends FlatFrameLayout {
     // ---- production wiring (Android) ----------------------------------------------------------
 
     /** The production pipeline: each session gets its OWN {@link WallhavenSource} (fetch scope) so cancelling /
-     * retiring one session never touches another and its stuck fetch exits fast. */
+     * retiring one session never touches another and its stuck fetch exits fast. {@code query} is the resolved
+     * {@link WallhavenCategory#query} (plan B2, bead j9m) — fixed for the lifetime of this view/Dream activation,
+     * same as the old {@code storedPresetKey} was. */
     private static final class WallhavenPipeline implements Pipeline<Bitmap> {
-        WallhavenPipeline() {}
+        private final String query;
+
+        WallhavenPipeline(String query) {
+            this.query = query;
+        }
 
         @Override public Session<Bitmap> open() {
             // ACTIVE fetches keep the default 30s deadline; the short bound applies only on retire (cancel()).
-            return new WallhavenSession(new WallhavenSource(HttpText.USER_AGENT));
+            return new WallhavenSession(new WallhavenSource(HttpText.USER_AGENT), query);
         }
     }
 
-    /** One fetch session over a dedicated {@link WallhavenSource}: {@code page} is the keyless search; {@code fetch}
-     * yields the bounded in-memory image bytes; {@code decode} allocates the bitmap; {@code cancel} is a bounded shutdown. */
+    /** One fetch session over a dedicated {@link WallhavenSource}: {@code page} is the keyless search (carrying the
+     * category's {@code q=} tag); {@code fetch} yields the bounded in-memory image bytes; {@code decode} allocates
+     * the bitmap; {@code cancel} is a bounded shutdown. */
     private static final class WallhavenSession implements Session<Bitmap> {
         private final WallhavenSource source;
+        private final String query;
 
-        WallhavenSession(WallhavenSource source) {
+        WallhavenSession(WallhavenSource source, String query) {
             this.source = source;
+            this.query = query;
         }
 
         @Override public FetchResult<WallhavenSearch.Page> page(String seed, int page) {
-            // Preset → Wallhaven q= tag mapping is a later bead (plan B2 / step 5); for now only the fixed SFW defaults.
-            return source.search(null, seed, page);
+            return source.search(query, seed, page);
         }
 
         @Override public FetchResult<Object> fetch(WallhavenImage image) {
@@ -733,9 +741,10 @@ final class ArtScreensaverView extends FlatFrameLayout {
     private boolean sized;
     private boolean aggregateVisible;
 
-    /** @param storedPresetKey the persisted category preset; NOT yet translated to a Wallhaven {@code q=} tag (that
-     * mapping is a later bead), so it is currently informational only. @param worker shared pool and @param bitmapBudget
-     * shared budget are owned by the {@code Screensaver} and shared across ALL views/activations. */
+    /** @param storedPresetKey the persisted {@link WallhavenCategory} key (legacy/unrecognized keys resolve to
+     * {@link WallhavenCategory#DEFAULT} via {@link WallhavenCategory#effective}); resolved once here into the
+     * {@code q=} tag every search page for this session's lifetime carries. @param worker shared pool and
+     * @param bitmapBudget shared budget are owned by the {@code Screensaver} and shared across ALL views/activations. */
     ArtScreensaverView(Context context, String storedPresetKey, Executor worker, Semaphore bitmapBudget,
             PhaseListener listener) {
         super(context);
@@ -757,7 +766,8 @@ final class ArtScreensaverView extends FlatFrameLayout {
         captionLp.gravity = Gravity.BOTTOM | Gravity.START;
         addView(caption, captionLp);
 
-        Pipeline<Bitmap> pipeline = new WallhavenPipeline();
+        String query = WallhavenCategory.effective(storedPresetKey).query;
+        Pipeline<Bitmap> pipeline = new WallhavenPipeline(query);
         Main main = new Main() {
             private final Handler handler = new Handler(Looper.getMainLooper());
             @Override public boolean post(Runnable r) { return handler.post(r); }

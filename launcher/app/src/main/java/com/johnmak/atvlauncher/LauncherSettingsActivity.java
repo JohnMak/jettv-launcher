@@ -26,7 +26,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -161,20 +160,6 @@ public final class LauncherSettingsActivity extends Activity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
 
-    // ---- ART catalog (Заставка tab, «Категория» row) ----
-    private ArtSource artSource;
-    /** The presets offered for this Activity session: null while the catalog loads, non-null (possibly empty) once loaded. */
-    private List<ArtPreset> artAvailable;
-    /** Single-flight guard: the catalog loads at most once per session; a result (even an empty one) is then reused. */
-    private boolean artLoadInFlight;
-    /** Index of the ART category row in {@link #rows}, or -1 when absent. Reset by {@link #clearRows()} on every rebuild
-     * and re-derived per build — this is the generation guard: a load completing after a rebuild finds either the
-     * current category row or -1, never a stale index. */
-    private int artCategoryRow = -1;
-    /** A dedicated executor for the (up to {@link ArtSource#REQUEST_DEADLINE_MS}) catalog load, so it never stalls the
-     * interactive {@link #worker} (city detect / search / rights). */
-    private final ExecutorService artWorker = Executors.newSingleThreadExecutor();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -261,10 +246,6 @@ public final class LauncherSettingsActivity extends Activity {
     protected void onDestroy() {
         main.removeCallbacksAndMessages(null);
         worker.shutdownNow();
-        // shutdown() aborts a blocked catalog fetch (so artWorker can unblock and die) AND disposes the source's
-        // watchdog executor, so no art-watchdog thread outlives this settings session.
-        if (artSource != null) artSource.shutdown();
-        artWorker.shutdownNow();
         super.onDestroy();
     }
 
@@ -373,7 +354,6 @@ public final class LauncherSettingsActivity extends Activity {
         videoNote = addNote(getString(R.string.settings_screensaver_hint));
         if (settings.screensaverType == LauncherSettings.ScreensaverType.ART) {
             addArtCategoryRow();
-            triggerCatalogLoad();
         }
         addRow(R.string.settings_screensaver_delay,
                 () -> delayText(settings.screensaverDelayMin, R.string.settings_minutes), null,
@@ -382,12 +362,11 @@ public final class LauncherSettingsActivity extends Activity {
         updateVideoNote();
     }
 
-    /** The «Категория» row: cycles the available presets only, and only once the catalog has loaded (see {@link #artCyclingEnabled()}). */
+    /** The «Категория» row: cycles the static {@link WallhavenCategory} list — always cyclable, no loading/empty
+     * gate (plan B2: the catalog is fixed at compile time, no network/disk load). */
     private void addArtCategoryRow() {
-        artCategoryRow = rows.size();
         addRow(R.string.settings_art_category, this::artCategoryText, null,
-                () -> cycleArtPreset(-1), () -> cycleArtPreset(1))
-                .cyclable(this::artCyclingEnabled);
+                () -> cycleArtPreset(-1), () -> cycleArtPreset(1));
     }
 
     private void buildOptimization() {
@@ -432,7 +411,6 @@ public final class LauncherSettingsActivity extends Activity {
 
     private void clearRows() {
         videoNote = null;
-        artCategoryRow = -1;
         topRows.clear();
         topList.removeAllViews();
         rows.clear();
@@ -617,9 +595,8 @@ public final class LauncherSettingsActivity extends Activity {
 
     /**
      * The note directly under the type row (named {@code updateVideoNote} historically; now covers every type): the
-     * generic screensaver hint for STARFIELD; the NASA streaming credit for NASA_VIDEO; and for ART the loading hint
-     * while the catalog loads, the unavailable hint when no paintings are available (empty pool / host unreachable),
-     * or the generic hint once a nonempty catalog is loaded.
+     * generic screensaver hint for STARFIELD and ART alike (the ART category list is static — no loading/unavailable
+     * state to report); the NASA streaming credit for NASA_VIDEO.
      */
     private void updateVideoNote() {
         if (videoNote == null || page != Page.MAIN) return;
@@ -627,85 +604,33 @@ public final class LauncherSettingsActivity extends Activity {
             case NASA_VIDEO:
                 videoNote.setText(getString(R.string.settings_video_credit, getString(R.string.nasa_credit)));
                 break;
-            case ART:
-                videoNote.setText(artNoteRes());
-                break;
             default:
                 videoNote.setText(R.string.settings_screensaver_hint);
                 break;
         }
     }
 
-    /** The ART note string resource by catalog state: loading → unavailable → generic. */
-    private int artNoteRes() {
-        if (artAvailable == null) return R.string.settings_art_loading_hint;
-        if (artAvailable.isEmpty()) return R.string.settings_art_empty_hint;
-        return R.string.settings_screensaver_hint;
-    }
-
     // ---- ART category row ----
 
     private String artCategoryText() {
-        return getString(presetLabelRes(ArtPreset.effective(settings.artPreset.key, artAvailableOrEmpty())));
+        return getString(categoryLabelRes(WallhavenCategory.effective(settings.artPreset.key)));
     }
 
-    private static int presetLabelRes(ArtPreset preset) {
-        switch (preset) {
-            case PEREDVIZHNIKI: return R.string.settings_art_peredvizhniki;
-            case ERA_19C: return R.string.settings_art_era_19c;
-            case AVANTGARDE: return R.string.settings_art_avantgarde;
-            default: return R.string.settings_art_all;
+    private static int categoryLabelRes(WallhavenCategory category) {
+        switch (category) {
+            case LANDSCAPES: return R.string.settings_art_landscapes;
+            case SPACE_SKY: return R.string.settings_art_space_sky;
+            case CITY: return R.string.settings_art_city;
+            case ABSTRACT: return R.string.settings_art_abstract;
+            case MINIMAL: return R.string.settings_art_minimal;
+            default: return R.string.settings_art_nature;
         }
     }
 
-    /** Cycling is enabled only once a catalog with at least two available presets has loaded. */
-    private boolean artCyclingEnabled() {
-        return artAvailable != null && artAvailable.size() >= 2;
-    }
-
-    private List<ArtPreset> artAvailableOrEmpty() {
-        return artAvailable == null ? Collections.emptyList() : artAvailable;
-    }
-
     private void cycleArtPreset(int step) {
-        if (!artCyclingEnabled()) return; // disabled while loading / when unavailable
-        ArtPreset current = ArtPreset.effective(settings.artPreset.key, artAvailable);
-        ArtPreset next = ArtPreset.cycle(artAvailable, current, step);
-        if (next != current) change(settings.withArtPreset(next)); // the only path that persists a preset
-    }
-
-    /**
-     * Loads the catalog on {@link #artWorker} (never the UI thread) and lands the result on the main thread. Single-flight
-     * and cached for the session: the manifest fetch can take up to {@link ArtSource#REQUEST_DEADLINE_MS}, and re-loading
-     * on every rebuild would flicker the row back to the loading state and re-hit the network — so a result (even an empty
-     * one from an unreachable host) is loaded once and reused across rebuilds.
-     */
-    private void triggerCatalogLoad() {
-        if (artAvailable != null || artLoadInFlight) return;
-        artLoadInFlight = true;
-        ArtSource source = artSource();
-        artWorker.execute(() -> {
-            FetchResult<ArtManifest> r = source.manifest();
-            List<ArtPreset> available = r.isOk() ? r.value().availablePresets() : Collections.emptyList();
-            main.post(() -> {
-                if (isDestroyed()) return;
-                artLoadInFlight = false;
-                artAvailable = available;
-                refreshArtCategory();
-            });
-        });
-    }
-
-    /** Reflects a freshly loaded catalog on the category row and its note, when that row is the one currently shown. */
-    private void refreshArtCategory() {
-        if (page != Page.MAIN || artCategoryRow < 0 || artCategoryRow >= rows.size()) return;
-        rows.get(artCategoryRow).refresh(nav.zone == Zone.LIST && artCategoryRow == nav.row);
-        updateVideoNote();
-    }
-
-    private ArtSource artSource() {
-        if (artSource == null) artSource = new ArtSource(new ArtCache(getFilesDir()), HttpText.USER_AGENT);
-        return artSource;
+        WallhavenCategory current = WallhavenCategory.effective(settings.artPreset.key);
+        WallhavenCategory next = WallhavenCategory.cycle(current, step);
+        if (next != current) change(settings.withArtPreset(next)); // the only path that persists a category
     }
 
     private String vpnButtonText() {
